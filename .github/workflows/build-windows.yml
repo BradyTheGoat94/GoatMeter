@@ -59,6 +59,30 @@ jobs:
           if (!(Test-Path dist/GoatMeter-Setup.exe)) { throw "Installer missing" }
           Compress-Archive -Path publish/* -DestinationPath dist/GoatMeter-win-x64.zip
           Get-FileHash dist/GoatMeter-Setup.exe, dist/GoatMeter-win-x64.zip -Algorithm SHA256 | ForEach-Object { "$($_.Hash.ToLower())  $([IO.Path]::GetFileName($_.Path))" } | Set-Content dist/SHA256SUMS.txt
+      - name: Verify distribution archives and checksums
+        shell: pwsh
+        run: |
+          $zip = "dist/GoatMeter-win-x64.zip"
+          $setup = "dist/GoatMeter-Setup.exe"
+          $manifest = "dist/SHA256SUMS.txt"
+          foreach ($file in @($zip, $setup, $manifest)) {
+            if (!(Test-Path $file) -or (Get-Item $file).Length -eq 0) { throw "Missing or empty distribution file: $file" }
+          }
+          Add-Type -AssemblyName System.IO.Compression
+          $archive = [IO.Compression.ZipFile]::OpenRead((Resolve-Path $zip).Path)
+          try {
+            if (!($archive.Entries | Where-Object { $_.FullName -eq 'GoatMeter.exe' })) {
+              throw "Portable archive does not contain GoatMeter.exe"
+            }
+          } finally { $archive.Dispose() }
+          $lines = Get-Content $manifest
+          foreach ($file in @($setup, $zip)) {
+            $name = [IO.Path]::GetFileName($file)
+            $actual = (Get-FileHash $file -Algorithm SHA256).Hash.ToLowerInvariant()
+            if (!($lines | Where-Object { $_ -eq "$actual  $name" })) {
+              throw "Checksum mismatch for $name"
+            }
+          }
       - name: Upload installer
         uses: actions/upload-artifact@v4
         with:
