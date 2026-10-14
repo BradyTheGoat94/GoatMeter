@@ -1,6 +1,6 @@
 # Overlay data research — 2026-10-14
 
-The Encounter Focus preset is implemented separately from Modern Glass. It uses existing combat snapshots; schedules, spawn alerts and GS/CP are not yet enabled.
+The Encounter Focus preset is implemented separately from Modern Glass. It uses existing combat snapshots. A separate event countdown window now supports source-labeled community rift schedule estimates and import; confirmed live spawn alerts and GS/CP remain pending.
 
 ## Public projects inspected
 
@@ -22,3 +22,9 @@ The Encounter Focus preset is implemented separately from Modern Glass. It uses 
 GoatMeter now records up to 12 `featureCandidate` samples per dispatcher for the two candidate opcode families, up to 32 KiB per frame. Oversized frames omit raw bytes. Samples are labeled unverified and never alter combat totals or create spawn/score events. Existing logging stays local.
 
 For the next validation session: use this testing build; join/reform a party, open the in-game field-boss list, open your character sheet and inspect a party member. Retain the combat validation log and screenshots of the displayed scores/countdowns with timestamps. Confirm the Global region/server; user-local time alone does not establish server schedule time.
+
+## Rift imports
+
+Public reports currently conflict. Independently represented schedule facts (no external application code or schedule asset copied) are bundled as three distinct estimates: Global UTC 00:00 +3h (problem-xyz schedule snapshot 4c8d0eb, updated October 12), UTC+9 00:00 +3h (Metabot client-data report), and UTC+9 02:00 +3h (aion2rifttimer community report). Each has a 10-minute estimated entry window. Shugo hourly reminders use a three-minute estimated signup window as in the user's reference; this is editable and is not confirmed server state. All countdowns are visibly labeled estimates. No remote fetch, schedule execution, uploads or automatic game input is added. Imports accept only bounded JSON with named sources, timezones and valid daily times.
+
+A public Altgard field-boss-list capture dated October 6 is present in cyberbadger6969's ProtocolTests.cs. This can validate field layouts offline; it cannot establish today's server state. Their GearTests.cs fixtures are synthetic constructions of the reported roster layout, not independent current gameplay capture.

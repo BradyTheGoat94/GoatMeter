@@ -23,6 +23,7 @@ public partial class OverlayWindow : Window
     int historyRequest;
     bool clickThrough;
     bool positionLocked;
+    EventTimersWindow? eventTimers;
     bool showDetails = true;
     public OverlayWindow() { InitializeComponent(); CategoryPicker.ItemsSource=new[]{"Damage","Healing","Damage Taken","Deaths","Buffs","Debuffs","Interrupts","Dispels"}; CategoryPicker.SelectedIndex=0; FightHistory.ItemsSource=new[]{new HistoryChoice("Saved fights ▾",null)}; FightHistory.SelectedIndex=0; ApplyTheme(currentTheme); ApplyOverlayStyle(currentStyle); LoadPreferences(); }
     static readonly Dictionary<string,string> Colors = new(StringComparer.OrdinalIgnoreCase) {
@@ -41,7 +42,7 @@ public partial class OverlayWindow : Window
         selectedActor=(Rows.SelectedItem as Row)?.Stats.ActorId??selectedActor;
         last=s; PreviewBadge.Visibility=s.PreviewMode?Visibility.Visible:Visibility.Collapsed;
         Timer.Text=TimeSpan.FromSeconds(s.FightSeconds).ToString(@"mm\:ss"); GroupDps.Text=$"GROUP {F(s.Players.Sum(p=>p.Dps))} {s.MetricLabel}";
-        BossHp.Value=s.Target?.Percent??0; TargetName.Text=s.Target?.Name??"No target";
+        BossHp.Value=s.Target?.Percent??0; BossHp.Visibility=s.Target?.MaxHp>0?Visibility.Visible:Visibility.Collapsed; TargetName.Text=s.Target?.Name??"No target";
         EncounterTarget.Text=s.Target?.Name??(s.Players.Count>0?"Combat encounter":"Waiting for combat");
         var segmentLabel=historicalSnapshot!=null?"SAVED FIGHT":Segment.SelectedIndex==2?"OVERALL":Segment.SelectedIndex==1?"PREVIOUS FIGHT":"CURRENT FIGHT";
         EncounterContext.Text=$"{segmentLabel} • {s.Players.Count} PLAYERS"+(s.Target?.MaxHp>0?$" • HP {s.Target.Percent:0.0}%":"");
@@ -50,9 +51,9 @@ public partial class OverlayWindow : Window
         EncounterTime.Text=Timer.Text; EncounterRate.Text=GroupDps.Text;
         EncounterTotalLabel.Text=category==MeterCategory.Healing?"HEALING":category is MeterCategory.Damage or MeterCategory.DamageTaken?"DAMAGE":category is MeterCategory.Buffs or MeterCategory.Debuffs?"SECONDS":"COUNT";
         EncounterRateLabel.Text=s.MetricLabel;
-        TargetHp.Text=s.Target is null?"":$"{s.Target.Percent:0.0}%   {F(s.Target.CurrentHp)} / {F(s.Target.MaxHp)}";
-        StatusText.ToolTip="Verified against regression tests, reviewed captures and observed dungeon runs. Exact party totals have not been independently compared.";
-        StatusText.Text=s.PreviewMode?"SIMULATED DATA":$"{(s.InFight?"CURRENT":"COMPLETED")} • VERIFIED";
+        TargetHp.Text=s.Target is null?"":s.Target.MaxHp<=0?"HP unavailable":$"{s.Target.Percent:0.0}%   {F(s.Target.CurrentHp)} / {F(s.Target.MaxHp)}";
+        StatusText.ToolTip="Captured combat data. Regression checks validate supported fields; live totals still depend on the packets received.";
+        StatusText.Text=s.PreviewMode?"SIMULATED DATA":s.Players.Count==0?"WAITING FOR COMBAT":$"{(s.InFight?"CURRENT":"COMPLETED")} • CAPTURED";
         ResetCurrentFight.IsEnabled=Engine!=null;
         var max=Math.Max(1,s.Players.FirstOrDefault()?.Dps??1);
         Rows.ItemsSource=s.Players.Select((p,i)=>new Row(i+1,p.Name,p.ClassName,F(p.Dps),F(p.Damage),$"{p.Share:0.0}%",Brush(p.ClassName),Math.Max(0,150*p.Dps/max),Math.Clamp(100*p.Dps/max,0,100),p)).ToList();
@@ -224,6 +225,12 @@ public partial class OverlayWindow : Window
         Segment.SelectedIndex=(int)MeterSegment.Current;
         Engine.ResetFight();
         Render(Engine.Snapshot(MeterSegment.Current,(MeterCategory)Math.Clamp(Tabs.SelectedIndex,0,7)));
+    }
+
+    void OpenEventTimers(object sender,RoutedEventArgs e)
+    {
+        if(eventTimers==null){eventTimers=new EventTimersWindow {Owner=this};eventTimers.Closed+=(_,_)=>eventTimers=null;}
+        if(!eventTimers.IsVisible)eventTimers.Show();eventTimers.Activate();
     }
 
     void TogglePositionLock(object sender,RoutedEventArgs e)

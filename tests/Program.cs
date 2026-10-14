@@ -110,4 +110,24 @@ reportEngine.ResetFight();reportEngine.Apply(Hit(10,1,999));Equal(reportEngine.S
 True(PublicGameData.EnglishTargetLabel("Training Scarecrow")=="Training Scarecrow","English target label preserved");
 True(PublicGameData.EnglishTargetLabel("노인 주민")==null,"untranslated Korean NPC falls back to English target label");
 True(PublicGameData.EnglishTargetLabel("Boss 마족")==null,"mixed language target label rejected");
+var timerProfile=new Aion2DPSPro.Schedules.ScheduleProfile("test","UTC test","UTC","test fixture","2026-10-14",new[]{new Aion2DPSPro.Schedules.ScheduleEvent("rift","Spacetime Rift",new[]{0,3,6,9,12,15,18,21},0,10)});
+var timerNow=new DateTimeOffset(2026,10,14,2,59,59,TimeSpan.Zero);
+var nextRift=Aion2DPSPro.Schedules.EventSchedule.Evaluate(timerProfile,timerNow).Single();
+Equal(nextRift.Remaining(timerNow).TotalSeconds,1,"rift countdown to next opening");
+var openRift=Aion2DPSPro.Schedules.EventSchedule.Evaluate(timerProfile,timerNow.AddSeconds(1)).Single();
+True(openRift.InEntryWindow,"scheduled entry begins at boundary");Equal(openRift.Remaining(timerNow.AddSeconds(1)).TotalMinutes,10,"rift entry duration");
+True(!Aion2DPSPro.Schedules.EventSchedule.Evaluate(timerProfile,new DateTimeOffset(2026,10,14,3,10,0,TimeSpan.Zero)).Single().InEntryWindow,"entry end is exclusive");
+Equal(Aion2DPSPro.Schedules.EventSchedule.Evaluate(timerProfile,new DateTimeOffset(2026,10,14,23,59,0,TimeSpan.Zero)).Single().Start.Hour,0,"rift rolls into tomorrow");
+var dst=timerProfile with {TimeZoneId="America/New_York",Events=new[]{new Aion2DPSPro.Schedules.ScheduleEvent("dst","DST test",new[]{2},30,10)}};
+var afterGap=Aion2DPSPro.Schedules.EventSchedule.Evaluate(dst,new DateTimeOffset(2026,3,8,6,59,0,TimeSpan.Zero)).Single();
+Equal(afterGap.Start.Day,9,"nonexistent DST opening skipped");
+var repeated=dst with {Events=new[]{new Aion2DPSPro.Schedules.ScheduleEvent("dst","DST test",new[]{1},30,60)}};
+var fallNow=new DateTimeOffset(2026,11,1,6,45,0,TimeSpan.Zero);
+var fall=Aion2DPSPro.Schedules.EventSchedule.Evaluate(repeated,fallNow).Single();True(fall.InEntryWindow,"fall DST repeated opening supported");Equal(fall.Start.Hour,6,"fall uses latest active occurrence");
+var imported=Aion2DPSPro.Schedules.EventSchedule.Load("src/Schedules/global-community.json");Equal(imported.Length,3,"three source-labeled schedule candidates import");
+var badSchedule=Path.Combine(Path.GetTempPath(),Guid.NewGuid()+".json");try{
+ File.WriteAllText(badSchedule,System.Text.Json.JsonSerializer.Serialize(new[]{timerProfile with {Events=new[]{new Aion2DPSPro.Schedules.ScheduleEvent("bad","Bad",new[]{24},0,10)}}}));
+ bool rejected=false;try{Aion2DPSPro.Schedules.EventSchedule.Load(badSchedule);}catch(InvalidDataException){rejected=true;}True(rejected,"invalid imported hour rejected");
+ File.WriteAllText(badSchedule,"[null]");rejected=false;try{Aion2DPSPro.Schedules.EventSchedule.Load(badSchedule);}catch(InvalidDataException){rejected=true;}True(rejected,"null imported profile rejected");
+}finally{File.Delete(badSchedule);}
 Console.WriteLine($"PASS: {checks} regression assertions");

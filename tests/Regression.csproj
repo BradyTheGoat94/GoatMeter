@@ -4,6 +4,7 @@
   <Compile Remove="OverlaySmoke/**/*.cs"/>
   <Compile Remove="PacketDispatcherRegressionTests.cs"/>
   <Compile Include="../src/Capture/CaptureIdentityBridge.cs" Link="CaptureIdentityBridge.cs"/>
+  <Compile Include="../src/Schedules/EventSchedule.cs" Link="EventSchedule.cs"/>
   <Compile Include="../src/Model.cs" Link="Model.cs"/>
   <Compile Include="../src/Core/CombatEngine.cs" Link="CombatEngine.cs"/>
   <Compile Include="../src/Protocol/*.cs" Link="Protocol/%(Filename)%(Extension)"/>

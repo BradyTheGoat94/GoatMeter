@@ -127,6 +127,7 @@ internal static class Program
   window.Render(previewEngine.Snapshot(MeterSegment.Current,MeterCategory.Healing));
   if(((TextBlock)window.FindName("EncounterRateLabel")).Text!="HPS" || ((TextBlock)window.FindName("EncounterTotalLabel")).Text!="HEALING")throw new Exception("Encounter columns did not follow category");
   if(((FrameworkElement)window.FindName("EncounterHp")).Visibility!=Visibility.Collapsed)throw new Exception("Unknown target HP should be hidden");
+  if(((FrameworkElement)window.FindName("BossHp")).Visibility!=Visibility.Collapsed || ((TextBlock)window.FindName("TargetHp")).Text!="HP unavailable")throw new Exception("Unknown HP falsely displayed zero");
   Console.WriteLine("PASS: encounter focus columns, position lock, quick opacity and unknown HP");
   Invoke("ApplyOverlayStyle","Kagerou Inspired");
   if(((FrameworkElement)window.FindName("EncounterControls")).Visibility!=Visibility.Collapsed)throw new Exception("Preset switch left encounter controls visible");
@@ -135,6 +136,15 @@ internal static class Program
   window.Render(previewEngine.Snapshot(MeterSegment.Current,MeterCategory.Healing));
   if(rows.Items.Count!=0)throw new Exception("Compact healing view reused damage");
   Console.WriteLine("PASS: distinct responsive meter designs, party rows and compact category selection");
+  var eventWindow=new EventTimersWindow {Owner=window,Clock=()=>new DateTimeOffset(2026,10,14,2,59,0,TimeSpan.Zero)};
+  eventWindow.Show();eventWindow.Refresh();eventWindow.UpdateLayout();
+  var eventItems=(ItemsControl)eventWindow.FindName("EventRows");
+  if(eventItems.Items.Count!=2)throw new Exception("Imported rift/festival timers missing");
+  if(!((TextBlock)eventWindow.FindName("SourceNote")).Text.Contains("Community estimate"))throw new Exception("Schedule uncertainty label missing");
+  var eventBitmap=new System.Windows.Media.Imaging.RenderTargetBitmap((int)eventWindow.ActualWidth,(int)eventWindow.ActualHeight,96,96,PixelFormats.Pbgra32);eventBitmap.Render(eventWindow);
+  var eventPng=new System.Windows.Media.Imaging.PngBitmapEncoder();eventPng.Frames.Add(System.Windows.Media.Imaging.BitmapFrame.Create(eventBitmap));
+  using(var output=System.IO.File.Create("overlay-Event-Countdowns.png"))eventPng.Save(output);
+  eventWindow.Close();Console.WriteLine("PASS: imported event countdown window");
   window.Close();Console.WriteLine("PASS: WPF themes, styles, segment/category switching");app.Shutdown();
  }
 }

@@ -13,6 +13,11 @@ Requires Npcap on the test PC. The application observes TCP/13328 passively and 
 See [accuracy and reliability status](docs/accuracy-reliability.md) for implemented features, timing rules, validation commands and remaining live-protocol work.
 
 
+## Event and Spacetime Rift countdowns
+Click **◷** in the overlay header for a separate countdown window. It includes Spacetime Rift entry-window countdowns and hourly Shugo Festival planning reminders, plus JSON schedule import. Each profile shows its timezone, source and review date. The selected profile and imported schedules are saved locally.
+
+Global public reports disagree about rift opening anchors and server clocks. Three explicitly labeled community estimates are bundled (UTC 00:00 cycle, UTC+9 00:00 client-data report, UTC+9 02:00 cycle); the initial profile is the UTC estimate, not an inferred player region. Scheduled windows are calculations, not live opening confirmations. Entry windows and times can be corrected by importing a validated profile. Game notices take priority. This feature performs no network polling and sends no game packets.
+
 ## Overlay designs
 Choose **Encounter Focus** for a large target name and encounter timer, aligned total/share/rate columns, thin class-colored ranking bars, a position/size lock, and a quick opacity slider. Columns follow the selected category (including Healing/HPS). The target HP bar appears only when maximum HP is known. Share means contribution to the selected category total, not boss-only damage. Position locking is also available in settings and is preserved between sessions.
 
