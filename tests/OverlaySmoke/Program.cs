@@ -20,7 +20,8 @@ internal static class Program
    string color=((SolidColorBrush)((Border)window.FindName("Root")).Background).Color.ToString();
    if(color==previous)throw new Exception($"Theme did not change: {theme}");previous=color;
   }
-  foreach(var style in new[]{"Modern Glass","Details Inspired","Kagerou Inspired","Bars Only","Raid Compact","Glass Cards","Tournament","Classic Dashboard"})Invoke("ApplyOverlayStyle",style);
+  foreach(var style in new[]{"Encounter Focus","Modern Glass","Details Inspired","Kagerou Inspired","Bars Only","Raid Compact","Glass Cards","Tournament","Classic Dashboard"})Invoke("ApplyOverlayStyle",style);
+  if(((FrameworkElement)window.FindName("EncounterSummary")).Visibility!=Visibility.Collapsed)throw new Exception("Classic did not hide encounter header");
   if(((FrameworkElement)window.FindName("ToolbarGrid")).Visibility!=Visibility.Visible)throw new Exception("Classic did not restore toolbar");
   var t=DateTime.UtcNow;var engine=new CombatEngine(()=>t);
   engine.Apply(new(t,CombatKind.PlayerName,1,"Player",SourceClass:"Templar"));
@@ -93,7 +94,7 @@ internal static class Program
   report.Close();
   Console.WriteLine("PASS: modern report data, categories, targets, live refresh and pause");
   window.SnapshotProvider=null;
-  var previewEngine=new CombatEngine(()=>t.AddSeconds(25)) {PreviewMode=true};
+  var previewEngine=new CombatEngine(()=>t.AddSeconds(25)) {PreviewMode=true,InactivityTimeout=TimeSpan.FromSeconds(60),BossInactivityTimeout=TimeSpan.FromSeconds(60)};
   string[] classes={"Templar","Sorcerer","Assassin","Ranger","Spiritmaster","Gladiator","Cleric","Chanter"};
   for(int i=0;i<classes.Length;i++) {
    string playerName=i==0?"TestHero":"Party member "+(i+1);
@@ -104,8 +105,8 @@ internal static class Program
   tabs.SelectedIndex=0;segment.SelectedIndex=0;Invoke("ApplyTheme","Ice Crystal");window.Show();
   var rows=(ListView)window.FindName("Rows");
   DataTemplate? previousTemplate=null;
-  foreach(var style in new[]{"Modern Glass","Details Inspired","Kagerou Inspired","Classic Dashboard"}) {
-   Invoke("ApplyOverlayStyle",style);Invoke("ApplyTheme",style=="Modern Glass"?"Aion Blue/Red":"Ice Crystal");window.Render(previewEngine.Snapshot());window.UpdateLayout();
+  foreach(var style in new[]{"Encounter Focus","Modern Glass","Details Inspired","Kagerou Inspired","Classic Dashboard"}) {
+   Invoke("ApplyOverlayStyle",style);Invoke("ApplyTheme",style is "Modern Glass" or "Encounter Focus"?"Aion Blue/Red":"Ice Crystal");window.Render(previewEngine.Snapshot());window.UpdateLayout();
    if(rows.ItemTemplate==previousTemplate)throw new Exception("Styles reused the same row design");previousTemplate=rows.ItemTemplate;
    if(rows.Items.Count!=8)throw new Exception("Style lost party rows");
    rows.SelectedIndex=0;
@@ -113,7 +114,22 @@ internal static class Program
    var png=new System.Windows.Media.Imaging.PngBitmapEncoder();png.Frames.Add(System.Windows.Media.Imaging.BitmapFrame.Create(overlayBitmap));
    using(var output=System.IO.File.Create("overlay-"+style.Replace(" ","-")+".png"))png.Save(output);
   }
+  Invoke("ApplyOverlayStyle","Encounter Focus");window.Render(previewEngine.Snapshot());window.UpdateLayout();
+  var lockButton=(Button)window.FindName("PositionLock");
+  lockButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+  if(window.ResizeMode!=ResizeMode.NoResize || lockButton.Content.ToString()!="Unlock position")throw new Exception("Position lock did not lock resizing");
+  lockButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+  if(window.ResizeMode!=ResizeMode.CanResizeWithGrip)throw new Exception("Position lock did not unlock");
+  var quickOpacity=(Slider)window.FindName("QuickOpacity");quickOpacity.Value=.65;
+  if(Math.Abs(window.Opacity-.65)>.001)throw new Exception("Quick opacity did not update overlay");
+  quickOpacity.Value=1;
+  ((ComboBox)window.FindName("CategoryPicker")).SelectedIndex=1;
+  window.Render(previewEngine.Snapshot(MeterSegment.Current,MeterCategory.Healing));
+  if(((TextBlock)window.FindName("EncounterRateLabel")).Text!="HPS" || ((TextBlock)window.FindName("EncounterTotalLabel")).Text!="HEALING")throw new Exception("Encounter columns did not follow category");
+  if(((FrameworkElement)window.FindName("EncounterHp")).Visibility!=Visibility.Collapsed)throw new Exception("Unknown target HP should be hidden");
+  Console.WriteLine("PASS: encounter focus columns, position lock, quick opacity and unknown HP");
   Invoke("ApplyOverlayStyle","Kagerou Inspired");
+  if(((FrameworkElement)window.FindName("EncounterControls")).Visibility!=Visibility.Collapsed)throw new Exception("Preset switch left encounter controls visible");
   var picker=(ComboBox)window.FindName("CategoryPicker");picker.SelectedIndex=1;
   if(tabs.SelectedIndex!=1)throw new Exception("Compact category picker did not select healing");
   window.Render(previewEngine.Snapshot(MeterSegment.Current,MeterCategory.Healing));

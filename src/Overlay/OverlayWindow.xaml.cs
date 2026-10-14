@@ -22,6 +22,7 @@ public partial class OverlayWindow : Window
     string currentStyle = "Modern Glass";
     int historyRequest;
     bool clickThrough;
+    bool positionLocked;
     bool showDetails = true;
     public OverlayWindow() { InitializeComponent(); CategoryPicker.ItemsSource=new[]{"Damage","Healing","Damage Taken","Deaths","Buffs","Debuffs","Interrupts","Dispels"}; CategoryPicker.SelectedIndex=0; FightHistory.ItemsSource=new[]{new HistoryChoice("Saved fights ▾",null)}; FightHistory.SelectedIndex=0; ApplyTheme(currentTheme); ApplyOverlayStyle(currentStyle); LoadPreferences(); }
     static readonly Dictionary<string,string> Colors = new(StringComparer.OrdinalIgnoreCase) {
@@ -41,6 +42,14 @@ public partial class OverlayWindow : Window
         last=s; PreviewBadge.Visibility=s.PreviewMode?Visibility.Visible:Visibility.Collapsed;
         Timer.Text=TimeSpan.FromSeconds(s.FightSeconds).ToString(@"mm\:ss"); GroupDps.Text=$"GROUP {F(s.Players.Sum(p=>p.Dps))} {s.MetricLabel}";
         BossHp.Value=s.Target?.Percent??0; TargetName.Text=s.Target?.Name??"No target";
+        EncounterTarget.Text=s.Target?.Name??(s.Players.Count>0?"Combat encounter":"Waiting for combat");
+        var segmentLabel=historicalSnapshot!=null?"SAVED FIGHT":Segment.SelectedIndex==2?"OVERALL":Segment.SelectedIndex==1?"PREVIOUS FIGHT":"CURRENT FIGHT";
+        EncounterContext.Text=$"{segmentLabel} • {s.Players.Count} PLAYERS"+(s.Target?.MaxHp>0?$" • HP {s.Target.Percent:0.0}%":"");
+        EncounterHp.Visibility=s.Target?.MaxHp>0?Visibility.Visible:Visibility.Collapsed;
+        EncounterHp.Value=s.Target?.Percent??0;
+        EncounterTime.Text=Timer.Text; EncounterRate.Text=GroupDps.Text;
+        EncounterTotalLabel.Text=category==MeterCategory.Healing?"HEALING":category is MeterCategory.Damage or MeterCategory.DamageTaken?"DAMAGE":category is MeterCategory.Buffs or MeterCategory.Debuffs?"SECONDS":"COUNT";
+        EncounterRateLabel.Text=s.MetricLabel;
         TargetHp.Text=s.Target is null?"":$"{s.Target.Percent:0.0}%   {F(s.Target.CurrentHp)} / {F(s.Target.MaxHp)}";
         StatusText.ToolTip="Verified against regression tests, reviewed captures and observed dungeon runs. Exact party totals have not been independently compared.";
         StatusText.Text=s.PreviewMode?"SIMULATED DATA":$"{(s.InFight?"CURRENT":"COMPLETED")} • VERIFIED";
@@ -159,6 +168,8 @@ public partial class OverlayWindow : Window
         detail.Checked += (_,__) => { showDetails=true; ApplyOverlayStyle(currentStyle); };
         detail.Unchecked += (_,__) => { showDetails=false; ApplyOverlayStyle(currentStyle); };
         panel.Children.Add(detail);
+        var locked = new System.Windows.Controls.CheckBox {Content="Lock overlay position and size",IsChecked=positionLocked,Margin=new Thickness(0,4,0,8)};
+        locked.Checked += (_,__)=>SetPositionLock(true); locked.Unchecked += (_,__)=>SetPositionLock(false); panel.Children.Add(locked);
         var top = new System.Windows.Controls.CheckBox { Content="Always on top", IsChecked=Topmost, Margin=new Thickness(0,4,0,8) };
         top.Checked += (_,__) => Topmost=true; top.Unchecked += (_,__) => Topmost=false; panel.Children.Add(top);
         var pass = new System.Windows.Controls.CheckBox { Content="Mouse click-through", IsChecked=clickThrough, Margin=new Thickness(0,4,0,8) };
@@ -215,8 +226,19 @@ public partial class OverlayWindow : Window
         Render(Engine.Snapshot(MeterSegment.Current,(MeterCategory)Math.Clamp(Tabs.SelectedIndex,0,7)));
     }
 
+    void TogglePositionLock(object sender,RoutedEventArgs e)
+    {
+        SetPositionLock(!positionLocked); SavePreferences();
+    }
+    void SetPositionLock(bool locked)
+    {
+        positionLocked=locked;
+        ResizeMode=locked?ResizeMode.NoResize:ResizeMode.CanResizeWithGrip;
+        PositionLock.Content=locked?"Unlock position":"Lock position";
+    }
+
     static readonly string[] ThemeNames = { "Aion Blue/Red", "Neon Spectrum", "Void Purple", "Emerald Glass", "Solar Flare", "Ice Crystal" };
-    static readonly string[] StyleNames = { "Modern Glass", "Classic Dashboard", "Details Inspired", "Kagerou Inspired", "Bars Only", "Raid Compact", "Glass Cards", "Tournament" };
+    static readonly string[] StyleNames = { "Encounter Focus", "Modern Glass", "Classic Dashboard", "Details Inspired", "Kagerou Inspired", "Bars Only", "Raid Compact", "Glass Cards", "Tournament" };
 
     void ApplyOverlayStyle(string name)
     {
@@ -224,6 +246,10 @@ public partial class OverlayWindow : Window
         ((System.Windows.Controls.TextBlock)PreviewBadge.Child).Text=name is "Details Inspired" or "Kagerou Inspired"?"PREVIEW":"SIMULATED PREVIEW";
         Rows.ItemTemplate=(DataTemplate)Resources["ClassicRows"];
         CategoryTabs.Visibility=Visibility.Visible; CategoryPicker.Visibility=Visibility.Collapsed;
+        EncounterSummary.Visibility=EncounterColumns.Visibility=EncounterControls.Visibility=Visibility.Collapsed;
+        ContentGrid.RowDefinitions[0].Height=new GridLength(0);
+        ContentGrid.RowDefinitions[1].Height=new GridLength(0);
+        ContentGrid.RowDefinitions[3].Height=new GridLength(0);
         // Full reset: every preset starts from the same known layout.
         Width=780; Height=560; MinWidth=560; MinHeight=380;
         MainGrid.RowDefinitions[0].Height=new GridLength(42);
@@ -249,6 +275,26 @@ public partial class OverlayWindow : Window
 
         switch(name)
         {
+            case "Encounter Focus":
+                MinWidth=660; MinHeight=400; Width=780; Height=720;
+                Rows.ItemTemplate=(DataTemplate)Resources["EncounterRows"];
+                CategoryTabs.Visibility=Visibility.Collapsed; CategoryPicker.Visibility=Visibility.Visible;
+                CategoryPicker.SelectedIndex=Math.Max(0,Tabs.SelectedIndex);
+                EncounterSummary.Visibility=EncounterColumns.Visibility=EncounterControls.Visibility=Visibility.Visible;
+                ContentGrid.RowDefinitions[0].Height=new GridLength(90);
+                ContentGrid.RowDefinitions[1].Height=new GridLength(24);
+                ContentGrid.RowDefinitions[3].Height=new GridLength(42);
+                MainGrid.RowDefinitions[0].Height=new GridLength(44);
+                MainGrid.RowDefinitions[1].Height=new GridLength(40);
+                MainGrid.RowDefinitions[3].Height=new GridLength(0);
+                FooterBar.Visibility=DetailPanel.Visibility=Visibility.Collapsed;
+                ContentGrid.ColumnDefinitions[0].Width=new GridLength(1,GridUnitType.Star);
+                ContentGrid.ColumnDefinitions[1].Width=new GridLength(0);
+                ContentGrid.ColumnDefinitions[2].Width=new GridLength(0);
+                Root.CornerRadius=new CornerRadius(10); Root.BorderThickness=new Thickness(1);
+                HeaderBar.CornerRadius=new CornerRadius(9,9,0,0);
+                Rows.BorderThickness=new Thickness(0);
+                break;
             case "Modern Glass":
                 MinWidth=600; MinHeight=320; Width=660; Height=540;
                 Rows.ItemTemplate=(DataTemplate)Resources["ModernRows"];
@@ -340,6 +386,7 @@ public partial class OverlayWindow : Window
             ContentGrid.ColumnDefinitions[0].Width=new GridLength(1,GridUnitType.Star);
             ContentGrid.ColumnDefinitions[1].Width=new GridLength(0);ContentGrid.ColumnDefinitions[2].Width=new GridLength(0);
         }
+        SetPositionLock(positionLocked);
         ApplyTheme(currentTheme);
     }
     void ApplyTheme(string name)
@@ -359,11 +406,13 @@ public partial class OverlayWindow : Window
         if(currentStyle=="Modern Glass" && name=="Aion Blue/Red") {
             bg=Brush("#E6101725"); chrome=Brush("#B4162032"); accent=Brush("#33465F");
         }
+        if(currentStyle=="Encounter Focus") { bg=BrushWithOpacity(p.Item1,.92); chrome=BrushWithOpacity(p.Item4,.55); }
         Root.Background=bg; Root.BorderBrush=accent;
         HeaderBar.Background=chrome; HeaderBar.BorderBrush=secondary;
         FooterBar.Background=chrome; FooterBar.BorderBrush=secondary;
         Rows.Background=BrushWithOpacity(p.Item4,currentStyle=="Kagerou Inspired"?.15:.62); Rows.BorderBrush=secondary;
         DetailPanel.Background=BrushWithOpacity(p.Item4, .72); DetailPanel.BorderBrush=secondary;
+        EncounterHp.Foreground=accent;
         TitleAion.Foreground=primaryText; TitleDps.Foreground=hot;
         GroupDps.Foreground=primaryText; StatusText.Foreground=primaryText;
         TargetHp.Foreground=hot; BossHp.Foreground=accent; BossHp.Background=control;
@@ -402,7 +451,7 @@ public partial class OverlayWindow : Window
         report.Show();
     }
     static string PreferencesPath=>System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),"Aion2DPSPro","overlay-settings.json");
-    public sealed record OverlayPreferences(string Style,string Theme,double Opacity,bool Details,bool Topmost,double Width,double Height,double Left,double Top);
+    public sealed record OverlayPreferences(string Style,string Theme,double Opacity,bool Details,bool Topmost,double Width,double Height,double Left,double Top,bool PositionLocked=false);
     void LoadPreferences()
     {
         try {
@@ -410,6 +459,7 @@ public partial class OverlayWindow : Window
             var p=System.Text.Json.JsonSerializer.Deserialize<OverlayPreferences>(System.IO.File.ReadAllText(PreferencesPath));
             if(p==null)return;
             showDetails=p.Details;
+            positionLocked=p.PositionLocked;
             if(ThemeNames.Contains(p.Theme))currentTheme=p.Theme;
             ApplyOverlayStyle(StyleNames.Contains(p.Style)?p.Style:currentStyle);
             if(double.IsFinite(p.Opacity))Opacity=Math.Clamp(p.Opacity,.35,1);
@@ -425,7 +475,7 @@ public partial class OverlayWindow : Window
     {
         try {
             var path=PreferencesPath;System.IO.Directory.CreateDirectory(System.IO.Path.GetDirectoryName(path)!);
-            var p=new OverlayPreferences(currentStyle,currentTheme,Opacity,showDetails,Topmost,Width,Height,double.IsFinite(Left)?Left:0,double.IsFinite(Top)?Top:0);
+            var p=new OverlayPreferences(currentStyle,currentTheme,Opacity,showDetails,Topmost,Width,Height,double.IsFinite(Left)?Left:0,double.IsFinite(Top)?Top:0,positionLocked);
             var temp=path+".tmp";System.IO.File.WriteAllText(temp,System.Text.Json.JsonSerializer.Serialize(p));System.IO.File.Move(temp,path,true);
         }
         catch(Exception ex) when(ex is System.IO.IOException or UnauthorizedAccessException) {StatusText.Text="Unable to save overlay settings";}
@@ -438,6 +488,7 @@ public partial class OverlayWindow : Window
     }
     void CloseOverlay(object s,RoutedEventArgs e){SavePreferences();Hide();}
     void Drag(object s,MouseButtonEventArgs e){
+        if(positionLocked)return;
         var origin=e.OriginalSource as DependencyObject;
         while(origin!=null && origin!=HeaderBar){if(origin is System.Windows.Controls.Primitives.ButtonBase)return;origin=VisualTreeHelper.GetParent(origin);}
         if(e.LeftButton==MouseButtonState.Pressed){DragMove();e.Handled=true;}

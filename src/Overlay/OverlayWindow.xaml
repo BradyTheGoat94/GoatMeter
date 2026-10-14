@@ -16,6 +16,19 @@
   </Grid></ControlTemplate></Setter.Value></Setter></Style>
   <Style TargetType="ProgressBar"><Setter Property="Template"><Setter.Value><ControlTemplate TargetType="ProgressBar"><Border x:Name="PART_Track" Background="{TemplateBinding Background}"><Border x:Name="PART_Indicator" HorizontalAlignment="Left" Background="{TemplateBinding Foreground}"/></Border></ControlTemplate></Setter.Value></Setter></Style>
   <Style TargetType="ListViewItem"><Setter Property="HorizontalContentAlignment" Value="Stretch"/><Setter Property="Padding" Value="0"/><Setter Property="Margin" Value="0,0,0,3"/><Setter Property="Template"><Setter.Value><ControlTemplate TargetType="ListViewItem"><Border x:Name="Item" BorderBrush="Transparent" BorderThickness="1" Background="Transparent" CornerRadius="3"><ContentPresenter/></Border><ControlTemplate.Triggers><Trigger Property="IsSelected" Value="True"><Setter TargetName="Item" Property="BorderBrush" Value="#D9E8FF"/></Trigger><Trigger Property="IsMouseOver" Value="True"><Setter TargetName="Item" Property="Background" Value="#302F80ED"/></Trigger></ControlTemplate.Triggers></ControlTemplate></Setter.Value></Setter></Style>
+  <DataTemplate x:Key="EncounterRows">
+   <Grid Height="62" Margin="0,2" ClipToBounds="True">
+    <Grid Margin="10,0,10,12"><Grid.ColumnDefinitions><ColumnDefinition Width="30"/><ColumnDefinition Width="34"/><ColumnDefinition/><ColumnDefinition Width="90"/><ColumnDefinition Width="70"/><ColumnDefinition Width="110"/></Grid.ColumnDefinitions>
+     <TextBlock Text="{Binding Rank, StringFormat={}{0:00}}" Foreground="#8290A4" VerticalAlignment="Center" FontSize="14"/>
+     <Image Grid.Column="1" Source="{Binding ClassName, Converter={StaticResource ClassIconConverter}}" Width="28" Height="28"/>
+     <StackPanel Grid.Column="2" VerticalAlignment="Center" Margin="10,0"><TextBlock Text="{Binding Name}" FontWeight="SemiBold" FontSize="16" TextTrimming="CharacterEllipsis" ToolTip="{Binding Name}"/><TextBlock Text="{Binding ClassName}" Foreground="{Binding Brush}" FontSize="10"/></StackPanel>
+     <TextBlock Grid.Column="3" Text="{Binding Damage}" HorizontalAlignment="Right" VerticalAlignment="Center" FontSize="16" Foreground="#BAC5D5"/>
+     <TextBlock Grid.Column="4" Text="{Binding Share}" HorizontalAlignment="Right" VerticalAlignment="Center" FontSize="14" Foreground="#93A2B7"/>
+     <TextBlock Grid.Column="5" Text="{Binding Dps}" HorizontalAlignment="Right" VerticalAlignment="Center" FontSize="24" FontWeight="Bold"/>
+    </Grid>
+    <ProgressBar Height="4" Margin="44,0,10,3" VerticalAlignment="Bottom" Value="{Binding Relative}" Maximum="100" Foreground="{Binding Brush}" Background="#1528384C" IsHitTestVisible="False"/>
+   </Grid>
+  </DataTemplate>
   <DataTemplate x:Key="ModernRows">
    <Border CornerRadius="8" Background="#40152032" Margin="0,2" ClipToBounds="True">
     <Grid Height="52">
@@ -83,12 +96,27 @@
     <ComboBox x:Name="Segment" Grid.Column="2" Width="130" Height="28" SelectedIndex="0" Background="#14284A" Foreground="White" SelectionChanged="SegmentChanged"><ComboBoxItem Content="Current Fight"/><ComboBoxItem Content="Previous Fight"/><ComboBoxItem Content="Overall"/></ComboBox>
    </Grid>
    <Grid x:Name="ContentGrid" Grid.Row="2" Margin="12,4,12,6">
+    <Grid.RowDefinitions><RowDefinition Height="0"/><RowDefinition Height="0"/><RowDefinition Height="*"/><RowDefinition Height="0"/></Grid.RowDefinitions>
     <Grid.ColumnDefinitions><ColumnDefinition Width="1.7*"/><ColumnDefinition Width="8"/><ColumnDefinition Width="1*"/></Grid.ColumnDefinitions>
-    <ListView x:Name="Rows" ScrollViewer.HorizontalScrollBarVisibility="Disabled" ItemTemplate="{StaticResource ClassicRows}" Background="#5A081326" BorderBrush="#284E7D" Foreground="#F4F7FF" SelectionChanged="PlayerSelected" MouseDoubleClick="OpenSelectedReport" ToolTip="Click a player for details • double-click for full report">
+    <Grid x:Name="EncounterSummary" Grid.ColumnSpan="3" Visibility="Collapsed" Margin="10,4,10,8" MouseLeftButtonDown="Drag">
+     <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="200"/></Grid.ColumnDefinitions>
+     <StackPanel><TextBlock x:Name="EncounterTarget" Text="Waiting for combat" FontSize="26" FontWeight="Bold" TextTrimming="CharacterEllipsis"/><TextBlock x:Name="EncounterContext" Foreground="#91A1BA" FontSize="11" Margin="0,5,0,0"/><ProgressBar x:Name="EncounterHp" Height="3" Maximum="100" Margin="0,10,20,0" Foreground="#F25F6C" Background="#1F2C3E"/></StackPanel>
+     <StackPanel Grid.Column="1"><TextBlock x:Name="EncounterTime" Text="00:00" FontSize="32" FontWeight="Bold" HorizontalAlignment="Right"/><TextBlock x:Name="EncounterRate" FontSize="12" Foreground="#91B9E8" HorizontalAlignment="Right" Margin="0,3,0,0"/></StackPanel>
+    </Grid>
+    <Grid x:Name="EncounterColumns" Grid.Row="1" Visibility="Collapsed" Margin="11,0,25,0"><Grid.ColumnDefinitions><ColumnDefinition Width="30"/><ColumnDefinition Width="34"/><ColumnDefinition/><ColumnDefinition Width="90"/><ColumnDefinition Width="70"/><ColumnDefinition Width="110"/></Grid.ColumnDefinitions>
+     <TextBlock Grid.Column="2" Text="PLAYER" FontSize="10" Foreground="#8595AF" Margin="10,0,0,0"/><TextBlock x:Name="EncounterTotalLabel" Grid.Column="3" Text="DAMAGE" FontSize="10" Foreground="#8595AF" HorizontalAlignment="Right"/><TextBlock Grid.Column="4" Text="SHARE" FontSize="10" Foreground="#8595AF" HorizontalAlignment="Right"/><TextBlock x:Name="EncounterRateLabel" Grid.Column="5" Text="DPS" FontSize="10" Foreground="#8595AF" HorizontalAlignment="Right"/>
+    </Grid>
+    <Grid x:Name="EncounterControls" Grid.Row="3" Grid.ColumnSpan="3" Visibility="Collapsed" Margin="6,8,6,0"><Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/><ColumnDefinition/><ColumnDefinition Width="48"/></Grid.ColumnDefinitions>
+     <Button x:Name="PositionLock" Content="Lock position" Click="TogglePositionLock" ToolTip="Lock movement and resizing; click again to unlock" AutomationProperties.Name="Toggle overlay position lock"/>
+     <TextBlock Grid.Column="1" Text="Opacity" Foreground="#91A1BA" Margin="12,0" VerticalAlignment="Center"/>
+     <Slider x:Name="QuickOpacity" Grid.Column="2" Minimum="0.35" Maximum="1" Value="{Binding Opacity, RelativeSource={RelativeSource AncestorType=Window}, Mode=TwoWay}" VerticalAlignment="Center" AutomationProperties.Name="Overlay opacity"/>
+     <TextBlock Grid.Column="3" Text="{Binding Value, ElementName=QuickOpacity, StringFormat={}{0:P0}}" HorizontalAlignment="Right" VerticalAlignment="Center" Foreground="#91A1BA"/>
+    </Grid>
+    <ListView Grid.Row="2" x:Name="Rows" ScrollViewer.HorizontalScrollBarVisibility="Disabled" ItemTemplate="{StaticResource ClassicRows}" Background="#5A081326" BorderBrush="#284E7D" Foreground="#F4F7FF" SelectionChanged="PlayerSelected" MouseDoubleClick="OpenSelectedReport" ToolTip="Click a player for details • double-click for full report">
 
     </ListView>
-    <TextBlock x:Name="EmptyRows" Text="No events in this category" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="#8797B0" IsHitTestVisible="False" Visibility="Collapsed"/>
-    <Border x:Name="DetailPanel" Grid.Column="2" Background="#70081326" BorderBrush="#284E7D" BorderThickness="1" CornerRadius="6" Padding="10">
+    <TextBlock Grid.Row="2" x:Name="EmptyRows" Text="No events in this category" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="#8797B0" IsHitTestVisible="False" Visibility="Collapsed"/>
+    <Border Grid.Row="2" x:Name="DetailPanel" Grid.Column="2" Background="#70081326" BorderBrush="#284E7D" BorderThickness="1" CornerRadius="6" Padding="10">
      <StackPanel><TextBlock Text="PLAYER DETAILS" Foreground="#8FB8FF" FontWeight="Bold"/><TextBlock x:Name="SelectedPlayer" Text="Select a player" FontSize="18" FontWeight="Bold" Margin="0,8,0,2"/><TextBlock x:Name="SelectedMeta" Foreground="#AFC9EF"/>
       <Button Content="OPEN DETAILED REPORT" HorizontalAlignment="Left" Margin="0,8,0,0" Click="OpenSelectedReport"/><Separator Margin="0,10" Background="#284E7D"/><TextBlock Text="Top Skills" FontWeight="Bold"/><ItemsControl x:Name="Skills" Margin="0,5,0,0"><ItemsControl.ItemTemplate><DataTemplate><Grid Margin="0,3"><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="75"/></Grid.ColumnDefinitions><TextBlock Text="{Binding Name}" Foreground="#EAF2FF"/><TextBlock Grid.Column="1" Text="{Binding Damage}" HorizontalAlignment="Right" Foreground="#FF8790"/></Grid></DataTemplate></ItemsControl.ItemTemplate></ItemsControl>
      </StackPanel>

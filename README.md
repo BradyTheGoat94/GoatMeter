@@ -14,6 +14,10 @@ See [accuracy and reliability status](docs/accuracy-reliability.md) for implemen
 
 
 ## Overlay designs
+Choose **Encounter Focus** for a large target name and encounter timer, aligned total/share/rate columns, thin class-colored ranking bars, a position/size lock, and a quick opacity slider. Columns follow the selected category (including Healing/HPS). The target HP bar appears only when maximum HP is known. Share means contribution to the selected category total, not boss-only damage. Position locking is also available in settings and is preserved between sessions.
+
+This preset uses existing passive combat data. It does not claim world-boss spawn alerts, event schedules, PvP classification, gear scores, or local-player identity that the current data does not supply.
+
 Choose **Modern Glass** in the overlay gear menu for rounded translucent panels, class-colored cards, larger metric values, and a compact encounter toolbar. New installations default to Modern Glass; existing saved style preferences are preserved.
 
 Use **↻** in the header to reset the current fight immediately. The completed fight stays in history, overall totals remain intact, and incoming combat starts a new current fight. The action returns to Current Fight even when viewing Overall or a saved encounter.
