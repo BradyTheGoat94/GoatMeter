@@ -43,3 +43,66 @@ Metadata passes through identity-only sibling sockets, the capture adapter, the 
 - Public meters also provide summary copying and stream privacy. GoatMeter adds an independent clipboard-only formatter and display freeze that preserves capture, plus persisted UI scaling. No external application code copied.
 
 CharacterStats records are internal metadata only; the capture adapter never feeds them to combat aggregation. Score metadata from sibling/duplicate adapter observations is joined only on exact endpoint scope, stable character, known server and matching observed name; unknown server stays unknown.
+
+## Public GS/CP report audit — 2026-10-14
+
+Downloaded and inspected the JSON export of:
+https://a2tools.app/logs/sOfPWkE1vJ5bH4LsUkUREw
+
+Report SHA-256: `7f8075db1a0347b4980a97f0c9237305df242f370793a2b7a176de927d1f4b99`.
+Fight started **2026-10-10 19:09:53.080 UTC**; parser version **2.0.55.2**.
+The export contains structured `gearScore`, `combatPower`, `serverId` and
+`actorId` fields in `record.actors`. These are public report values, not
+independently verified current character-sheet values.
+
+| Report row | Server ID | GS | CP | Identity available |
+| --- | --- | --- | --- | --- |
+| Ranger (masked) | 2201 | 2157 | 108944 | Session actor only |
+| Cleric (masked) | 2201 | 2177 | 102203 | Session actor only |
+| Assassin (masked) | 2202 | 2261 | 103622 | Session actor only |
+| Spiritmaster (public name) | 2201 | 2115 | 113952 | Session actor only |
+
+The page lists this as an NAW fight. The party includes a member from a
+second server: the top-level report server must never overwrite individual
+member server IDs. Three names are masked; all four rows lack stable
+character IDs. No raw roster packet is included in this inspected export.
+Therefore this report proves public GS/CP reference data is obtainable,
+but does **not** prove GoatMeter's byte offsets, stable identity linkage,
+score observation time, or current live values. The fight timestamp is not
+necessarily the time at which its scores were sampled.
+
+Reviewed the published roster decoder in
+`cyberbadger6969/aion2-dps-meter`,
+`src/AionMeter.Core/Protocol/PacketParser.cs`, blob
+`b0ad45d6fe4bf12725c40ebb52caeb8f280b629e`.
+Its reported `02 97` layout agrees with the existing experimental roster
+reader. This is corroborating implementation evidence; its synthetic gear
+fixtures are not a substitute for a raw capture plus an in-game comparison.
+Its self-CP reader searches for plausible integers in a variable tail;
+that heuristic is not added to GoatMeter without structural validation.
+
+Shugo.GG's own FAQ (https://shugo.gg/faq) says character profiles are fetched
+from the official API with a short cache, Global is supported, and there is
+no public Shugo API. No successful direct official Global character endpoint
+or same-character score cross-check was established in this audit.
+Abyss Logs documents public fights and GS/CP leaderboards; an individual
+export was not obtained here. Do not label either route integrated or verified.
+
+### Repeatable offline audit
+
+Run `python tools/audit_public_scores.py downloaded-fight.json --source-url PUBLIC_REPORT_URL`.
+The tool makes no network request, checks input bounds, rejects malformed or
+duplicate actor/server rows, preserves per-member servers, records the file
+hash and fight time, and labels every row historical and ineligible for a
+live identity join. It does not feed metadata or damage into the meter.
+
+Run `python -m unittest discover -s tools -p 'test_*.py' -v`.
+Five tests cover historical identity rejection, masked/unknown scores,
+invalid numeric fields, duplicate identities and oversized files. All passed
+on this audit. No C# application code changed; a new Windows build was not
+run locally (the .NET SDK is unavailable in this environment).
+
+Remaining acceptance gate: current Global roster bytes plus a timestamped
+in-game roster/character-sheet comparison, including a score change and two
+same-named characters on different servers. Retain the existing experimental
+flag and exact character/server binding until that gate passes.
