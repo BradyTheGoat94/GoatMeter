@@ -302,7 +302,7 @@ public partial class OverlayWindow : Window
         PositionLock.Content=locked?"Unlock position":"Lock position";
     }
 
-    static readonly string[] ThemeNames = { "Aion Blue/Red", "Neon Spectrum", "Void Purple", "Emerald Glass", "Solar Flare", "Ice Crystal", "Midnight Gold", "Rose Quartz", "Aurora" };
+    static readonly string[] ThemeNames = { "Aion Blue/Red", "Neon Spectrum", "Void Purple", "Emerald Glass", "Solar Flare", "Ice Crystal", "Midnight Gold", "Rose Quartz", "Aurora", "Black / Orange", "Black / Yellow", "Nightmare Before Christmas" };
     static readonly string[] StyleNames = { "Pulse Cards", "Neon Compact", "Encounter Focus", "Modern Glass", "Classic Dashboard", "Details Inspired", "Kagerou Inspired", "Bars Only", "Raid Compact", "Glass Cards", "Tournament" };
 
     void ApplyOverlayStyle(string name)
@@ -486,6 +486,9 @@ public partial class OverlayWindow : Window
     {
         currentTheme=name;
         var p = name switch {
+            "Nightmare Before Christmas" => ("#F5080808","#EEEBDD","#B98AE8","#141414","#EEEBDD","#FF8A00","#1D1D1D"),
+            "Black / Orange" => ("#F5080808","#FF8A00","#FF9D2E","#141414","#FFF3E0","#FF8A00","#1D1D1D"),
+            "Black / Yellow" => ("#F5080808","#FFD400","#FFE04D","#141414","#FFFBE0","#FFD400","#1D1D1D"),
             "Midnight Gold" => ("#EE10141B","#D5AF55","#B3C8E3","#20242D","#F0DCA6","#FFD277","#272A32"),
             "Rose Quartz" => ("#EE201520","#F085B6","#B7A6F4","#332033","#F4C7E0","#F99BBD","#38263B"),
             "Aurora" => ("#EC081C27","#57E8CF","#B594F6","#122F3B","#ACF3ED","#BBA4F7","#183746"),
@@ -503,8 +506,23 @@ public partial class OverlayWindow : Window
             bg=Brush("#E6101725"); chrome=Brush("#B4162032"); accent=Brush("#33465F");
         }
         if(currentStyle=="Encounter Focus") { bg=BrushWithOpacity(p.Item1,.92); chrome=BrushWithOpacity(p.Item4,.55); }
+        // Theme chrome only; row brushes remain driven by each player's class.
+        bool nightmare=name=="Nightmare Before Christmas";
+        bool blackTheme=name is "Black / Orange" or "Black / Yellow" || nightmare;
+        NightmarePortrait.Visibility=nightmare&&currentStyle=="Encounter Focus"?Visibility.Visible:Visibility.Collapsed;
+        EncounterTarget.FontFamily=new FontFamily(nightmare?"Georgia":"Segoe UI");
+        EncounterTime.FontFamily=new FontFamily(nightmare?"Georgia":"Segoe UI");
+        Resources["OverlayControlBrush"]=blackTheme?control:Brush("#172940");
+        Resources["OverlayPopupBrush"]=blackTheme?control:Brush("#111C30");
+        Resources["OverlayControlBorderBrush"]=blackTheme?secondary:Brush("#35506E");
+        Resources["OverlayHoverBrush"]=blackTheme?BrushWithOpacity(p.Item2,.18):Brush("#244663");
+        Resources["OverlayRowHoverBrush"]=blackTheme?BrushWithOpacity(p.Item2,.12):Brush("#302F80ED");
+        Resources["OverlayModernRowBrush"]=blackTheme?Brush("#40181818"):Brush("#40152032");
+        Resources["OverlayPulseRowBrush"]=blackTheme?Brush("#50202020"):Brush("#50202B42");
+        Resources["OverlayTrackBrush"]=blackTheme?Brush("#30282828"):Brush("#1528384C");
+        Resources["OverlayArrowBrush"]=blackTheme?secondary:Brush("#91B7D5");
         Root.Background=bg; Root.BorderBrush=accent;
-        HeaderBar.Background=chrome; HeaderBar.BorderBrush=secondary;
+        HeaderBar.Background=nightmare&&currentStyle=="Encounter Focus"?(Brush)Resources["NightmarePinstripes"]:chrome; HeaderBar.BorderBrush=secondary;
         FooterBar.Background=chrome; FooterBar.BorderBrush=secondary;
         Rows.Background=BrushWithOpacity(p.Item4,currentStyle=="Kagerou Inspired"?.15:.62); Rows.BorderBrush=secondary;
         DetailPanel.Background=BrushWithOpacity(p.Item4, .72); DetailPanel.BorderBrush=secondary;
