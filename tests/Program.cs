@@ -148,6 +148,12 @@ var rosterMeta=new CombatEvent(t,CombatKind.CharacterStats,Source:"TestHero",Sou
 gearBridge.Observe(gearScope,rosterMeta);
 var linkedName=new CombatEvent(t,CombatKind.PlayerName,3920,"TestHero",SourceClass:"Templar",SourceServerId:1102,SourceCharacterId:304076);
 gearBridge.Observe(gearScope,linkedName);var bridgedScore=gearBridge.Identities(gearScope,t).Single();Equal(bridgedScore.SourceGearScore!.Value,2800,"roster scores reach exact linked identity");
+True(gearBridge.Identities(gearScope,t.AddMinutes(11)).Count==0,"expired identity is not replayed");
+var staleIdentityBridge=new Aion2DPSPro.Capture.CaptureIdentityBridge();
+staleIdentityBridge.Observe(gearScope,linkedName with {SourceGearScore=2800,SourceCombatPower=121600,StatsObservedUtc=t});
+staleIdentityBridge.Observe(gearScope,linkedName with {Utc=t.AddMinutes(9),SourceGearScore=2800,SourceCombatPower=121600,StatsObservedUtc=t});
+True(staleIdentityBridge.Resolve(gearScope,new CombatEvent(t.AddMinutes(11),CombatKind.Damage,3920,"Actor 3920")).SourceGearScore==null,"stale linked gear expires even when identity is refreshed");
+True(staleIdentityBridge.Identities(gearScope,t.AddMinutes(11)).Single().SourceCombatPower==null,"replayed identity drops expired CP");
 True(gearBridge.Resolve("other-server|local|other",linkedName).SourceGearScore==null,"profile bridge isolates endpoint scope");
 True(gearBridge.Resolve(gearScope,linkedName with {SourceServerId=1202}).SourceGearScore==null,"profile bridge requires exact server");
 True(gearBridge.Resolve(gearScope,linkedName with {SourceCharacterId=304077}).SourceGearScore==null,"profile bridge requires exact character");
