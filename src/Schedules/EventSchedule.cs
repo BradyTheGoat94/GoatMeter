@@ -27,9 +27,9 @@ public static class EventSchedule
             _=TimeZoneInfo.FindSystemTimeZoneById(p.TimeZoneId);
             if(p.Events.Any(e=>e==null||string.IsNullOrWhiteSpace(e.Id)||string.IsNullOrWhiteSpace(e.Name)||e.Name.Length>120||e.Hours==null||e.Hours.Length is <1 or >24||e.Hours.Any(h=>h is <0 or >23)||e.Minute is <0 or >59||e.EntryMinutes is <1 or >180))
                 throw new InvalidDataException("Invalid event hours, minute or entry window.");
-            if(p.Events.Select(e=>e.Id).Distinct().Count()!=p.Events.Length)throw new InvalidDataException("Duplicate event IDs.");
+            if(p.Events.Select(e=>e.Id).Distinct(StringComparer.OrdinalIgnoreCase).Count()!=p.Events.Length)throw new InvalidDataException("Duplicate event IDs.");
         }
-        if(profiles.Select(p=>p.Id).Distinct().Count()!=profiles.Length)throw new InvalidDataException("Duplicate profile IDs.");
+        if(profiles.Select(p=>p.Id).Distinct(StringComparer.OrdinalIgnoreCase).Count()!=profiles.Length)throw new InvalidDataException("Duplicate profile IDs.");
         return profiles;
     }
     public static IReadOnlyList<ScheduledWindow> Evaluate(ScheduleProfile profile,DateTimeOffset now)
