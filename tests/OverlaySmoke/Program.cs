@@ -141,7 +141,7 @@ internal static class Program
       for(int c=0;c<VisualTreeHelper.GetChildrenCount(child);c++)pending.Enqueue(VisualTreeHelper.GetChild(child,c));
      }
     }
-    var bitmap=new System.Windows.Media.Imaging.RenderTargetBitmap((int)window.ActualWidth,(int)window.ActualHeight,96,96,PixelFormats.Pbgra32);bitmap.Render(window);
+    var themedBitmap=new System.Windows.Media.Imaging.RenderTargetBitmap((int)window.ActualWidth,(int)window.ActualHeight,96,96,PixelFormats.Pbgra32);themedBitmap.Render(window);
     var encoderTheme=new System.Windows.Media.Imaging.PngBitmapEncoder();encoderTheme.Frames.Add(System.Windows.Media.Imaging.BitmapFrame.Create(bitmap));
     if(theme=="Nightmare Before Christmas" && ((Image)window.FindName("NightmarePortrait")).Visibility!=Visibility.Visible)throw new Exception("Nightmare portrait missing");
     string suffix=theme=="Black / Orange"?"Black-Orange":theme=="Black / Yellow"?"Black-Yellow":"Nightmare-Before-Christmas";
