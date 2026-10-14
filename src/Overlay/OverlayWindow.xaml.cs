@@ -24,6 +24,8 @@ public partial class OverlayWindow : Window
     bool clickThrough;
     bool positionLocked;
     bool hideNames;
+    bool displayPaused;
+    double uiScale=1;
     bool showCharacterStats=true;
     EventTimersWindow? eventTimers;
     bool showDetails = true;
@@ -32,6 +34,7 @@ public partial class OverlayWindow : Window
         ["Gladiator"]="#E65353", ["Templar"]="#E8903D", ["Assassin"]="#C45CFF", ["Ranger"]="#F2C94C",
         ["Sorcerer"]="#4DA3FF", ["Spiritmaster"]="#48C9D8", ["Cleric"]="#6DDB72", ["Chanter"]="#D6DCE8", ["Brawler"]="#FF7A45", ["Unknown"]="#AAB6CC" };
     public void Render(MeterSnapshot s) {
+        if(displayPaused)return;
         var category=(MeterCategory)Math.Clamp(Tabs.SelectedIndex,0,7);
         if(historicalSnapshot!=null)
         {
@@ -45,7 +48,8 @@ public partial class OverlayWindow : Window
         last=s; PreviewBadge.Visibility=s.PreviewMode?Visibility.Visible:Visibility.Collapsed;
         Timer.Text=TimeSpan.FromSeconds(s.FightSeconds).ToString(@"mm\:ss"); GroupDps.Text=$"GROUP {F(s.Players.Sum(p=>p.Dps))} {s.MetricLabel}";
         BossHp.Value=s.Target?.Percent??0; BossHp.Visibility=s.Target?.MaxHp>0?Visibility.Visible:Visibility.Collapsed; TargetName.Text=s.Target?.Name??"No target";
-        EncounterTarget.Text=s.Target?.Name??(s.Players.Count>0?"Combat encounter":"Waiting for combat");
+        if(hideNames&&s.Target!=null&&s.Players.Any(p=>p.Name==s.Target.Name))TargetName.Text="Player target";
+        EncounterTarget.Text=TargetName.Text!="No target"?TargetName.Text:(s.Players.Count>0?"Combat encounter":"Waiting for combat");
         var segmentLabel=historicalSnapshot!=null?"SAVED FIGHT":Segment.SelectedIndex==2?"OVERALL":Segment.SelectedIndex==1?"PREVIOUS FIGHT":"CURRENT FIGHT";
         EncounterContext.Text=$"{segmentLabel} • {s.Players.Count} PLAYERS"+(s.Target?.MaxHp>0?$" • HP {s.Target.Percent:0.0}%":"");
         EncounterHp.Visibility=s.Target?.MaxHp>0?Visibility.Visible:Visibility.Collapsed;
@@ -109,6 +113,7 @@ public partial class OverlayWindow : Window
     async void FightHistoryChanged(object sender,System.Windows.Controls.SelectionChangedEventArgs e)
     {
         if(loadingHistory || FightHistory.SelectedItem is not HistoryChoice choice)return;
+        ResumeDisplay();
         if(choice.Path==null)
         {
             historyRequest++;
@@ -134,6 +139,7 @@ public partial class OverlayWindow : Window
     void SegmentChanged(object sender,System.Windows.Controls.SelectionChangedEventArgs e)
     {
         if(Segment==null)return;
+        ResumeDisplay();
         historyRequest++;
         historicalSnapshot=null;
         historicalPath=null;
@@ -175,6 +181,9 @@ public partial class OverlayWindow : Window
         var opacity = new System.Windows.Controls.Slider { Minimum=.35, Maximum=1, Value=Opacity, TickFrequency=.05, IsSnapToTickEnabled=true, Margin=new Thickness(0,5,0,14) };
         opacity.ValueChanged += (_,__) => Opacity=opacity.Value;
         panel.Children.Add(opacity);
+        panel.Children.Add(new System.Windows.Controls.TextBlock {Text="Interface scale"});
+        var scale=new System.Windows.Controls.Slider {Minimum=.7,Maximum=1.25,Value=uiScale,TickFrequency=.05,IsSnapToTickEnabled=true,Margin=new Thickness(0,5,0,14)};
+        scale.ValueChanged+=(_,_)=>SetUiScale(scale.Value);panel.Children.Add(scale);
         var detail = new System.Windows.Controls.CheckBox { Content="Show player detail panel", IsChecked=showDetails, Margin=new Thickness(0,4,0,8) };
         detail.Checked += (_,__) => { showDetails=true; ApplyOverlayStyle(currentStyle); };
         detail.Unchecked += (_,__) => { showDetails=false; ApplyOverlayStyle(currentStyle); };
@@ -182,9 +191,9 @@ public partial class OverlayWindow : Window
         var locked = new System.Windows.Controls.CheckBox {Content="Lock overlay position and size",IsChecked=positionLocked,Margin=new Thickness(0,4,0,8)};
         locked.Checked += (_,__)=>SetPositionLock(true); locked.Unchecked += (_,__)=>SetPositionLock(false); panel.Children.Add(locked);
         var scores=new System.Windows.Controls.CheckBox {Content="Show GS and combat power",IsChecked=showCharacterStats,Margin=new Thickness(0,4,0,8)};
-        scores.Checked+=(_,_)=>{showCharacterStats=true;if(last!=null)Render(last);};scores.Unchecked+=(_,_)=>{showCharacterStats=false;if(last!=null)Render(last);};panel.Children.Add(scores);
+        scores.Checked+=(_,_)=>{showCharacterStats=true;RefreshReports();ResumeDisplay();if(last!=null)Render(last);};scores.Unchecked+=(_,_)=>{showCharacterStats=false;RefreshReports();ResumeDisplay();if(last!=null)Render(last);};panel.Children.Add(scores);
         var privacy=new System.Windows.Controls.CheckBox {Content="Stream-safe player names",IsChecked=hideNames,Margin=new Thickness(0,4,0,8)};
-        privacy.Checked+=(_,_)=>{hideNames=true;if(last!=null)Render(last);};privacy.Unchecked+=(_,_)=>{hideNames=false;if(last!=null)Render(last);};panel.Children.Add(privacy);
+        privacy.Checked+=(_,_)=>{hideNames=true;RefreshReports();ResumeDisplay();if(last!=null)Render(last);};privacy.Unchecked+=(_,_)=>{hideNames=false;RefreshReports();ResumeDisplay();if(last!=null)Render(last);};panel.Children.Add(privacy);
         var top = new System.Windows.Controls.CheckBox { Content="Always on top", IsChecked=Topmost, Margin=new Thickness(0,4,0,8) };
         top.Checked += (_,__) => Topmost=true; top.Unchecked += (_,__) => Topmost=false; panel.Children.Add(top);
         var pass = new System.Windows.Controls.CheckBox { Content="Mouse click-through", IsChecked=clickThrough, Margin=new Thickness(0,4,0,8) };
@@ -233,12 +242,47 @@ public partial class OverlayWindow : Window
     void ResetCurrentFightClicked(object sender,RoutedEventArgs e)
     {
         if(Engine==null)return;
+        ResumeDisplay();
         historyRequest++;
         historicalSnapshot=null; historicalPath=null; selectedActor=null;
         FightHistory.SelectedIndex=0;
         Segment.SelectedIndex=(int)MeterSegment.Current;
         Engine.ResetFight();
         Render(Engine.Snapshot(MeterSegment.Current,(MeterCategory)Math.Clamp(Tabs.SelectedIndex,0,7)));
+    }
+
+    void RefreshReports()
+    {
+        foreach(var report in OwnedWindows.OfType<CombatReportWindow>())
+        {report.HideNames=hideNames;report.ShowCharacterStats=showCharacterStats;report.Refresh(true);}
+    }
+    void ResumeDisplay()
+    {
+        displayPaused=false;FreezeView.Content="Ⅱ";
+    }
+    void ToggleFreezeView(object sender,RoutedEventArgs e)
+    {
+        if(displayPaused){ResumeDisplay();if(last!=null)Render(last);return;}
+        if(last==null)return;displayPaused=true;FreezeView.Content="▶";
+        StatusText.Text="VIEW FROZEN • CAPTURE CONTINUES";
+        EncounterContext.Text+=" • VIEW FROZEN";
+    }
+    void TabsChanged(object sender,System.Windows.Controls.SelectionChangedEventArgs e)
+    {
+        if(e.Source!=Tabs||Tabs.SelectedIndex<0)return;ResumeDisplay();if(last!=null)Render(last);
+    }
+    void SetUiScale(double value)
+    {
+        if(!double.IsFinite(value))return;
+        value=Math.Clamp(value,.7,1.25);var ratio=value/uiScale;
+        MinWidth*=ratio;MinHeight*=ratio;Width*=ratio;Height*=ratio;uiScale=value;
+        Root.LayoutTransform=new ScaleTransform(value,value);
+    }
+    void CopyFightSummary(object sender,RoutedEventArgs e)
+    {
+        if(last==null)return;
+        try {Clipboard.SetText(Aion2DPSPro.Sharing.FightSummary.Format(last,hideNames,showCharacterStats));}
+        catch(System.Runtime.InteropServices.ExternalException){MessageBox.Show(this,"Clipboard is busy. Try copying again.","Fight summary");}
     }
 
     void OpenEventTimers(object sender,RoutedEventArgs e)
@@ -263,6 +307,7 @@ public partial class OverlayWindow : Window
 
     void ApplyOverlayStyle(string name)
     {
+        ResumeDisplay();
         currentStyle=name;
         ((System.Windows.Controls.TextBlock)PreviewBadge.Child).Text=name is "Details Inspired" or "Kagerou Inspired"?"PREVIEW":"SIMULATED PREVIEW";
         Rows.ItemTemplate=(DataTemplate)Resources["ClassicRows"];
@@ -433,6 +478,7 @@ public partial class OverlayWindow : Window
             ContentGrid.ColumnDefinitions[0].Width=new GridLength(1,GridUnitType.Star);
             ContentGrid.ColumnDefinitions[1].Width=new GridLength(0);ContentGrid.ColumnDefinitions[2].Width=new GridLength(0);
         }
+        MinWidth*=uiScale;MinHeight*=uiScale;Width*=uiScale;Height*=uiScale;Root.LayoutTransform=new ScaleTransform(uiScale,uiScale);
         SetPositionLock(positionLocked);
         ApplyTheme(currentTheme);
     }
@@ -497,11 +543,11 @@ public partial class OverlayWindow : Window
         var segment=(MeterSegment)Math.Clamp(Segment.SelectedIndex,0,2);
         var frozen=historicalSnapshot??Engine?.Snapshot(segment,MeterCategory.Damage,true)??last;
         Func<MeterSnapshot> provider=()=>historicalSnapshot!=null?frozen:Engine is null?frozen:segment==MeterSegment.Overall?Engine.Snapshot(segment,MeterCategory.Damage,true):Engine.SnapshotEncounter(frozen.EncounterId)??frozen;
-        var report=new CombatReportWindow(provider,r.Stats.ActorId,(MeterCategory)Math.Clamp(Tabs.SelectedIndex,0,7),hideNames) {Owner=this};
+        var report=new CombatReportWindow(provider,r.Stats.ActorId,(MeterCategory)Math.Clamp(Tabs.SelectedIndex,0,7),hideNames,showCharacterStats) {Owner=this};
         report.Show();
     }
     static string PreferencesPath=>System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),"Aion2DPSPro","overlay-settings.json");
-    public sealed record OverlayPreferences(string Style,string Theme,double Opacity,bool Details,bool Topmost,double Width,double Height,double Left,double Top,bool PositionLocked=false,bool HideNames=false,bool ShowCharacterStats=true);
+    public sealed record OverlayPreferences(string Style,string Theme,double Opacity,bool Details,bool Topmost,double Width,double Height,double Left,double Top,bool PositionLocked=false,bool HideNames=false,bool ShowCharacterStats=true,double UiScale=1);
     void LoadPreferences()
     {
         try {
@@ -510,7 +556,7 @@ public partial class OverlayWindow : Window
             if(p==null)return;
             showDetails=p.Details;
             positionLocked=p.PositionLocked;
-            hideNames=p.HideNames;showCharacterStats=p.ShowCharacterStats;
+            hideNames=p.HideNames;showCharacterStats=p.ShowCharacterStats;uiScale=double.IsFinite(p.UiScale)?Math.Clamp(p.UiScale,.7,1.25):1;
             if(ThemeNames.Contains(p.Theme))currentTheme=p.Theme;
             ApplyOverlayStyle(StyleNames.Contains(p.Style)?p.Style:currentStyle);
             if(double.IsFinite(p.Opacity))Opacity=Math.Clamp(p.Opacity,.35,1);
@@ -526,7 +572,7 @@ public partial class OverlayWindow : Window
     {
         try {
             var path=PreferencesPath;System.IO.Directory.CreateDirectory(System.IO.Path.GetDirectoryName(path)!);
-            var p=new OverlayPreferences(currentStyle,currentTheme,Opacity,showDetails,Topmost,Width,Height,double.IsFinite(Left)?Left:0,double.IsFinite(Top)?Top:0,positionLocked,hideNames,showCharacterStats);
+            var p=new OverlayPreferences(currentStyle,currentTheme,Opacity,showDetails,Topmost,Width,Height,double.IsFinite(Left)?Left:0,double.IsFinite(Top)?Top:0,positionLocked,hideNames,showCharacterStats,uiScale);
             var temp=path+".tmp";System.IO.File.WriteAllText(temp,System.Text.Json.JsonSerializer.Serialize(p));System.IO.File.Move(temp,path,true);
         }
         catch(Exception ex) when(ex is System.IO.IOException or UnauthorizedAccessException) {StatusText.Text="Unable to save overlay settings";}

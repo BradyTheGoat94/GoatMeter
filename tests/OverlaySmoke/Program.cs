@@ -143,6 +143,7 @@ internal static class Program
    Invoke("ApplyOverlayStyle",style);window.Render(previewEngine.Snapshot());window.UpdateLayout();
    if(((FrameworkElement)window.FindName("ToolbarGrid")).Visibility!=Visibility.Visible)throw new Exception("Preset lost fight/history selection: "+style);
    if(style!="Encounter Focus"&&((FrameworkElement)window.FindName("FooterBar")).Visibility!=Visibility.Visible)throw new Exception("Preset lost target information: "+style);
+   if(((Button)window.FindName("CopySummary")).Visibility!=Visibility.Visible || ((Button)window.FindName("FreezeView")).Visibility!=Visibility.Visible)throw new Exception("Preset lost shared summary/freeze controls");
    if(((Button)window.FindName("ResetCurrentFight")).Visibility!=Visibility.Visible)throw new Exception("Preset lost reset");
   }
   typeof(OverlayWindow).GetField("hideNames",BindingFlags.NonPublic|BindingFlags.Instance)!.SetValue(window,true);tabs.SelectedIndex=0;window.Render(previewEngine.Snapshot());
@@ -150,6 +151,19 @@ internal static class Program
   typeof(OverlayWindow).GetField("showCharacterStats",BindingFlags.NonPublic|BindingFlags.Instance)!.SetValue(window,false);window.Render(previewEngine.Snapshot());
   if(rows.Items.Cast<object>().Any(r=>r.GetType().GetProperty("CharacterStats")!.GetValue(r)!.ToString()!.Contains("GS")))throw new Exception("Character stats toggle ignored");
   Console.WriteLine("PASS: shared controls/info across all presets, stream-safe names, GS/CP toggle");
+  var freezeEngine=new CombatEngine(()=>t);freezeEngine.Apply(new(t,CombatKind.PlayerName,70,"FreezeTester"));freezeEngine.Apply(new(t,CombatKind.Damage,70,"FreezeTester",90,"Dummy","Strike",100));
+  tabs.SelectedIndex=0;segment.SelectedIndex=0;window.Engine=freezeEngine;window.SnapshotProvider=(seg,cat)=>freezeEngine.Snapshot(seg,cat);window.Render(freezeEngine.Snapshot());
+  var frozenRows=rows.ItemsSource;((Button)window.FindName("FreezeView")).RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+  freezeEngine.Apply(new(t,CombatKind.Damage,70,"FreezeTester",90,"Dummy","Strike",300));window.Render(freezeEngine.Snapshot());
+  if(rows.ItemsSource!=frozenRows || freezeEngine.Snapshot().FightDamage!=400)throw new Exception("Freeze paused capture or changed display");
+  ((Button)window.FindName("FreezeView")).RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+  if(rows.ItemsSource==frozenRows)throw new Exception("Resume did not refresh capture");
+  ((Button)window.FindName("FreezeView")).RaiseEvent(new RoutedEventArgs(Button.ClickEvent));segment.SelectedIndex=2;
+  if(((Button)window.FindName("FreezeView")).Content.ToString()!="Ⅱ")throw new Exception("Changing segments left a misleading frozen view");
+  var originalWidth=window.Width;typeof(OverlayWindow).GetMethod("SetUiScale",BindingFlags.NonPublic|BindingFlags.Instance)!.Invoke(window,new object[]{.8});
+  if(Math.Abs(window.Width-originalWidth*.8)>.01)throw new Exception("UI scale did not resize coherently");
+  typeof(OverlayWindow).GetMethod("SetUiScale",BindingFlags.NonPublic|BindingFlags.Instance)!.Invoke(window,new object[]{1.0});
+  Console.WriteLine("PASS: freeze preserves capture, navigation resumes display and UI scale");
   var eventWindow=new EventTimersWindow {Owner=window,Clock=()=>new DateTimeOffset(2026,10,14,2,59,0,TimeSpan.Zero)};
   eventWindow.Show();eventWindow.Refresh();eventWindow.UpdateLayout();
   var eventItems=(ItemsControl)eventWindow.FindName("EventRows");

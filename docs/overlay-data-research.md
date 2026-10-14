@@ -34,3 +34,12 @@ A public Altgard field-boss-list capture dated October 6 is present in cyberbadg
 An independent strict roster reader is now implemented, behind ExperimentalRosterScores (enabled only in the testing profile). It accepts complete, bounded member records with an encoded character/server dbid, valid class/level/GS fields, a unique repeated-server anchor and bounded CP. It does not emit score metadata for a combat actor unless an explicit 20 36 session/stable identity link and matching name resolve uniquely; known self-server identity further restricts candidates. No external implementation copied.
 
 Metadata passes through identity-only sibling sockets, the capture adapter, the engine, category snapshots, stored history, all overlay styles and reports. Stale live values expire; completed fight metadata is frozen; renamed/reused actor identities cannot carry scores forward. The available older user logs establish party identity traffic but did not provide complete score-roster evidence in the inspected ranges. Synthetic layout fixtures validate the new reader; current Global in-game value comparison is still pending.
+
+## Recent public releases reviewed
+
+- cyberbadger6969 0.2.7 (October 11) adds compact rows, inline GS/CP and row scaling; 0.2.8 (October 12) adds boss/dungeon deadlines received from the game. GoatMeter adds independent style/scale options; received deadlines remain pending a suitable validated packet source.
+- SkeeveAN 0.45.7 (October 14) improves instance/session grouping. GoatMeter retains accurate per-fight segmentation rather than inferring dungeon victory from teleports.
+- Iota-Nine Eclipse 3.0.19 (October 14) improves exact server separation for field-boss lists; its 3.0.18 adds alarm volume. GoatMeter strengthens exact endpoint/character/server metadata sharing.
+- Public meters also provide summary copying and stream privacy. GoatMeter adds an independent clipboard-only formatter and display freeze that preserves capture, plus persisted UI scaling. No external application code copied.
+
+CharacterStats records are internal metadata only; the capture adapter never feeds them to combat aggregation. Score metadata from sibling/duplicate adapter observations is joined only on exact endpoint scope, stable character, known server and matching observed name; unknown server stays unknown.

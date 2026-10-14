@@ -23,6 +23,9 @@ Experimental passive GS/CP support is enabled in the testing protocol profile. I
 
 GS and CP are distinct values, shown below player rows in every preset and in detailed reports. Current/overall values expire after ten minutes without a fresh roster observation; completed encounters retain the values observed for that encounter. Identity reuse and server collisions cannot inherit old scores. Toggle display under Settings → Show GS and combat power. To disable the experimental decoder, set `experimentalRosterScores` to false in the protocol profile. Public fixtures validate structure and binding; an in-game GS/CP comparison on the current Global client remains pending.
 
+## Shared overlay controls
+Every preset has **Ⅱ** to freeze only the displayed snapshot (capture and fight history continue), **▶** to resume, and **▤** to copy the displayed fight summary to your clipboard. Selecting a different segment/category/history item or resetting resumes the display. Copying never sends a message; stream-safe name and GS/CP visibility preferences apply to the copied text. Interface scale is adjustable from 70% to 125% in settings and is saved with the other preferences. Existing open reports adopt privacy/score visibility changes.
+
 ## Overlay designs
 All presets now expose fight/history selection, reset, countdown access and target information. **Neon Compact** adds slim contribution tracks and large rate values; **Pulse Cards** adds circular class badges and rounded player cards. **Midnight Gold**, **Rose Quartz**, and **Aurora** join the existing themes. Settings → Stream-safe player names replaces visible player names with class/rank labels; stored combat data remains unchanged.
 

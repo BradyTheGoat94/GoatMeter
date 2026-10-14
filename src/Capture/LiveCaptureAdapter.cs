@@ -112,8 +112,10 @@ public sealed class LiveCaptureAdapter : IDisposable
         foreach(var chunk in chunks)
         foreach(var d in active is CurrentClientDecoder c?c.DecodeStream(direction,chunk,utc):active.Decode(chunk,utc))
             decoded.Add(new(utc,d.Kind,d.SourceId,d.Source,d.TargetId,d.Target,d.Skill,d.Amount,d.DamageType,d.CurrentHp,d.MaxHp,d.Effect,d.Stacks,d.SourceClass,d.DamageFlags,SourceIdentityConfirmed:d.SourceIdentityConfirmed,SourceServerId:d.SourceServerId,SourceCharacterId:d.SourceCharacterId,SourceGearScore:d.SourceGearScore,SourceCombatPower:d.SourceCombatPower,StatsObservedUtc:d.StatsObservedUtc));
-        foreach(var e in decoded.Where(x=>x.Kind is CombatKind.PlayerName or CombatKind.TargetHp || primary&&x.Kind==CombatKind.Despawn))identityBridge.Observe(scope,e);
+        foreach(var e in decoded.Where(x=>x.Kind is CombatKind.PlayerName or CombatKind.TargetHp or CombatKind.CharacterStats || primary&&x.Kind==CombatKind.Despawn))identityBridge.Observe(scope,e);
         foreach(var e in decoded.Where(x=>x.Kind==CombatKind.PlayerName))ValidationRecord?.Invoke($"{utc:O}|tag=captureIdentity|entity={e.SourceId}|name={e.Source}|scope={scope}|conversation={conversation}|primary={primary}");
+        if(lockedConversation!=null&&decoded.Any(x=>x.Kind==CombatKind.CharacterStats))
+            foreach(var identity in identityBridge.Identities(scope,utc))EventReceived?.Invoke(identity);
         if(lockedConversation==null)
         {
             if(!decoded.Any(x=>(x.Kind is CombatKind.Damage or CombatKind.Heal)&&x.Amount>0))return;
@@ -124,11 +126,11 @@ public sealed class LiveCaptureAdapter : IDisposable
         }
         if(!primary)
         {
-            foreach(var identity in decoded.Where(x=>x.Kind==CombatKind.PlayerName))EventReceived?.Invoke(identity);
+            foreach(var identity in decoded.Where(x=>x.Kind==CombatKind.PlayerName))EventReceived?.Invoke(identityBridge.Resolve(scope,identity));
             return;
         }
         lastPayload=utc;if(decoded.Count>0)lastEvent=utc;
-        foreach(var e in decoded)
+        foreach(var e in decoded.Where(x=>x.Kind!=CombatKind.CharacterStats))
         {
             var resolved=identityBridge.Resolve(scope,e);
             if(e.Kind is CombatKind.Damage or CombatKind.Heal)

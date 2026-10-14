@@ -7,6 +7,7 @@ public sealed class PacketDispatcher
     public Aion2Decoded AttachRosterScores(Aion2Decoded e,DateTime utc)
     {
         if(!profile.ExperimentalRosterScores||e.Kind!=CombatKind.PlayerName||!sessionToGlobal.TryGetValue(e.SourceId,out var global))return e;
+        e=e with {SourceCharacterId=global,SourceServerId=identityServers.GetValueOrDefault(e.SourceId,e.SourceServerId)};
         var candidates=rosterScores.Values.Where(x=>x.CharacterId==global&&x.Name==e.Source&&utc>=x.ObservedUtc&&utc-x.ObservedUtc<=TimeSpan.FromMinutes(10)).ToArray();
         if(identityServers.TryGetValue(e.SourceId,out var server)&&server>0)candidates=candidates.Where(x=>x.ServerId==server).ToArray();
         if(candidates.Length!=1)return e;
@@ -55,6 +56,7 @@ public sealed class PacketDispatcher
                 foreach(var stats in PartyRosterScores.Parse(frame.AsSpan(p+2),utc))
                 {
                     rosterScores[(stats.CharacterId,stats.ServerId)]=stats;
+                    yield return new(CombatKind.CharacterStats,0,stats.Name,0,"","",0,DamageType.Unknown,0,0,"",0,ClassFromJobCode(stats.ClassCode),SourceServerId:stats.ServerId,SourceCharacterId:stats.CharacterId,SourceGearScore:stats.GearScore,SourceCombatPower:stats.CombatPower,StatsObservedUtc:stats.ObservedUtc);
                     if(rosterScores.Count>256)rosterScores.Remove(rosterScores.MinBy(x=>x.Value.ObservedUtc).Key);
                     // Identity only comes from the structured dbid, never name-only matching.
                     if(rosterScores.Values.Count(x=>x.CharacterId==stats.CharacterId)==1)

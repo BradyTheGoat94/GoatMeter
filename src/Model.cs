@@ -3,7 +3,7 @@ namespace Aion2DPSPro;
 public enum DamageType { Direct, Dot, Crit, Perfect, Back, Frontal, Parry, Double, MultiHit, Unknown }
 [Flags]
 public enum DamageFlags { None=0, Critical=1, Perfect=2, Double=4, Parry=8, Back=16, Frontal=32, MultiHit=64 }
-public enum CombatKind { Damage, Heal, BuffApply, BuffRemove, TargetHp, PlayerName, Zone, Death, Cast, Interrupt, Dispel, DebuffApply, DebuffRemove, Ownership, Despawn, CombatStart, CombatEnd }
+public enum CombatKind { Damage, Heal, BuffApply, BuffRemove, TargetHp, PlayerName, Zone, Death, Cast, Interrupt, Dispel, DebuffApply, DebuffRemove, Ownership, Despawn, CombatStart, CombatEnd, CharacterStats }
 public enum MeterCategory { Damage, Healing, DamageTaken, Deaths, Buffs, Debuffs, Interrupts, Dispels }
 public enum MeterSegment { Current, Previous, Overall }
 
