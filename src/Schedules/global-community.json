@@ -1,9 +1,9 @@
 [
   {
     "Id": "global-utc-estimate",
-    "Name": "Global \u2022 UTC community estimate",
+    "Name": "Global • UTC community estimate",
     "TimeZoneId": "UTC",
-    "Source": "https://github.com/problem-xyz/aion2-map-overlay/blob/4c8d0ebdde176db0f4e72839942aa9cf1b197a70/assets/timers/schedule.json",
+    "Source": "https://github.com/problem-xyz/aion2-map-overlay/blob/4c8d0ebdde176db0f4e72839942aa9cf1b197a70/assets/timers/schedule.json | https://aion2data.com/timers",
     "ReviewedUtc": "2026-10-14",
     "Events": [
       {
@@ -53,14 +53,62 @@
         ],
         "Minute": 0,
         "EntryMinutes": 3
+      },
+      {
+        "Id": "dimensional-invasion",
+        "Name": "Dimensional Invasion",
+        "Hours": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          20,
+          21,
+          22,
+          23
+        ],
+        "Minute": 30,
+        "EntryMinutes": 1
+      },
+      {
+        "Id": "watcher-kaira",
+        "Name": "Watcher Kaira (scheduled spawn)",
+        "Hours": [
+          1,
+          4,
+          7,
+          10,
+          13,
+          16,
+          19,
+          22
+        ],
+        "Minute": 0,
+        "EntryMinutes": 1
       }
     ]
   },
   {
     "Id": "global-jst-client-estimate",
-    "Name": "Global \u2022 UTC+9 client-data report",
+    "Name": "Global • UTC+9 client-data report",
     "TimeZoneId": "Asia/Tokyo",
-    "Source": "https://metabot.gg/en/aion-2/events/spacetime-rift",
+    "Source": "https://metabot.gg/en/aion-2/events/spacetime-rift | https://aion2data.com/timers",
     "ReviewedUtc": "2026-10-14",
     "Events": [
       {
@@ -110,14 +158,62 @@
         ],
         "Minute": 0,
         "EntryMinutes": 3
+      },
+      {
+        "Id": "dimensional-invasion",
+        "Name": "Dimensional Invasion",
+        "Hours": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          20,
+          21,
+          22,
+          23
+        ],
+        "Minute": 30,
+        "EntryMinutes": 1
+      },
+      {
+        "Id": "watcher-kaira",
+        "Name": "Watcher Kaira (scheduled spawn)",
+        "Hours": [
+          1,
+          4,
+          7,
+          10,
+          13,
+          16,
+          19,
+          22
+        ],
+        "Minute": 0,
+        "EntryMinutes": 1
       }
     ]
   },
   {
     "Id": "global-02-jst-estimate",
-    "Name": "Global \u2022 02:00 UTC+9 community estimate",
+    "Name": "Global • 02:00 UTC+9 community estimate",
     "TimeZoneId": "Asia/Tokyo",
-    "Source": "https://aion2rifttimer.com/",
+    "Source": "https://aion2rifttimer.com/ | https://aion2data.com/timers",
     "ReviewedUtc": "2026-10-14",
     "Events": [
       {
@@ -167,6 +263,54 @@
         ],
         "Minute": 0,
         "EntryMinutes": 3
+      },
+      {
+        "Id": "dimensional-invasion",
+        "Name": "Dimensional Invasion",
+        "Hours": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          20,
+          21,
+          22,
+          23
+        ],
+        "Minute": 30,
+        "EntryMinutes": 1
+      },
+      {
+        "Id": "watcher-kaira",
+        "Name": "Watcher Kaira (scheduled spawn)",
+        "Hours": [
+          1,
+          4,
+          7,
+          10,
+          13,
+          16,
+          19,
+          22
+        ],
+        "Minute": 0,
+        "EntryMinutes": 1
       }
     ]
   }
