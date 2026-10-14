@@ -17,7 +17,8 @@ internal static class Program
   foreach(var theme in new[]{"Aion Blue/Red","Neon Spectrum","Void Purple","Emerald Glass","Solar Flare","Ice Crystal","Midnight Gold","Rose Quartz","Aurora","Black / Orange","Black / Yellow","Nightmare Before Christmas"})
   {
    Invoke("ApplyTheme",theme);
-   string color=((SolidColorBrush)((Border)window.FindName("Root")).Background).Color.ToString();
+   var themeRoot=(Border)window.FindName("Root");
+   string color=((SolidColorBrush)themeRoot.Background).Color.ToString()+"/"+((SolidColorBrush)themeRoot.BorderBrush).Color.ToString();
    if(color==previous)throw new Exception($"Theme did not change: {theme}");previous=color;
   }
   foreach(var style in new[]{"Pulse Cards","Neon Compact","Encounter Focus","Modern Glass","Details Inspired","Kagerou Inspired","Bars Only","Raid Compact","Glass Cards","Tournament","Classic Dashboard"})Invoke("ApplyOverlayStyle",style);
