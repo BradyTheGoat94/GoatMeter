@@ -24,13 +24,12 @@ public static class ArmoryScoreVerifier
             using var document=JsonDocument.Parse(json,new JsonDocumentOptions { MaxDepth=24,AllowTrailingCommas=false,CommentHandling=JsonCommentHandling.Disallow });
             var root=document.RootElement;
             if(root.ValueKind!=JsonValueKind.Object)return false;
-            if(!root.TryGetProperty("characterId",out var id)||
+            if(!root.TryGetProperty("profile",out var profile)||profile.ValueKind!=JsonValueKind.Object)return false;
+            if(!(profile.TryGetProperty("characterId",out var id)||root.TryGetProperty("characterId",out id))||
                id.ValueKind!=JsonValueKind.String||
                !string.Equals(id.GetString(),expectedCharacterId,StringComparison.Ordinal))return false;
-            if(!root.TryGetProperty("serverId",out var server)||
-               !TryInt(server,out var serverId)||serverId!=expectedServerId)return false;
-            if(!root.TryGetProperty("profile",out var profile)||
-               profile.ValueKind!=JsonValueKind.Object)return false;
+            if(root.TryGetProperty("serverId",out var server)&&
+               (!TryInt(server,out var serverId)||serverId!=expectedServerId))return false;
             long? cp=null;int? gs=null;
             if(profile.TryGetProperty("combatPower",out var cpValue))
             {
