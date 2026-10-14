@@ -18,7 +18,7 @@ jobs:
     runs-on: windows-latest
     timeout-minutes: 35
     permissions:
-      contents: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && 'write' || 'read' }}
+      contents: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
