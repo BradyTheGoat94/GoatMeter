@@ -193,6 +193,7 @@ var armoryJson="""{"characterId":"opaque-id","serverId":1102,"profile":{"combatP
 True(ArmoryScoreVerifier.TryParse(armoryJson,"opaque-id",1102,t,out var armory),"matching official armory JSON accepted");
 Equal(armory!.CombatPower!.Value,121600,"armory CP parsed separately");
 Equal(armory.GearScore!.Value,2800,"armory GS parsed separately");
+True(armory.Provenance=="unverified-user-profile-import","imported profile does not claim authenticated origin");
 True(!ArmoryScoreVerifier.TryParse(armoryJson,"other-id",1102,t,out _),"armory identity mismatch rejected");
 True(!ArmoryScoreVerifier.TryParse(armoryJson,"opaque-id",1202,t,out _),"armory server mismatch rejected");
 True(!ArmoryScoreVerifier.TryParse(armoryJson.Replace("121600","99999999999"),"opaque-id",1102,t,out _),"armory unreasonable CP rejected");
