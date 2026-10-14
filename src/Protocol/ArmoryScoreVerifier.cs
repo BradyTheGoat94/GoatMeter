@@ -3,9 +3,9 @@ using System.Text.Json;
 namespace Aion2DPSPro.Protocol;
 
 /// <summary>
-/// Read-only verification of an official armory response supplied by the user.
+/// Read-only parsing of user-supplied character profile JSON. The source is not authenticated.
 /// Never replaces passive in-game values, never performs network requests.
-/// The official web characterId is opaque and is NOT the in-game numeric actor ID.
+/// The external web characterId is opaque and is NOT the in-game numeric actor ID.
 /// </summary>
 public sealed record ArmoryScore(string CharacterId, int ServerId, int? GearScore,
     long? CombatPower, DateTime ObservedUtc, string Provenance);
@@ -52,7 +52,7 @@ public static class ArmoryScoreVerifier
                 }
             }
             if(cp==null&&gs==null)return false;
-            score=new(expectedCharacterId,expectedServerId,gs,cp,observedUtc,"official-profile-import");
+            score=new(expectedCharacterId,expectedServerId,gs,cp,observedUtc,"unverified-user-profile-import");
             return true;
         }
         catch(JsonException){return false;}
