@@ -6,7 +6,7 @@
  <Window.Resources>
     <icons:ClassIconConverter x:Key="ClassIconConverter"/>
   <Style TargetType="TextBlock"><Setter Property="Foreground" Value="#F4F7FF"/></Style>
-  <Style TargetType="Button"><Setter Property="Background" Value="#14284A"/><Setter Property="Foreground" Value="#EAF2FF"/><Setter Property="BorderBrush" Value="#2F80ED"/><Setter Property="Padding" Value="9,4"/><Setter Property="Margin" Value="3,0"/></Style>
+  <Style TargetType="Button"><Setter Property="Cursor" Value="Hand"/><Setter Property="Template"><Setter.Value><ControlTemplate TargetType="Button"><Border x:Name="Chrome" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1" CornerRadius="6" Padding="{TemplateBinding Padding}"><ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/></Border><ControlTemplate.Triggers><Trigger Property="IsMouseOver" Value="True"><Setter TargetName="Chrome" Property="Opacity" Value="0.75"/></Trigger><Trigger Property="IsPressed" Value="True"><Setter TargetName="Chrome" Property="Opacity" Value="0.5"/></Trigger><Trigger Property="IsEnabled" Value="False"><Setter TargetName="Chrome" Property="Opacity" Value="0.35"/></Trigger><Trigger Property="IsKeyboardFocused" Value="True"><Setter TargetName="Chrome" Property="BorderBrush" Value="White"/></Trigger></ControlTemplate.Triggers></ControlTemplate></Setter.Value></Setter><Setter Property="Background" Value="#14284A"/><Setter Property="Foreground" Value="#EAF2FF"/><Setter Property="BorderBrush" Value="#2F80ED"/><Setter Property="Padding" Value="9,4"/><Setter Property="Margin" Value="3,0"/></Style>
   <Style TargetType="TabItem"><Setter Property="Foreground" Value="#D9E8FF"/><Setter Property="Background" Value="#0E1C35"/><Setter Property="BorderBrush" Value="#2F80ED"/><Setter Property="Padding" Value="12,5"/></Style>
 
   <Style TargetType="ComboBoxItem"><Setter Property="Foreground" Value="#E6EEF9"/><Setter Property="Template"><Setter.Value><ControlTemplate TargetType="ComboBoxItem"><Border x:Name="Item" Padding="10,7" Background="#111C30"><ContentPresenter/></Border><ControlTemplate.Triggers><Trigger Property="IsHighlighted" Value="True"><Setter TargetName="Item" Property="Background" Value="#244663"/></Trigger></ControlTemplate.Triggers></ControlTemplate></Setter.Value></Setter></Style>
@@ -16,6 +16,21 @@
   </Grid></ControlTemplate></Setter.Value></Setter></Style>
   <Style TargetType="ProgressBar"><Setter Property="Template"><Setter.Value><ControlTemplate TargetType="ProgressBar"><Border x:Name="PART_Track" Background="{TemplateBinding Background}"><Border x:Name="PART_Indicator" HorizontalAlignment="Left" Background="{TemplateBinding Foreground}"/></Border></ControlTemplate></Setter.Value></Setter></Style>
   <Style TargetType="ListViewItem"><Setter Property="HorizontalContentAlignment" Value="Stretch"/><Setter Property="Padding" Value="0"/><Setter Property="Margin" Value="0,0,0,3"/><Setter Property="Template"><Setter.Value><ControlTemplate TargetType="ListViewItem"><Border x:Name="Item" BorderBrush="Transparent" BorderThickness="1" Background="Transparent" CornerRadius="3"><ContentPresenter/></Border><ControlTemplate.Triggers><Trigger Property="IsSelected" Value="True"><Setter TargetName="Item" Property="BorderBrush" Value="#D9E8FF"/></Trigger><Trigger Property="IsMouseOver" Value="True"><Setter TargetName="Item" Property="Background" Value="#302F80ED"/></Trigger></ControlTemplate.Triggers></ControlTemplate></Setter.Value></Setter></Style>
+  <DataTemplate x:Key="ModernRows">
+   <Border CornerRadius="8" Background="#40152032" Margin="0,2" ClipToBounds="True">
+    <Grid Height="52">
+     <ProgressBar Value="{Binding Relative}" Maximum="100" Foreground="{Binding Brush}" Background="Transparent" Opacity="0.10" IsHitTestVisible="False"/>
+     <Border Width="3" Background="{Binding Brush}" HorizontalAlignment="Left" CornerRadius="2" Margin="0,8"/>
+     <Grid Margin="12,4"><Grid.ColumnDefinitions><ColumnDefinition Width="26"/><ColumnDefinition Width="32"/><ColumnDefinition/><ColumnDefinition Width="92"/><ColumnDefinition Width="58"/></Grid.ColumnDefinitions>
+      <TextBlock Text="{Binding Rank}" Foreground="#8091AA" VerticalAlignment="Center" FontSize="12"/>
+      <Image Grid.Column="1" Width="23" Height="23" Source="{Binding ClassName, Converter={StaticResource ClassIconConverter}}"/>
+      <StackPanel Grid.Column="2" VerticalAlignment="Center" Margin="8,0"><TextBlock Text="{Binding Name}" FontWeight="SemiBold" FontSize="14" TextTrimming="CharacterEllipsis" ToolTip="{Binding Name}"/><TextBlock Text="{Binding ClassName}" Foreground="{Binding Brush}" FontSize="10"/></StackPanel>
+      <StackPanel Grid.Column="3" VerticalAlignment="Center"><TextBlock Text="{Binding Dps}" FontSize="19" FontWeight="SemiBold" HorizontalAlignment="Right"/><TextBlock Text="{Binding Damage}" Foreground="#8F9FB7" FontSize="10" HorizontalAlignment="Right" ToolTip="Total for the selected category"/></StackPanel>
+      <TextBlock Grid.Column="4" Text="{Binding Share}" Foreground="#A8B7CC" FontSize="11" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+     </Grid>
+    </Grid>
+   </Border>
+  </DataTemplate>
   <DataTemplate x:Key="DetailsRows">
    <Grid Height="32" ClipToBounds="True" Background="#402D3749">
     <ProgressBar Value="{Binding Relative}" Maximum="100" Foreground="{Binding Brush}" Background="Transparent" Opacity="0.45" IsHitTestVisible="False"/>
@@ -57,14 +72,14 @@
    <Border x:Name="HeaderBar" MouseLeftButtonDown="Drag" Grid.Row="0" Background="#101F3D" CornerRadius="8,8,0,0" BorderBrush="#2F80ED" BorderThickness="0,0,0,1">
     <Grid Margin="12,0"><Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
      <StackPanel Orientation="Horizontal" VerticalAlignment="Center"><Image Source="/GoatMeter;component/Assets/Brand/GoatHead.png" Width="28" Height="28" Margin="0,0,8,0"/><TextBlock x:Name="TitleAion" Text="Goat" FontSize="20" FontWeight="Bold" Foreground="#8FB8FF"/><TextBlock x:Name="TitleDps" Text="Meter" FontSize="20" FontWeight="Bold" Foreground="#FF4D5A"/><Border x:Name="PreviewBadge" Background="#A8322630" CornerRadius="4" Margin="12,0,0,0" Padding="7,2"><TextBlock Text="SIMULATED PREVIEW" FontWeight="Bold" Foreground="#FFB3B8" FontSize="11"/></Border></StackPanel>
-     <TextBlock x:Name="GroupDps" Grid.Column="1" Foreground="#8FB8FF" Margin="12,0" VerticalAlignment="Center" HorizontalAlignment="Right" TextTrimming="CharacterEllipsis"/><StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center"><TextBlock x:Name="Timer" Text="00:00" FontWeight="SemiBold"/><Button Content="⚙" ToolTip="Overlay settings" Click="OpenSettings"/><Button Content="×" Click="CloseOverlay"/></StackPanel>
+     <TextBlock x:Name="GroupDps" Grid.Column="1" Foreground="#8FB8FF" Margin="12,0" VerticalAlignment="Center" HorizontalAlignment="Right" TextTrimming="CharacterEllipsis"/><StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center"><TextBlock x:Name="Timer" Text="00:00" FontWeight="SemiBold"/><Button x:Name="ResetCurrentFight" Content="↻" AutomationProperties.Name="Reset current fight" ToolTip="Reset current fight — keeps overall totals and saves the finished fight" Click="ResetCurrentFightClicked"/><Button Content="⚙" ToolTip="Overlay settings" Click="OpenSettings"/><Button Content="×" Click="CloseOverlay"/></StackPanel>
     </Grid>
    </Border>
    <Grid x:Name="ToolbarGrid" Grid.Row="1" Margin="10,5,10,3">
-    <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+    <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="160"/><ColumnDefinition Width="130"/></Grid.ColumnDefinitions>
     <ScrollViewer x:Name="CategoryTabs" HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Disabled"><TabControl x:Name="Tabs" Background="Transparent" BorderThickness="0"><TabItem Header="Damage"/><TabItem Header="Healing"/><TabItem Header="Damage Taken"/><TabItem Header="Deaths" ToolTip="Aggregation supported; live opcode unverified"/><TabItem Header="Buffs" ToolTip="Aggregation supported; live opcode unverified"/><TabItem Header="Debuffs" ToolTip="Aggregation supported; live opcode unverified"/><TabItem Header="Interrupts" ToolTip="Aggregation supported; live opcode unverified"/><TabItem Header="Dispels" ToolTip="Aggregation supported; live opcode unverified"/></TabControl></ScrollViewer>
     <ComboBox x:Name="CategoryPicker" Width="150" Height="28" HorizontalAlignment="Left" Visibility="Collapsed" SelectionChanged="CategoryChanged"/>
-    <ComboBox x:Name="FightHistory" Grid.Column="1" Width="210" Height="28" Margin="4,0" DisplayMemberPath="Label" DropDownOpened="RefreshFightHistory" SelectionChanged="FightHistoryChanged" ToolTip="Browse stored fights"/>
+    <ComboBox x:Name="FightHistory" Grid.Column="1" Height="28" Margin="4,0" DisplayMemberPath="Label" DropDownOpened="RefreshFightHistory" SelectionChanged="FightHistoryChanged" ToolTip="Browse stored fights"/>
     <ComboBox x:Name="Segment" Grid.Column="2" Width="130" Height="28" SelectedIndex="0" Background="#14284A" Foreground="White" SelectionChanged="SegmentChanged"><ComboBoxItem Content="Current Fight"/><ComboBoxItem Content="Previous Fight"/><ComboBoxItem Content="Overall"/></ComboBox>
    </Grid>
    <Grid x:Name="ContentGrid" Grid.Row="2" Margin="12,4,12,6">

@@ -14,6 +14,10 @@ See [accuracy and reliability status](docs/accuracy-reliability.md) for implemen
 
 
 ## Overlay designs
+Choose **Modern Glass** in the overlay gear menu for rounded translucent panels, class-colored cards, larger metric values, and a compact encounter toolbar. New installations default to Modern Glass; existing saved style preferences are preserved.
+
+Use **↻** in the header to reset the current fight immediately. The completed fight stays in history, overall totals remain intact, and incoming combat starts a new current fight. The action returns to Current Fight even when viewing Overall or a saved encounter.
+
 Open the overlay gear menu and choose **Details Inspired** for full-width class-colored ranked bars, or **Kagerou Inspired** for translucent compact rows with thin contribution bars. These are independent row designs; color themes can be used with either style. Classic and the existing layout presets remain available.
 
 The compact category selector supports all eight categories, and the encounter selector supports current, previous, and overall. Double-click a player in either design to open the detailed report. Drag the header to move the overlay. Style, theme, size, position, opacity, detail visibility, and always-on-top preferences are saved on closing settings, hiding the overlay, or exiting.

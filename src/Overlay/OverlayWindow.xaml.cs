@@ -19,7 +19,8 @@ public partial class OverlayWindow : Window
     long? selectedActor;
     string SelectedName(long id)=>last?.Players.FirstOrDefault(p=>p.ActorId==id)?.Name??$"Actor {id}";
     string currentTheme = "Aion Blue/Red";
-    string currentStyle = "Classic Dashboard";
+    string currentStyle = "Modern Glass";
+    int historyRequest;
     bool clickThrough;
     bool showDetails = true;
     public OverlayWindow() { InitializeComponent(); CategoryPicker.ItemsSource=new[]{"Damage","Healing","Damage Taken","Deaths","Buffs","Debuffs","Interrupts","Dispels"}; CategoryPicker.SelectedIndex=0; FightHistory.ItemsSource=new[]{new HistoryChoice("Saved fights ▾",null)}; FightHistory.SelectedIndex=0; ApplyTheme(currentTheme); ApplyOverlayStyle(currentStyle); LoadPreferences(); }
@@ -43,6 +44,7 @@ public partial class OverlayWindow : Window
         TargetHp.Text=s.Target is null?"":$"{s.Target.Percent:0.0}%   {F(s.Target.CurrentHp)} / {F(s.Target.MaxHp)}";
         StatusText.ToolTip="Verified against regression tests, reviewed captures and observed dungeon runs. Exact party totals have not been independently compared.";
         StatusText.Text=s.PreviewMode?"SIMULATED DATA":$"{(s.InFight?"CURRENT":"COMPLETED")} • VERIFIED";
+        ResetCurrentFight.IsEnabled=Engine!=null;
         var max=Math.Max(1,s.Players.FirstOrDefault()?.Dps??1);
         Rows.ItemsSource=s.Players.Select((p,i)=>new Row(i+1,p.Name,p.ClassName,F(p.Dps),F(p.Damage),$"{p.Share:0.0}%",Brush(p.ClassName),Math.Max(0,150*p.Dps/max),Math.Clamp(100*p.Dps/max,0,100),p)).ToList();
         Rows.SelectedItem=Rows.Items.Cast<Row>().FirstOrDefault(r=>r.Stats.ActorId==selectedActor);
@@ -89,16 +91,18 @@ public partial class OverlayWindow : Window
         if(loadingHistory || FightHistory.SelectedItem is not HistoryChoice choice)return;
         if(choice.Path==null)
         {
+            historyRequest++;
             historicalSnapshot=null;
             historicalPath=null;
             if(last!=null)Render(last);
             return;
         }
         if(HistoryLoader==null)return;
+        var request=++historyRequest;
         try
         {
             var saved=await HistoryLoader(choice.Path);
-            if(saved==null)return;
+            if(saved==null || request!=historyRequest)return;
             historicalSnapshot=saved;
             historicalPath=choice.Path;
             selectedActor=null;
@@ -110,6 +114,7 @@ public partial class OverlayWindow : Window
     void SegmentChanged(object sender,System.Windows.Controls.SelectionChangedEventArgs e)
     {
         if(Segment==null)return;
+        historyRequest++;
         historicalSnapshot=null;
         historicalPath=null;
         if(FightHistory!=null && FightHistory.SelectedIndex>0)FightHistory.SelectedIndex=0;
@@ -165,7 +170,7 @@ public partial class OverlayWindow : Window
             timeout.ValueChanged += (_,__)=> { var value=TimeSpan.FromSeconds(timeout.Value); Engine.InactivityTimeout=value; Engine.BossInactivityTimeout=value; };panel.Children.Add(timeout);
             panel.Children.Add(new System.Windows.Controls.TextBlock {Text="Default is 8 seconds. The same inactivity timeout applies to normal and boss fights.",TextWrapping=TextWrapping.Wrap,FontSize=11});
             var finish=new System.Windows.Controls.Button {Content="Finish current fight",Margin=new Thickness(0,8,0,0)};
-            finish.Click += (_,__)=>Engine.ResetFight();panel.Children.Add(finish);
+            finish.Click += ResetCurrentFightClicked;panel.Children.Add(finish);
         }
         var historyButton=new System.Windows.Controls.Button {Content="Saved fight history",Margin=new Thickness(0,8,0,0)};
         historyButton.Click += async (_,__)=>
@@ -199,8 +204,19 @@ public partial class OverlayWindow : Window
         w.Content=new System.Windows.Controls.ScrollViewer {Content=panel,VerticalScrollBarVisibility=System.Windows.Controls.ScrollBarVisibility.Auto}; w.ShowDialog(); SavePreferences();
     }
 
+    void ResetCurrentFightClicked(object sender,RoutedEventArgs e)
+    {
+        if(Engine==null)return;
+        historyRequest++;
+        historicalSnapshot=null; historicalPath=null; selectedActor=null;
+        FightHistory.SelectedIndex=0;
+        Segment.SelectedIndex=(int)MeterSegment.Current;
+        Engine.ResetFight();
+        Render(Engine.Snapshot(MeterSegment.Current,(MeterCategory)Math.Clamp(Tabs.SelectedIndex,0,7)));
+    }
+
     static readonly string[] ThemeNames = { "Aion Blue/Red", "Neon Spectrum", "Void Purple", "Emerald Glass", "Solar Flare", "Ice Crystal" };
-    static readonly string[] StyleNames = { "Classic Dashboard", "Details Inspired", "Kagerou Inspired", "Bars Only", "Raid Compact", "Glass Cards", "Tournament" };
+    static readonly string[] StyleNames = { "Modern Glass", "Classic Dashboard", "Details Inspired", "Kagerou Inspired", "Bars Only", "Raid Compact", "Glass Cards", "Tournament" };
 
     void ApplyOverlayStyle(string name)
     {
@@ -233,6 +249,23 @@ public partial class OverlayWindow : Window
 
         switch(name)
         {
+            case "Modern Glass":
+                MinWidth=600; MinHeight=320; Width=660; Height=540;
+                Rows.ItemTemplate=(DataTemplate)Resources["ModernRows"];
+                CategoryTabs.Visibility=Visibility.Collapsed; CategoryPicker.Visibility=Visibility.Visible;
+                CategoryPicker.SelectedIndex=Math.Max(0,Tabs.SelectedIndex);
+                MainGrid.RowDefinitions[0].Height=new GridLength(46);
+                MainGrid.RowDefinitions[1].Height=new GridLength(42);
+                MainGrid.RowDefinitions[3].Height=new GridLength(56);
+                DetailPanel.Visibility=Visibility.Collapsed;
+                ContentGrid.ColumnDefinitions[0].Width=new GridLength(1,GridUnitType.Star);
+                ContentGrid.ColumnDefinitions[1].Width=new GridLength(0);
+                ContentGrid.ColumnDefinitions[2].Width=new GridLength(0);
+                Root.CornerRadius=new CornerRadius(14); Root.BorderThickness=new Thickness(1);
+                HeaderBar.CornerRadius=new CornerRadius(13,13,0,0);
+                FooterBar.CornerRadius=new CornerRadius(0,0,13,13);
+                Rows.BorderThickness=new Thickness(0);
+                break;
             case "Details Inspired":
             case "Kagerou Inspired":
                 bool compact=name=="Kagerou Inspired";
@@ -323,6 +356,9 @@ public partial class OverlayWindow : Window
         var bg=Brush(p.Item1); var accent=Brush(p.Item2); var secondary=Brush(p.Item3);
         var chrome=Brush(p.Item4); var primaryText=Brush(p.Item5); var hot=Brush(p.Item6); var control=Brush(p.Item7);
         if(currentStyle=="Kagerou Inspired") {bg=BrushWithOpacity(p.Item1,.62);chrome=BrushWithOpacity(p.Item4,.78);}
+        if(currentStyle=="Modern Glass") {
+            bg=Brush("#E6101725"); chrome=Brush("#B4162032"); accent=Brush("#33465F");
+        }
         Root.Background=bg; Root.BorderBrush=accent;
         HeaderBar.Background=chrome; HeaderBar.BorderBrush=secondary;
         FooterBar.Background=chrome; FooterBar.BorderBrush=secondary;

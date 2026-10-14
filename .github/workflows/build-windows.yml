@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
   pull_request:
     branches: [main]
-    paths: ["installer/**", ".github/workflows/build-windows.yml"]
+    paths: ["src/**", "tests/**", "installer/**", ".github/workflows/build-windows.yml"]
   push:
     branches: [main, accuracy-reliability, identity-reports, overlay-designs]
     paths: ["src/**", "tests/**", "installer/**", ".github/workflows/build-windows.yml"]

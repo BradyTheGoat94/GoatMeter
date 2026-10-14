@@ -20,7 +20,7 @@ internal static class Program
    string color=((SolidColorBrush)((Border)window.FindName("Root")).Background).Color.ToString();
    if(color==previous)throw new Exception($"Theme did not change: {theme}");previous=color;
   }
-  foreach(var style in new[]{"Details Inspired","Kagerou Inspired","Bars Only","Raid Compact","Glass Cards","Tournament","Classic Dashboard"})Invoke("ApplyOverlayStyle",style);
+  foreach(var style in new[]{"Modern Glass","Details Inspired","Kagerou Inspired","Bars Only","Raid Compact","Glass Cards","Tournament","Classic Dashboard"})Invoke("ApplyOverlayStyle",style);
   if(((FrameworkElement)window.FindName("ToolbarGrid")).Visibility!=Visibility.Visible)throw new Exception("Classic did not restore toolbar");
   var t=DateTime.UtcNow;var engine=new CombatEngine(()=>t);
   engine.Apply(new(t,CombatKind.PlayerName,1,"Player",SourceClass:"Templar"));
@@ -30,6 +30,19 @@ internal static class Program
   for(int s=0;s<3;s++)for(int c=0;c<8;c++){segment.SelectedIndex=s;tabs.SelectedIndex=c;window.Render(engine.Snapshot());}
   tabs.SelectedIndex=0;segment.SelectedIndex=0;window.Render(engine.Snapshot());
   if(((ListView)window.FindName("Rows")).Items.Count!=1)throw new Exception("Damage rows missing");
+  // Exercise the actual header action from Overall; reset must select Current,
+  // clear rows immediately, archive once and leave session totals untouched.
+  window.Engine=engine; segment.SelectedIndex=2;
+  ((Button)window.FindName("ResetCurrentFight")).RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+  if(segment.SelectedIndex!=0 || ((ListView)window.FindName("Rows")).Items.Count!=0)throw new Exception("Reset did not return to empty current fight");
+  if(engine.History.Count!=1 || engine.Snapshot(MeterSegment.Previous,MeterCategory.Damage).FightDamage!=100)throw new Exception("Reset lost completed fight");
+  if(engine.Snapshot(MeterSegment.Overall,MeterCategory.Damage).FightDamage!=100)throw new Exception("Reset cleared overall totals");
+  ((Button)window.FindName("ResetCurrentFight")).RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+  if(engine.History.Count!=1)throw new Exception("Empty reset duplicated history");
+  engine.Apply(new(t.AddSeconds(1),CombatKind.Damage,1,"Player",2,"Target","Strike",50,SourceClass:"Templar"));
+  window.Render(engine.Snapshot());
+  if(engine.Snapshot().FightDamage!=50 || engine.Snapshot(MeterSegment.Overall,MeterCategory.Damage).FightDamage!=150)throw new Exception("Capture did not continue after reset");
+  Console.WriteLine("PASS: header reset archives current, preserves overall and capture continues");
   tabs.SelectedIndex=1;window.Render(engine.Snapshot());
   if(((ListView)window.FindName("Rows")).Items.Count!=0)throw new Exception("Healing incorrectly reused damage rows");
   // Integration: identity-only socket and combat socket, same exact entity and endpoint scope.
@@ -91,7 +104,7 @@ internal static class Program
   tabs.SelectedIndex=0;segment.SelectedIndex=0;Invoke("ApplyTheme","Ice Crystal");window.Show();
   var rows=(ListView)window.FindName("Rows");
   DataTemplate? previousTemplate=null;
-  foreach(var style in new[]{"Details Inspired","Kagerou Inspired","Classic Dashboard"}) {
+  foreach(var style in new[]{"Modern Glass","Details Inspired","Kagerou Inspired","Classic Dashboard"}) {
    Invoke("ApplyOverlayStyle",style);window.Render(previewEngine.Snapshot());window.UpdateLayout();
    if(rows.ItemTemplate==previousTemplate)throw new Exception("Styles reused the same row design");previousTemplate=rows.ItemTemplate;
    if(rows.Items.Count!=8)throw new Exception("Style lost party rows");
