@@ -1,4 +1,6 @@
-# GoatMeter free code-signing preparation
+# GoatMeter code-signing preparation
+
+**SignPath application paused:** the owner wants free application use with separately paid commercial code reuse. This is a restrictive licensing model, incompatible with SignPath Foundation's open-source requirement. See [proposed licensing policy](proposed-licensing-policy.md). Do not add an open-source license or submit this application without a changed owner decision.
 
 Status: application not submitted, approval not granted, release 168 unsigned. No SignPath certificate or project/API credentials are configured. This preparation does not alter the public build or grant a software license.
 
