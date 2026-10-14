@@ -189,4 +189,12 @@ var badSchedule=Path.Combine(Path.GetTempPath(),Guid.NewGuid()+".json");try{
  bool rejected=false;try{Aion2DPSPro.Schedules.EventSchedule.Load(badSchedule);}catch(InvalidDataException){rejected=true;}True(rejected,"invalid imported hour rejected");
  File.WriteAllText(badSchedule,"[null]");rejected=false;try{Aion2DPSPro.Schedules.EventSchedule.Load(badSchedule);}catch(InvalidDataException){rejected=true;}True(rejected,"null imported profile rejected");
 }finally{File.Delete(badSchedule);}
+var armoryJson="""{"characterId":"opaque-id","serverId":1102,"profile":{"combatPower":121600},"stat":{"statList":[{"type":"ItemLevel","value":2800}]}}""";
+True(ArmoryScoreVerifier.TryParse(armoryJson,"opaque-id",1102,t,out var armory),"matching official armory JSON accepted");
+Equal(armory!.CombatPower!.Value,121600,"armory CP parsed separately");
+Equal(armory.GearScore!.Value,2800,"armory GS parsed separately");
+True(!ArmoryScoreVerifier.TryParse(armoryJson,"other-id",1102,t,out _),"armory identity mismatch rejected");
+True(!ArmoryScoreVerifier.TryParse(armoryJson,"opaque-id",1202,t,out _),"armory server mismatch rejected");
+True(!ArmoryScoreVerifier.TryParse(armoryJson.Replace("121600","99999999999"),"opaque-id",1102,t,out _),"armory unreasonable CP rejected");
+True(!ArmoryScoreVerifier.TryParse("{}", "opaque-id",1102,t,out _),"missing armory identity rejected");
 Console.WriteLine($"PASS: {checks} regression assertions");
