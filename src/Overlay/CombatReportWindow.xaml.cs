@@ -9,12 +9,14 @@ public partial class CombatReportWindow : Window
 {
     private readonly Func<MeterSnapshot> provider;
     private readonly long actorId;
+    public bool HideNames {get;set;}
+    public bool ShowCharacterStats {get;set;}=true;
     private readonly DispatcherTimer timer=new() {Interval=TimeSpan.FromMilliseconds(500)};
     private MeterSnapshot? displayed;
     private bool ready;
-    public CombatReportWindow(Func<MeterSnapshot> provider,long actorId,MeterCategory category=MeterCategory.Damage)
+    public CombatReportWindow(Func<MeterSnapshot> provider,long actorId,MeterCategory category=MeterCategory.Damage,bool hideNames=false,bool showCharacterStats=true)
     {
-        this.provider=provider;this.actorId=actorId;
+        this.provider=provider;this.actorId=actorId;HideNames=hideNames;ShowCharacterStats=showCharacterStats;
         InitializeComponent();
         Category.ItemsSource=Enum.GetValues<MeterCategory>();Category.SelectedItem=category;ready=true;
         timer.Tick+=(_,_)=> {if(Pause.IsChecked!=true)Refresh();};
@@ -32,12 +34,13 @@ public partial class CombatReportWindow : Window
         PlayerStats? Actor(MeterCategory c)=>Dataset(c).Players.FirstOrDefault(x=>x.ActorId==actorId);
         var stats=Actor(category);
         var identity=stats??Enum.GetValues<MeterCategory>().Select(Actor).FirstOrDefault(x=>x!=null);
-        PlayerName.Text=identity?.Name??$"Actor {actorId}";
+        PlayerName.Text=HideNames?$"{identity?.ClassName??"Player"} • report":identity?.Name??$"Actor {actorId}";
         Title=$"{PlayerName.Text} — Combat analysis";
-        PlayerContext.Text=$"{identity?.ClassName??"Unknown"}  •  Entity {identity?.EntityId??actorId}  •  {category}";
+        PlayerContext.Text=$"{identity?.ClassName??"Unknown"} • {category}"+(ShowCharacterStats?$" • GS {(identity?.GearScore?.ToString()??"—")} • CP {(identity?.CombatPower?.ToString("N0")??"—")}":"");
         FightContext.Text=$"{TimeSpan.FromSeconds(s.FightSeconds):mm\\:ss} encounter  •  {s.StartedUtc?.ToLocalTime():HH:mm:ss}";
         LiveState.Text=Pause.IsChecked==true?"PAUSED":s.InFight?"LIVE / 0.5s":"COMPLETED";
-        TargetContext.Text=s.Target?.Name??"No target data";
+        string TargetName(string name)=>HideNames&&Enum.GetValues<MeterCategory>().SelectMany(c=>Dataset(c).Players).Any(p=>p.Name==name)?"Player target":name;
+        TargetContext.Text=TargetName(s.Target?.Name??"No target data");
         bool rate=category is MeterCategory.Damage or MeterCategory.Healing or MeterCategory.DamageTaken;
         string metric=Dataset(category).MetricLabel;
         AmountLabel.Text=$"TOTAL {category.ToString().ToUpperInvariant()}";
@@ -50,8 +53,8 @@ public partial class CombatReportWindow : Window
         var skills=Dataset(category).Skills.Where(x=>x.ActorId==actorId).Select(x=>new SkillRow(x.Name,x.Damage,x.Dps,x.Share,x.Hits,x.Crits,x.CritPercent,x.Average,x.MinHit,x.MaxHit,
             x.FlagHits.GetValueOrDefault(DamageFlags.Perfect),x.FlagHits.GetValueOrDefault(DamageFlags.Back),x.FlagHits.GetValueOrDefault(DamageFlags.Frontal),x.FlagHits.GetValueOrDefault(DamageFlags.Double),x.FlagHits.GetValueOrDefault(DamageFlags.Parry),x.FlagHits.GetValueOrDefault(DamageFlags.MultiHit))).ToArray();
         SkillGrid.ItemsSource=skills;SkillEmpty.Visibility=skills.Length==0?Visibility.Visible:Visibility.Collapsed;
-        var targets=s.Targets.Where(x=>x.ActorId==actorId).OrderByDescending(x=>x.Damage).ToArray();TargetGrid.ItemsSource=targets;TargetEmpty.Visibility=targets.Length==0?Visibility.Visible:Visibility.Collapsed;
-        string Name(long id)=>Enum.GetValues<MeterCategory>().SelectMany(c=>Dataset(c).Players).FirstOrDefault(x=>x.ActorId==id)?.Name??$"Actor {id}";
+        var targets=s.Targets.Where(x=>x.ActorId==actorId).OrderByDescending(x=>x.Damage).ToArray();TargetGrid.ItemsSource=targets.Select(x=>x with {Name=TargetName(x.Name)}).ToArray();TargetEmpty.Visibility=targets.Length==0?Visibility.Visible:Visibility.Collapsed;
+        string Name(long id)=>HideNames?"Player":Enum.GetValues<MeterCategory>().SelectMany(c=>Dataset(c).Players).FirstOrDefault(x=>x.ActorId==id)?.Name??$"Actor {id}";
         var effects=s.Buffs.Where(x=>x.TargetId==actorId).Select(x=>new {x.Name,Kind=x.IsDebuff?"Debuff":"Buff",Source=Name(x.SourceId),x.Uptime,x.ActiveSeconds,x.MaxStacks}).ToArray();
         EffectGrid.ItemsSource=effects;EffectEmpty.Visibility=effects.Length==0?Visibility.Visible:Visibility.Collapsed;
         EventGrid.ItemsSource=s.RecentEvents.Where(x=>x.SourceId==actorId||x.TargetId==actorId).Reverse().Select(x=>new {Time=x.Utc.ToLocalTime().ToString("HH:mm:ss.fff"),Direction=x.SourceId==actorId?"Outgoing":"Incoming",Kind=x.Kind.ToString(),Skill=string.IsNullOrWhiteSpace(x.Skill)?x.Effect:x.Skill,x.Amount,Flags=x.DamageFlags==DamageFlags.None?x.DamageType.ToString():x.DamageFlags.ToString()}).ToArray();

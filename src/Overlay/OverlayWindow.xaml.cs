@@ -19,14 +19,22 @@ public partial class OverlayWindow : Window
     long? selectedActor;
     string SelectedName(long id)=>last?.Players.FirstOrDefault(p=>p.ActorId==id)?.Name??$"Actor {id}";
     string currentTheme = "Aion Blue/Red";
-    string currentStyle = "Classic Dashboard";
+    string currentStyle = "Modern Glass";
+    int historyRequest;
     bool clickThrough;
+    bool positionLocked;
+    bool hideNames;
+    bool displayPaused;
+    double uiScale=1;
+    bool showCharacterStats=true;
+    EventTimersWindow? eventTimers;
     bool showDetails = true;
     public OverlayWindow() { InitializeComponent(); CategoryPicker.ItemsSource=new[]{"Damage","Healing","Damage Taken","Deaths","Buffs","Debuffs","Interrupts","Dispels"}; CategoryPicker.SelectedIndex=0; FightHistory.ItemsSource=new[]{new HistoryChoice("Saved fights ▾",null)}; FightHistory.SelectedIndex=0; ApplyTheme(currentTheme); ApplyOverlayStyle(currentStyle); LoadPreferences(); }
     static readonly Dictionary<string,string> Colors = new(StringComparer.OrdinalIgnoreCase) {
         ["Gladiator"]="#E65353", ["Templar"]="#E8903D", ["Assassin"]="#C45CFF", ["Ranger"]="#F2C94C",
         ["Sorcerer"]="#4DA3FF", ["Spiritmaster"]="#48C9D8", ["Cleric"]="#6DDB72", ["Chanter"]="#D6DCE8", ["Brawler"]="#FF7A45", ["Unknown"]="#AAB6CC" };
     public void Render(MeterSnapshot s) {
+        if(displayPaused)return;
         var category=(MeterCategory)Math.Clamp(Tabs.SelectedIndex,0,7);
         if(historicalSnapshot!=null)
         {
@@ -39,12 +47,30 @@ public partial class OverlayWindow : Window
         selectedActor=(Rows.SelectedItem as Row)?.Stats.ActorId??selectedActor;
         last=s; PreviewBadge.Visibility=s.PreviewMode?Visibility.Visible:Visibility.Collapsed;
         Timer.Text=TimeSpan.FromSeconds(s.FightSeconds).ToString(@"mm\:ss"); GroupDps.Text=$"GROUP {F(s.Players.Sum(p=>p.Dps))} {s.MetricLabel}";
-        BossHp.Value=s.Target?.Percent??0; TargetName.Text=s.Target?.Name??"No target";
-        TargetHp.Text=s.Target is null?"":$"{s.Target.Percent:0.0}%   {F(s.Target.CurrentHp)} / {F(s.Target.MaxHp)}";
-        StatusText.ToolTip="Verified against regression tests, reviewed captures and observed dungeon runs. Exact party totals have not been independently compared.";
-        StatusText.Text=s.PreviewMode?"SIMULATED DATA":$"{(s.InFight?"CURRENT":"COMPLETED")} • VERIFIED";
+        BossHp.Value=s.Target?.Percent??0; BossHp.Visibility=s.Target?.MaxHp>0?Visibility.Visible:Visibility.Collapsed; TargetName.Text=s.Target?.Name??"No target";
+        if(hideNames&&s.Target!=null&&s.Players.Any(p=>p.Name==s.Target.Name))TargetName.Text="Player target";
+        EncounterTarget.Text=TargetName.Text!="No target"?TargetName.Text:(s.Players.Count>0?"Combat encounter":"Waiting for combat");
+        var segmentLabel=historicalSnapshot!=null?"SAVED FIGHT":Segment.SelectedIndex==2?"OVERALL":Segment.SelectedIndex==1?"PREVIOUS FIGHT":"CURRENT FIGHT";
+        EncounterContext.Text=$"{segmentLabel} • {s.Players.Count} PLAYERS"+(s.Target?.MaxHp>0?$" • HP {s.Target.Percent:0.0}%":"");
+        EncounterHp.Visibility=s.Target?.MaxHp>0?Visibility.Visible:Visibility.Collapsed;
+        EncounterHp.Value=s.Target?.Percent??0;
+        EncounterTime.Text=Timer.Text; EncounterRate.Text=GroupDps.Text;
+        EncounterTotalLabel.Text=category==MeterCategory.Healing?"HEALING":category is MeterCategory.Damage or MeterCategory.DamageTaken?"DAMAGE":category is MeterCategory.Buffs or MeterCategory.Debuffs?"SECONDS":"COUNT";
+        EncounterRateLabel.Text=s.MetricLabel;
+        TargetHp.Text=s.Target is null?"":s.Target.MaxHp<=0?"HP unavailable":$"{s.Target.Percent:0.0}%   {F(s.Target.CurrentHp)} / {F(s.Target.MaxHp)}";
+        StatusText.ToolTip="Captured combat data. Regression checks validate supported fields; live totals still depend on the packets received.";
+        StatusText.Text=s.PreviewMode?"SIMULATED DATA":s.Players.Count==0?"WAITING FOR COMBAT":$"{(s.InFight?"CURRENT":"COMPLETED")} • CAPTURED";
+        ResetCurrentFight.IsEnabled=Engine!=null;
+        var targetTotal=s.Targets.Where(x=>x.TargetId==s.SelectedTargetId).Sum(x=>x.Damage);
+        string Metadata(PlayerStats p)
+        {
+            var parts=new List<string>();
+            if(showCharacterStats)parts.Add($"GS {(p.GearScore.HasValue?p.GearScore.Value.ToString():"—")}   CP {(p.CombatPower.HasValue?F(p.CombatPower.Value):"—")}");
+            if(category==MeterCategory.Damage&&targetTotal>0)parts.Add($"Target share {100.0*s.Targets.Where(x=>x.ActorId==p.ActorId&&x.TargetId==s.SelectedTargetId).Sum(x=>x.Damage)/targetTotal:0.0}%");
+            return string.Join("   •   ",parts);
+        }
         var max=Math.Max(1,s.Players.FirstOrDefault()?.Dps??1);
-        Rows.ItemsSource=s.Players.Select((p,i)=>new Row(i+1,p.Name,p.ClassName,F(p.Dps),F(p.Damage),$"{p.Share:0.0}%",Brush(p.ClassName),Math.Max(0,150*p.Dps/max),Math.Clamp(100*p.Dps/max,0,100),p)).ToList();
+        Rows.ItemsSource=s.Players.Select((p,i)=>new Row(i+1,hideNames?$"{p.ClassName} #{i+1}":p.Name,p.ClassName,F(p.Dps),F(p.Damage),$"{p.Share:0.0}%",Brush(p.ClassName),Math.Max(0,150*p.Dps/max),Math.Clamp(100*p.Dps/max,0,100),p,Metadata(p))).ToList();
         Rows.SelectedItem=Rows.Items.Cast<Row>().FirstOrDefault(r=>r.Stats.ActorId==selectedActor);
         EmptyRows.Visibility=s.Players.Count==0?Visibility.Visible:Visibility.Collapsed;
         if(Rows.SelectedItem==null){SelectedPlayer.Text="Select a player";SelectedMeta.Text="";}
@@ -87,18 +113,21 @@ public partial class OverlayWindow : Window
     async void FightHistoryChanged(object sender,System.Windows.Controls.SelectionChangedEventArgs e)
     {
         if(loadingHistory || FightHistory.SelectedItem is not HistoryChoice choice)return;
+        ResumeDisplay();
         if(choice.Path==null)
         {
+            historyRequest++;
             historicalSnapshot=null;
             historicalPath=null;
             if(last!=null)Render(last);
             return;
         }
         if(HistoryLoader==null)return;
+        var request=++historyRequest;
         try
         {
             var saved=await HistoryLoader(choice.Path);
-            if(saved==null)return;
+            if(saved==null || request!=historyRequest)return;
             historicalSnapshot=saved;
             historicalPath=choice.Path;
             selectedActor=null;
@@ -110,6 +139,8 @@ public partial class OverlayWindow : Window
     void SegmentChanged(object sender,System.Windows.Controls.SelectionChangedEventArgs e)
     {
         if(Segment==null)return;
+        ResumeDisplay();
+        historyRequest++;
         historicalSnapshot=null;
         historicalPath=null;
         if(FightHistory!=null && FightHistory.SelectedIndex>0)FightHistory.SelectedIndex=0;
@@ -150,10 +181,19 @@ public partial class OverlayWindow : Window
         var opacity = new System.Windows.Controls.Slider { Minimum=.35, Maximum=1, Value=Opacity, TickFrequency=.05, IsSnapToTickEnabled=true, Margin=new Thickness(0,5,0,14) };
         opacity.ValueChanged += (_,__) => Opacity=opacity.Value;
         panel.Children.Add(opacity);
+        panel.Children.Add(new System.Windows.Controls.TextBlock {Text="Interface scale"});
+        var scale=new System.Windows.Controls.Slider {Minimum=.7,Maximum=1.25,Value=uiScale,TickFrequency=.05,IsSnapToTickEnabled=true,Margin=new Thickness(0,5,0,14)};
+        scale.ValueChanged+=(_,_)=>SetUiScale(scale.Value);panel.Children.Add(scale);
         var detail = new System.Windows.Controls.CheckBox { Content="Show player detail panel", IsChecked=showDetails, Margin=new Thickness(0,4,0,8) };
         detail.Checked += (_,__) => { showDetails=true; ApplyOverlayStyle(currentStyle); };
         detail.Unchecked += (_,__) => { showDetails=false; ApplyOverlayStyle(currentStyle); };
         panel.Children.Add(detail);
+        var locked = new System.Windows.Controls.CheckBox {Content="Lock overlay position and size",IsChecked=positionLocked,Margin=new Thickness(0,4,0,8)};
+        locked.Checked += (_,__)=>SetPositionLock(true); locked.Unchecked += (_,__)=>SetPositionLock(false); panel.Children.Add(locked);
+        var scores=new System.Windows.Controls.CheckBox {Content="Show GS and combat power",IsChecked=showCharacterStats,Margin=new Thickness(0,4,0,8)};
+        scores.Checked+=(_,_)=>{showCharacterStats=true;RefreshReports();ResumeDisplay();if(last!=null)Render(last);};scores.Unchecked+=(_,_)=>{showCharacterStats=false;RefreshReports();ResumeDisplay();if(last!=null)Render(last);};panel.Children.Add(scores);
+        var privacy=new System.Windows.Controls.CheckBox {Content="Stream-safe player names",IsChecked=hideNames,Margin=new Thickness(0,4,0,8)};
+        privacy.Checked+=(_,_)=>{hideNames=true;RefreshReports();ResumeDisplay();if(last!=null)Render(last);};privacy.Unchecked+=(_,_)=>{hideNames=false;RefreshReports();ResumeDisplay();if(last!=null)Render(last);};panel.Children.Add(privacy);
         var top = new System.Windows.Controls.CheckBox { Content="Always on top", IsChecked=Topmost, Margin=new Thickness(0,4,0,8) };
         top.Checked += (_,__) => Topmost=true; top.Unchecked += (_,__) => Topmost=false; panel.Children.Add(top);
         var pass = new System.Windows.Controls.CheckBox { Content="Mouse click-through", IsChecked=clickThrough, Margin=new Thickness(0,4,0,8) };
@@ -165,7 +205,7 @@ public partial class OverlayWindow : Window
             timeout.ValueChanged += (_,__)=> { var value=TimeSpan.FromSeconds(timeout.Value); Engine.InactivityTimeout=value; Engine.BossInactivityTimeout=value; };panel.Children.Add(timeout);
             panel.Children.Add(new System.Windows.Controls.TextBlock {Text="Default is 8 seconds. The same inactivity timeout applies to normal and boss fights.",TextWrapping=TextWrapping.Wrap,FontSize=11});
             var finish=new System.Windows.Controls.Button {Content="Finish current fight",Margin=new Thickness(0,8,0,0)};
-            finish.Click += (_,__)=>Engine.ResetFight();panel.Children.Add(finish);
+            finish.Click += ResetCurrentFightClicked;panel.Children.Add(finish);
         }
         var historyButton=new System.Windows.Controls.Button {Content="Saved fight history",Margin=new Thickness(0,8,0,0)};
         historyButton.Click += async (_,__)=>
@@ -199,15 +239,83 @@ public partial class OverlayWindow : Window
         w.Content=new System.Windows.Controls.ScrollViewer {Content=panel,VerticalScrollBarVisibility=System.Windows.Controls.ScrollBarVisibility.Auto}; w.ShowDialog(); SavePreferences();
     }
 
-    static readonly string[] ThemeNames = { "Aion Blue/Red", "Neon Spectrum", "Void Purple", "Emerald Glass", "Solar Flare", "Ice Crystal" };
-    static readonly string[] StyleNames = { "Classic Dashboard", "Details Inspired", "Kagerou Inspired", "Bars Only", "Raid Compact", "Glass Cards", "Tournament" };
+    void ResetCurrentFightClicked(object sender,RoutedEventArgs e)
+    {
+        if(Engine==null)return;
+        ResumeDisplay();
+        historyRequest++;
+        historicalSnapshot=null; historicalPath=null; selectedActor=null;
+        FightHistory.SelectedIndex=0;
+        Segment.SelectedIndex=(int)MeterSegment.Current;
+        Engine.ResetFight();
+        Render(Engine.Snapshot(MeterSegment.Current,(MeterCategory)Math.Clamp(Tabs.SelectedIndex,0,7)));
+    }
+
+    void RefreshReports()
+    {
+        foreach(var report in OwnedWindows.OfType<CombatReportWindow>())
+        {report.HideNames=hideNames;report.ShowCharacterStats=showCharacterStats;report.Refresh(true);}
+    }
+    void ResumeDisplay()
+    {
+        displayPaused=false;FreezeView.Content="Ⅱ";
+    }
+    void ToggleFreezeView(object sender,RoutedEventArgs e)
+    {
+        if(displayPaused){ResumeDisplay();if(last!=null)Render(last);return;}
+        if(last==null)return;displayPaused=true;FreezeView.Content="▶";
+        StatusText.Text="VIEW FROZEN • CAPTURE CONTINUES";
+        EncounterContext.Text+=" • VIEW FROZEN";
+    }
+    void TabsChanged(object sender,System.Windows.Controls.SelectionChangedEventArgs e)
+    {
+        if(e.Source!=Tabs||Tabs.SelectedIndex<0)return;ResumeDisplay();if(last!=null)Render(last);
+    }
+    void SetUiScale(double value)
+    {
+        if(!double.IsFinite(value))return;
+        value=Math.Clamp(value,.7,1.25);var ratio=value/uiScale;
+        MinWidth*=ratio;MinHeight*=ratio;Width*=ratio;Height*=ratio;uiScale=value;
+        Root.LayoutTransform=new ScaleTransform(value,value);
+    }
+    void CopyFightSummary(object sender,RoutedEventArgs e)
+    {
+        if(last==null)return;
+        try {Clipboard.SetText(Aion2DPSPro.Sharing.FightSummary.Format(last,hideNames,showCharacterStats));}
+        catch(System.Runtime.InteropServices.ExternalException){MessageBox.Show(this,"Clipboard is busy. Try copying again.","Fight summary");}
+    }
+
+    void OpenEventTimers(object sender,RoutedEventArgs e)
+    {
+        if(eventTimers==null){eventTimers=new EventTimersWindow {Owner=this};eventTimers.Closed+=(_,_)=>eventTimers=null;}
+        if(!eventTimers.IsVisible)eventTimers.Show();eventTimers.Activate();
+    }
+
+    void TogglePositionLock(object sender,RoutedEventArgs e)
+    {
+        SetPositionLock(!positionLocked); SavePreferences();
+    }
+    void SetPositionLock(bool locked)
+    {
+        positionLocked=locked;
+        ResizeMode=locked?ResizeMode.NoResize:ResizeMode.CanResizeWithGrip;
+        PositionLock.Content=locked?"Unlock position":"Lock position";
+    }
+
+    static readonly string[] ThemeNames = { "Aion Blue/Red", "Neon Spectrum", "Void Purple", "Emerald Glass", "Solar Flare", "Ice Crystal", "Midnight Gold", "Rose Quartz", "Aurora", "Black / Orange", "Black / Yellow", "Nightmare Before Christmas" };
+    static readonly string[] StyleNames = { "Pulse Cards", "Neon Compact", "Encounter Focus", "Modern Glass", "Classic Dashboard", "Details Inspired", "Kagerou Inspired", "Bars Only", "Raid Compact", "Glass Cards", "Tournament" };
 
     void ApplyOverlayStyle(string name)
     {
+        ResumeDisplay();
         currentStyle=name;
         ((System.Windows.Controls.TextBlock)PreviewBadge.Child).Text=name is "Details Inspired" or "Kagerou Inspired"?"PREVIEW":"SIMULATED PREVIEW";
         Rows.ItemTemplate=(DataTemplate)Resources["ClassicRows"];
         CategoryTabs.Visibility=Visibility.Visible; CategoryPicker.Visibility=Visibility.Collapsed;
+        EncounterSummary.Visibility=EncounterColumns.Visibility=EncounterControls.Visibility=Visibility.Collapsed;
+        ContentGrid.RowDefinitions[0].Height=new GridLength(0);
+        ContentGrid.RowDefinitions[1].Height=new GridLength(0);
+        ContentGrid.RowDefinitions[3].Height=new GridLength(0);
         // Full reset: every preset starts from the same known layout.
         Width=780; Height=560; MinWidth=560; MinHeight=380;
         MainGrid.RowDefinitions[0].Height=new GridLength(42);
@@ -233,17 +341,79 @@ public partial class OverlayWindow : Window
 
         switch(name)
         {
+            case "Pulse Cards":
+                MinWidth=620;MinHeight=340;Width=740;Height=660;
+                Rows.ItemTemplate=(DataTemplate)Resources["PulseRows"];
+                CategoryTabs.Visibility=Visibility.Collapsed;CategoryPicker.Visibility=Visibility.Visible;
+                CategoryPicker.SelectedIndex=Math.Max(0,Tabs.SelectedIndex);
+                MainGrid.RowDefinitions[0].Height=new GridLength(46);MainGrid.RowDefinitions[1].Height=new GridLength(42);MainGrid.RowDefinitions[3].Height=new GridLength(56);
+                DetailPanel.Visibility=Visibility.Collapsed;
+                ContentGrid.ColumnDefinitions[0].Width=new GridLength(1,GridUnitType.Star);ContentGrid.ColumnDefinitions[1].Width=new GridLength(0);ContentGrid.ColumnDefinitions[2].Width=new GridLength(0);
+                Root.CornerRadius=new CornerRadius(18);Root.BorderThickness=new Thickness(1);Rows.BorderThickness=new Thickness(0);
+                HeaderBar.CornerRadius=new CornerRadius(17,17,0,0);FooterBar.CornerRadius=new CornerRadius(0,0,17,17);
+                break;
+            case "Neon Compact":
+                MinWidth=600;MinHeight=320;Width=680;Height=530;
+                Rows.ItemTemplate=(DataTemplate)Resources["NeonRows"];
+                CategoryTabs.Visibility=Visibility.Collapsed;CategoryPicker.Visibility=Visibility.Visible;
+                CategoryPicker.SelectedIndex=Math.Max(0,Tabs.SelectedIndex);
+                MainGrid.RowDefinitions[0].Height=new GridLength(42);
+                MainGrid.RowDefinitions[1].Height=new GridLength(40);
+                MainGrid.RowDefinitions[3].Height=new GridLength(56);
+                DetailPanel.Visibility=Visibility.Collapsed;
+                ContentGrid.ColumnDefinitions[0].Width=new GridLength(1,GridUnitType.Star);
+                ContentGrid.ColumnDefinitions[1].Width=new GridLength(0);ContentGrid.ColumnDefinitions[2].Width=new GridLength(0);
+                Root.CornerRadius=new CornerRadius(16);Root.BorderThickness=new Thickness(1);
+                Rows.BorderThickness=new Thickness(0);HeaderBar.CornerRadius=new CornerRadius(15,15,0,0);FooterBar.CornerRadius=new CornerRadius(0,0,15,15);
+                break;
+            case "Encounter Focus":
+                MinWidth=660; MinHeight=400; Width=780; Height=720;
+                Rows.ItemTemplate=(DataTemplate)Resources["EncounterRows"];
+                CategoryTabs.Visibility=Visibility.Collapsed; CategoryPicker.Visibility=Visibility.Visible;
+                CategoryPicker.SelectedIndex=Math.Max(0,Tabs.SelectedIndex);
+                EncounterSummary.Visibility=EncounterColumns.Visibility=EncounterControls.Visibility=Visibility.Visible;
+                ContentGrid.RowDefinitions[0].Height=new GridLength(90);
+                ContentGrid.RowDefinitions[1].Height=new GridLength(24);
+                ContentGrid.RowDefinitions[3].Height=new GridLength(42);
+                MainGrid.RowDefinitions[0].Height=new GridLength(44);
+                MainGrid.RowDefinitions[1].Height=new GridLength(40);
+                MainGrid.RowDefinitions[3].Height=new GridLength(0);
+                FooterBar.Visibility=DetailPanel.Visibility=Visibility.Collapsed;
+                ContentGrid.ColumnDefinitions[0].Width=new GridLength(1,GridUnitType.Star);
+                ContentGrid.ColumnDefinitions[1].Width=new GridLength(0);
+                ContentGrid.ColumnDefinitions[2].Width=new GridLength(0);
+                Root.CornerRadius=new CornerRadius(10); Root.BorderThickness=new Thickness(1);
+                HeaderBar.CornerRadius=new CornerRadius(9,9,0,0);
+                Rows.BorderThickness=new Thickness(0);
+                break;
+            case "Modern Glass":
+                MinWidth=600; MinHeight=320; Width=660; Height=540;
+                Rows.ItemTemplate=(DataTemplate)Resources["ModernRows"];
+                CategoryTabs.Visibility=Visibility.Collapsed; CategoryPicker.Visibility=Visibility.Visible;
+                CategoryPicker.SelectedIndex=Math.Max(0,Tabs.SelectedIndex);
+                MainGrid.RowDefinitions[0].Height=new GridLength(46);
+                MainGrid.RowDefinitions[1].Height=new GridLength(42);
+                MainGrid.RowDefinitions[3].Height=new GridLength(56);
+                DetailPanel.Visibility=Visibility.Collapsed;
+                ContentGrid.ColumnDefinitions[0].Width=new GridLength(1,GridUnitType.Star);
+                ContentGrid.ColumnDefinitions[1].Width=new GridLength(0);
+                ContentGrid.ColumnDefinitions[2].Width=new GridLength(0);
+                Root.CornerRadius=new CornerRadius(14); Root.BorderThickness=new Thickness(1);
+                HeaderBar.CornerRadius=new CornerRadius(13,13,0,0);
+                FooterBar.CornerRadius=new CornerRadius(0,0,13,13);
+                Rows.BorderThickness=new Thickness(0);
+                break;
             case "Details Inspired":
             case "Kagerou Inspired":
                 bool compact=name=="Kagerou Inspired";
-                MinWidth=420; MinHeight=260; Width=compact?500:580; Height=compact?455:390;
+                MinWidth=600; MinHeight=320; Width=640; Height=compact?600:480;
                 Rows.ItemTemplate=(DataTemplate)Resources[compact?"KagerouRows":"DetailsRows"];
                 CategoryTabs.Visibility=Visibility.Collapsed; CategoryPicker.Visibility=Visibility.Visible;
                 CategoryPicker.SelectedIndex=Math.Max(0,Tabs.SelectedIndex);
                 MainGrid.RowDefinitions[0].Height=new GridLength(36);
                 MainGrid.RowDefinitions[1].Height=new GridLength(38);
-                MainGrid.RowDefinitions[3].Height=new GridLength(0);
-                FooterBar.Visibility=Visibility.Collapsed; DetailPanel.Visibility=Visibility.Collapsed;
+                MainGrid.RowDefinitions[3].Height=new GridLength(56);
+                FooterBar.Visibility=Visibility.Visible; DetailPanel.Visibility=Visibility.Collapsed;
                 ContentGrid.ColumnDefinitions[0].Width=new GridLength(1,GridUnitType.Star);
                 ContentGrid.ColumnDefinitions[1].Width=new GridLength(0);
                 ContentGrid.ColumnDefinitions[2].Width=new GridLength(0);
@@ -251,12 +421,13 @@ public partial class OverlayWindow : Window
                 Rows.BorderThickness=new Thickness(0);
                 break;
             case "Bars Only":
-                Width=540; Height=330; MinWidth=420; MinHeight=240;
+                Width=640; Height=450; MinWidth=600; MinHeight=320;
                 MainGrid.RowDefinitions[0].Height=new GridLength(34);
-                MainGrid.RowDefinitions[1].Height=new GridLength(0);
-                MainGrid.RowDefinitions[3].Height=new GridLength(0);
-                ToolbarGrid.Visibility=Visibility.Collapsed;
-                FooterBar.Visibility=Visibility.Collapsed;
+                MainGrid.RowDefinitions[1].Height=new GridLength(38);
+                MainGrid.RowDefinitions[3].Height=new GridLength(56);
+                CategoryTabs.Visibility=Visibility.Collapsed;CategoryPicker.Visibility=Visibility.Visible;CategoryPicker.SelectedIndex=Math.Max(0,Tabs.SelectedIndex);
+                ToolbarGrid.Visibility=Visibility.Visible;
+                FooterBar.Visibility=Visibility.Visible;
                 DetailPanel.Visibility=Visibility.Collapsed;
                 ContentGrid.ColumnDefinitions[0].Width=new GridLength(1,GridUnitType.Star);
                 ContentGrid.ColumnDefinitions[1].Width=new GridLength(0);
@@ -269,7 +440,7 @@ public partial class OverlayWindow : Window
                 Width=650; Height=410; MinWidth=500; MinHeight=300;
                 MainGrid.RowDefinitions[0].Height=new GridLength(36);
                 MainGrid.RowDefinitions[1].Height=new GridLength(34);
-                MainGrid.RowDefinitions[3].Height=new GridLength(38);
+                MainGrid.RowDefinitions[3].Height=new GridLength(56);
                 DetailPanel.Visibility=Visibility.Collapsed;
                 ContentGrid.ColumnDefinitions[0].Width=new GridLength(1,GridUnitType.Star);
                 ContentGrid.ColumnDefinitions[1].Width=new GridLength(0);
@@ -307,12 +478,20 @@ public partial class OverlayWindow : Window
             ContentGrid.ColumnDefinitions[0].Width=new GridLength(1,GridUnitType.Star);
             ContentGrid.ColumnDefinitions[1].Width=new GridLength(0);ContentGrid.ColumnDefinitions[2].Width=new GridLength(0);
         }
+        MinWidth*=uiScale;MinHeight*=uiScale;Width*=uiScale;Height*=uiScale;Root.LayoutTransform=new ScaleTransform(uiScale,uiScale);
+        SetPositionLock(positionLocked);
         ApplyTheme(currentTheme);
     }
     void ApplyTheme(string name)
     {
         currentTheme=name;
         var p = name switch {
+            "Nightmare Before Christmas" => ("#F5080808","#EEEBDD","#B98AE8","#141414","#EEEBDD","#FF8A00","#1D1D1D"),
+            "Black / Orange" => ("#F5080808","#FF8A00","#FF9D2E","#141414","#FFF3E0","#FF8A00","#1D1D1D"),
+            "Black / Yellow" => ("#F5080808","#FFD400","#FFE04D","#141414","#FFFBE0","#FFD400","#1D1D1D"),
+            "Midnight Gold" => ("#EE10141B","#D5AF55","#B3C8E3","#20242D","#F0DCA6","#FFD277","#272A32"),
+            "Rose Quartz" => ("#EE201520","#F085B6","#B7A6F4","#332033","#F4C7E0","#F99BBD","#38263B"),
+            "Aurora" => ("#EC081C27","#57E8CF","#B594F6","#122F3B","#ACF3ED","#BBA4F7","#183746"),
             "Neon Spectrum" => ("#E80B1022","#FF2D55","#00E5FF","#151A36","#00E5FF","#FF6B8A","#101A31"),
             "Void Purple" => ("#ED100B22","#B65CFF","#FF4FD8","#21113B","#D9A3FF","#FF82E5","#1A102D"),
             "Emerald Glass" => ("#E9081D1B","#20E3B2","#56F39A","#0E302B","#7CFFD8","#A4FFBE","#0B2522"),
@@ -323,11 +502,31 @@ public partial class OverlayWindow : Window
         var bg=Brush(p.Item1); var accent=Brush(p.Item2); var secondary=Brush(p.Item3);
         var chrome=Brush(p.Item4); var primaryText=Brush(p.Item5); var hot=Brush(p.Item6); var control=Brush(p.Item7);
         if(currentStyle=="Kagerou Inspired") {bg=BrushWithOpacity(p.Item1,.62);chrome=BrushWithOpacity(p.Item4,.78);}
+        if(currentStyle=="Modern Glass" && name=="Aion Blue/Red") {
+            bg=Brush("#E6101725"); chrome=Brush("#B4162032"); accent=Brush("#33465F");
+        }
+        if(currentStyle=="Encounter Focus") { bg=BrushWithOpacity(p.Item1,.92); chrome=BrushWithOpacity(p.Item4,.55); }
+        // Theme chrome only; row brushes remain driven by each player's class.
+        bool nightmare=name=="Nightmare Before Christmas";
+        bool blackTheme=name is "Black / Orange" or "Black / Yellow" || nightmare;
+        NightmarePortrait.Visibility=nightmare&&currentStyle=="Encounter Focus"?Visibility.Visible:Visibility.Collapsed;
+        EncounterTarget.FontFamily=new FontFamily(nightmare?"Georgia":"Segoe UI");
+        EncounterTime.FontFamily=new FontFamily(nightmare?"Georgia":"Segoe UI");
+        Resources["OverlayControlBrush"]=blackTheme?control:Brush("#172940");
+        Resources["OverlayPopupBrush"]=blackTheme?control:Brush("#111C30");
+        Resources["OverlayControlBorderBrush"]=blackTheme?secondary:Brush("#35506E");
+        Resources["OverlayHoverBrush"]=blackTheme?BrushWithOpacity(p.Item2,.18):Brush("#244663");
+        Resources["OverlayRowHoverBrush"]=blackTheme?BrushWithOpacity(p.Item2,.12):Brush("#302F80ED");
+        Resources["OverlayModernRowBrush"]=blackTheme?Brush("#40181818"):Brush("#40152032");
+        Resources["OverlayPulseRowBrush"]=blackTheme?Brush("#50202020"):Brush("#50202B42");
+        Resources["OverlayTrackBrush"]=blackTheme?Brush("#30282828"):Brush("#1528384C");
+        Resources["OverlayArrowBrush"]=blackTheme?secondary:Brush("#91B7D5");
         Root.Background=bg; Root.BorderBrush=accent;
-        HeaderBar.Background=chrome; HeaderBar.BorderBrush=secondary;
+        HeaderBar.Background=nightmare&&currentStyle=="Encounter Focus"?(Brush)Resources["NightmarePinstripes"]:chrome; HeaderBar.BorderBrush=secondary;
         FooterBar.Background=chrome; FooterBar.BorderBrush=secondary;
         Rows.Background=BrushWithOpacity(p.Item4,currentStyle=="Kagerou Inspired"?.15:.62); Rows.BorderBrush=secondary;
         DetailPanel.Background=BrushWithOpacity(p.Item4, .72); DetailPanel.BorderBrush=secondary;
+        EncounterHp.Foreground=accent;
         TitleAion.Foreground=primaryText; TitleDps.Foreground=hot;
         GroupDps.Foreground=primaryText; StatusText.Foreground=primaryText;
         TargetHp.Foreground=hot; BossHp.Foreground=accent; BossHp.Background=control;
@@ -362,11 +561,11 @@ public partial class OverlayWindow : Window
         var segment=(MeterSegment)Math.Clamp(Segment.SelectedIndex,0,2);
         var frozen=historicalSnapshot??Engine?.Snapshot(segment,MeterCategory.Damage,true)??last;
         Func<MeterSnapshot> provider=()=>historicalSnapshot!=null?frozen:Engine is null?frozen:segment==MeterSegment.Overall?Engine.Snapshot(segment,MeterCategory.Damage,true):Engine.SnapshotEncounter(frozen.EncounterId)??frozen;
-        var report=new CombatReportWindow(provider,r.Stats.ActorId,(MeterCategory)Math.Clamp(Tabs.SelectedIndex,0,7)) {Owner=this};
+        var report=new CombatReportWindow(provider,r.Stats.ActorId,(MeterCategory)Math.Clamp(Tabs.SelectedIndex,0,7),hideNames,showCharacterStats) {Owner=this};
         report.Show();
     }
     static string PreferencesPath=>System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),"Aion2DPSPro","overlay-settings.json");
-    public sealed record OverlayPreferences(string Style,string Theme,double Opacity,bool Details,bool Topmost,double Width,double Height,double Left,double Top);
+    public sealed record OverlayPreferences(string Style,string Theme,double Opacity,bool Details,bool Topmost,double Width,double Height,double Left,double Top,bool PositionLocked=false,bool HideNames=false,bool ShowCharacterStats=true,double UiScale=1);
     void LoadPreferences()
     {
         try {
@@ -374,6 +573,8 @@ public partial class OverlayWindow : Window
             var p=System.Text.Json.JsonSerializer.Deserialize<OverlayPreferences>(System.IO.File.ReadAllText(PreferencesPath));
             if(p==null)return;
             showDetails=p.Details;
+            positionLocked=p.PositionLocked;
+            hideNames=p.HideNames;showCharacterStats=p.ShowCharacterStats;uiScale=double.IsFinite(p.UiScale)?Math.Clamp(p.UiScale,.7,1.25):1;
             if(ThemeNames.Contains(p.Theme))currentTheme=p.Theme;
             ApplyOverlayStyle(StyleNames.Contains(p.Style)?p.Style:currentStyle);
             if(double.IsFinite(p.Opacity))Opacity=Math.Clamp(p.Opacity,.35,1);
@@ -389,7 +590,7 @@ public partial class OverlayWindow : Window
     {
         try {
             var path=PreferencesPath;System.IO.Directory.CreateDirectory(System.IO.Path.GetDirectoryName(path)!);
-            var p=new OverlayPreferences(currentStyle,currentTheme,Opacity,showDetails,Topmost,Width,Height,double.IsFinite(Left)?Left:0,double.IsFinite(Top)?Top:0);
+            var p=new OverlayPreferences(currentStyle,currentTheme,Opacity,showDetails,Topmost,Width,Height,double.IsFinite(Left)?Left:0,double.IsFinite(Top)?Top:0,positionLocked,hideNames,showCharacterStats,uiScale);
             var temp=path+".tmp";System.IO.File.WriteAllText(temp,System.Text.Json.JsonSerializer.Serialize(p));System.IO.File.Move(temp,path,true);
         }
         catch(Exception ex) when(ex is System.IO.IOException or UnauthorizedAccessException) {StatusText.Text="Unable to save overlay settings";}
@@ -402,6 +603,7 @@ public partial class OverlayWindow : Window
     }
     void CloseOverlay(object s,RoutedEventArgs e){SavePreferences();Hide();}
     void Drag(object s,MouseButtonEventArgs e){
+        if(positionLocked)return;
         var origin=e.OriginalSource as DependencyObject;
         while(origin!=null && origin!=HeaderBar){if(origin is System.Windows.Controls.Primitives.ButtonBase)return;origin=VisualTreeHelper.GetParent(origin);}
         if(e.LeftButton==MouseButtonState.Pressed){DragMove();e.Handled=true;}
@@ -410,7 +612,10 @@ public partial class OverlayWindow : Window
     [DllImport("user32.dll")] static extern int GetWindowLong(IntPtr hWnd,int nIndex);
     [DllImport("user32.dll")] static extern int SetWindowLong(IntPtr hWnd,int nIndex,int dwNewLong);
     static string F(double v)=>v>=1_000_000?$"{v/1_000_000:0.00}M":v>=1_000?$"{v/1_000:0.0}K":$"{v:0}";
-    sealed record HistoryChoice(string Label,string? Path);
-    sealed record Row(int Rank,string Name,string ClassName,string Dps,string Damage,string Share,Brush Brush,double BarWidth,double Relative,PlayerStats Stats);
+    sealed record HistoryChoice(string Label,string? Path)
+    {
+        public override string ToString()=>Label;
+    }
+    sealed record Row(int Rank,string Name,string ClassName,string Dps,string Damage,string Share,Brush Brush,double BarWidth,double Relative,PlayerStats Stats,string CharacterStats);
 }
 

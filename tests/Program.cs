@@ -58,6 +58,16 @@ byte[] Frame(string bodyHex)
  do {byte part=(byte)(v&127);v>>=7;length.Add((byte)(part|(v>0?128:0)));}while(v>0);
  return length.Concat(body).ToArray();
 }
+// Research candidates are recorded as evidence only, never as score/spawn facts.
+var researchDispatcher=new PacketDispatcher(profile);
+var researchRecords=new List<string>();researchDispatcher.ValidationRecord+=researchRecords.Add;
+for(int sample=0;sample<20;sample++)
+{
+ True(!researchDispatcher.Dispatch(Frame("0191"+new string('0',32)),t).Any(),"boss-list candidate creates no combat events");
+ True(!researchDispatcher.Dispatch(Frame("0297"+new string('0',32)),t).Any(),"roster candidate creates no combat events");
+}
+Equal(researchRecords.Count(x=>x.Contains("tag=featureCandidate")),24,"research logging capped at 12 samples per family");
+True(researchRecords.Where(x=>x.Contains("tag=featureCandidate")).All(x=>x.Contains("status=unverified")&&x.Contains("raw=")),"research samples preserve evidence and uncertainty");
 var identityProfile=profile with {Tags=new Dictionary<string,PacketTag>(profile.Tags) {{"selfInfo",new(51,54)},{"otherInfo",new(69,54)}}};
 var identityDecoder=new CurrentClientDecoder(identityProfile);
 var self=identityDecoder.Decode(Frame("3336FD235F81C1283708546573744865726F000000"),t).Single(x=>x.Kind==CombatKind.PlayerName);
@@ -100,4 +110,66 @@ reportEngine.ResetFight();reportEngine.Apply(Hit(10,1,999));Equal(reportEngine.S
 True(PublicGameData.EnglishTargetLabel("Training Scarecrow")=="Training Scarecrow","English target label preserved");
 True(PublicGameData.EnglishTargetLabel("노인 주민")==null,"untranslated Korean NPC falls back to English target label");
 True(PublicGameData.EnglishTargetLabel("Boss 마족")==null,"mixed language target label rejected");
+// Synthetic roster fixture built from the published layout, separate from live damage evidence.
+byte[] ScoreRoster(uint stable=304076,ushort server=1102,uint gear=2800,ulong power=121600,string name="TestHero")
+{
+ var data=new List<byte>();data.AddRange(BitConverter.GetBytes(123u));data.Add(0);data.Add(5);data.AddRange(new byte[4+2]);data.AddRange(BitConverter.GetBytes(((ulong)server<<48)|stable));data.AddRange(new byte[3]);data.Add(2);
+ data.Add(0x2C);data.Add(1);data.AddRange(BitConverter.GetBytes(((ulong)server<<48)|stable));var text=System.Text.Encoding.UTF8.GetBytes(name);data.Add((byte)text.Length);data.AddRange(text);
+ data.AddRange(BitConverter.GetBytes(9u));data.AddRange(BitConverter.GetBytes(45u));data.AddRange(BitConverter.GetBytes(gear));data.Add(1);data.AddRange(BitConverter.GetBytes(server));data.AddRange(BitConverter.GetBytes(server));data.Add(0);data.AddRange(BitConverter.GetBytes(power));data.AddRange(new byte[3+11]);return data.ToArray();
+}
+var scoreBody=ScoreRoster();var parsedScores=PartyRosterScores.Parse(scoreBody,t);Equal(parsedScores.Count,1,"strict roster reads score record");Equal(parsedScores.Single().GearScore!.Value,2800,"GS differs from CP");Equal(parsedScores.Single().CombatPower!.Value,121600,"roster CP");
+True(!PartyRosterScores.Parse(ScoreRoster(gear:999999),t).Any(),"invalid gear rejected");True(!PartyRosterScores.Parse(ScoreRoster(power:ulong.MaxValue),t).Any(),"invalid CP rejected");
+for(int length=0;length<scoreBody.Length-14;length++)True(!PartyRosterScores.Parse(scoreBody.AsSpan(0,length),t).Any(),"truncated roster rejected");
+var scoreProfile=profile with {ExperimentalRosterScores=true};var scoreDispatch=new PacketDispatcher(scoreProfile);
+byte[] AsFrame(byte[] body)=>Frame(Convert.ToHexString(body));
+scoreDispatch.Dispatch(AsFrame(new byte[]{2,0x97}.Concat(scoreBody).ToArray()),t).ToArray();
+var linkEvents=scoreDispatch.Dispatch(Convert.FromHexString("CF0B20360000D01E00000000CCA3040000003608A602CC08E615"),t).ToArray();
+var scoreIdentity=scoreDispatch.AttachRosterScores(linkEvents.Single(x=>x.Kind==CombatKind.PlayerName),t);
+Equal(scoreIdentity.SourceId,3920,"roster bound through explicit session link");Equal(scoreIdentity.SourceGearScore!.Value,2800,"linked GS");Equal(scoreIdentity.SourceCombatPower!.Value,121600,"linked CP");Equal(scoreIdentity.SourceServerId,1102,"linked server");
+True(scoreDispatch.AttachRosterScores(scoreIdentity with {SourceGearScore=null,SourceCombatPower=null,StatsObservedUtc=null},t.AddMinutes(11)).SourceGearScore==null,"expired roster does not reattach");
+scoreDispatch.Dispatch(AsFrame(new byte[]{2,0x97}.Concat(ScoreRoster(server:1202)).ToArray()),t).ToArray();
+True(scoreDispatch.AttachRosterScores(scoreIdentity with {SourceGearScore=null,SourceCombatPower=null,StatsObservedUtc=null},t).SourceGearScore==null,"same character id on two servers stays unknown");
+var scoreClock=t;var scoreEngine=new CombatEngine(()=>scoreClock);
+scoreEngine.Apply(new(t,CombatKind.PlayerName,3920,"TestHero",SourceClass:"Templar",SourceServerId:1102,SourceCharacterId:304076,SourceGearScore:2800,SourceCombatPower:121600,StatsObservedUtc:t));
+scoreEngine.Apply(Hit(0,3920,100,"TestHero"));Equal(scoreEngine.Snapshot().Players.Single().GearScore!.Value,2800,"engine GS");Equal(scoreEngine.Snapshot().FightDamage,100,"metadata does not alter damage");
+scoreEngine.Apply(new(t,CombatKind.PlayerName,3920,"TestHero",SourceClass:"Templar",SourceServerId:1102,SourceCharacterId:304076,SourceGearScore:2700,SourceCombatPower:90000,StatsObservedUtc:t.AddSeconds(-1)));
+Equal(scoreEngine.Snapshot().Players.Single().CombatPower!.Value,121600,"older stats cannot overwrite newer");
+scoreEngine.ResetFight();scoreClock=t.AddHours(1);Equal(scoreEngine.Snapshot(MeterSegment.Previous,MeterCategory.Damage).Players.Single().GearScore!.Value,2800,"archived scores stay frozen");
+True(scoreEngine.Snapshot(MeterSegment.Overall,MeterCategory.Damage).Players.Single().GearScore==null,"stale live overall scores expire");
+scoreEngine.Apply(new(scoreClock,CombatKind.Despawn,3920));scoreEngine.Apply(new(scoreClock,CombatKind.PlayerName,3920,"Replacement",SourceClass:"Cleric"));scoreEngine.Apply(new(scoreClock,CombatKind.Damage,3920,"Replacement",99,"Boss","Strike",300));True(scoreEngine.Snapshot().Players.Single().GearScore==null,"reused actor cannot inherit old score");
+var targetEngine=new CombatEngine(()=>t);targetEngine.Apply(new(t,CombatKind.PlayerName,1,"One"));targetEngine.Apply(new(t,CombatKind.PlayerName,2,"Two"));targetEngine.Apply(new(t,CombatKind.Damage,1,"One",90,"Add","Strike",1000));targetEngine.Apply(new(t,CombatKind.Damage,1,"One",99,"Boss","Strike",100));targetEngine.Apply(new(t,CombatKind.Damage,2,"Two",99,"Boss","Strike",300));var targetView=targetEngine.Snapshot();Equal(targetView.Targets.Where(x=>x.TargetId==targetView.SelectedTargetId).Sum(x=>x.Damage),400,"target share excludes add damage");
+var gearBridge=new Aion2DPSPro.Capture.CaptureIdentityBridge();string gearScope="identity-socket|local|game";
+var rosterMeta=new CombatEvent(t,CombatKind.CharacterStats,Source:"TestHero",SourceServerId:1102,SourceCharacterId:304076,SourceGearScore:2800,SourceCombatPower:121600,StatsObservedUtc:t);
+gearBridge.Observe(gearScope,rosterMeta);
+var linkedName=new CombatEvent(t,CombatKind.PlayerName,3920,"TestHero",SourceClass:"Templar",SourceServerId:1102,SourceCharacterId:304076);
+gearBridge.Observe(gearScope,linkedName);var bridgedScore=gearBridge.Identities(gearScope,t).Single();Equal(bridgedScore.SourceGearScore!.Value,2800,"roster scores reach exact linked identity");
+True(gearBridge.Resolve("other-server|local|other",linkedName).SourceGearScore==null,"profile bridge isolates endpoint scope");
+True(gearBridge.Resolve(gearScope,linkedName with {SourceServerId=1202}).SourceGearScore==null,"profile bridge requires exact server");
+True(gearBridge.Resolve(gearScope,linkedName with {SourceCharacterId=304077}).SourceGearScore==null,"profile bridge requires exact character");
+True(gearBridge.Resolve(gearScope,linkedName with {SourceServerId=0}).SourceGearScore==null,"profile bridge refuses unknown server");
+var lateGearBridge=new Aion2DPSPro.Capture.CaptureIdentityBridge();lateGearBridge.Observe(gearScope,linkedName);lateGearBridge.Observe(gearScope,rosterMeta);Equal(lateGearBridge.Identities(gearScope,t).Single().SourceCombatPower!.Value,121600,"late roster updates cached identity");
+var identityScope="\\Device\\NPF_TEST|local|game";var socketScope="\\Device\\NPF_OTHER|local|game";var socketBridge=new Aion2DPSPro.Capture.CaptureIdentityBridge();socketBridge.Observe(identityScope,rosterMeta);socketBridge.Observe(socketScope,linkedName);Equal(socketBridge.Identities(socketScope,t).Single().SourceGearScore!.Value,2800,"score bridge shares duplicate adapter/endpoint scope");
+var copyScore=Aion2DPSPro.Sharing.FightSummary.Format(scoreEngine.Snapshot(MeterSegment.Previous,MeterCategory.Damage));True(copyScore.Contains("GS 2800 / CP 121.6K"),"summary includes distinct GS/CP");
+var copyPrivate=Aion2DPSPro.Sharing.FightSummary.Format(scoreEngine.Snapshot(MeterSegment.Previous,MeterCategory.Damage),true,false);True(!copyPrivate.Contains("TestHero")&&!copyPrivate.Contains("GS"),"summary respects privacy and score toggles");
+True(Aion2DPSPro.Sharing.FightSummary.Format(scoreEngine.Snapshot() with {PreviewMode=true}).Contains("SAMPLE DATA"),"sample summary remains labeled");
+var timerProfile=new Aion2DPSPro.Schedules.ScheduleProfile("test","UTC test","UTC","test fixture","2026-10-14",new[]{new Aion2DPSPro.Schedules.ScheduleEvent("rift","Spacetime Rift",new[]{0,3,6,9,12,15,18,21},0,10)});
+var timerNow=new DateTimeOffset(2026,10,14,2,59,59,TimeSpan.Zero);
+var nextRift=Aion2DPSPro.Schedules.EventSchedule.Evaluate(timerProfile,timerNow).Single();
+Equal(nextRift.Remaining(timerNow).TotalSeconds,1,"rift countdown to next opening");
+var openRift=Aion2DPSPro.Schedules.EventSchedule.Evaluate(timerProfile,timerNow.AddSeconds(1)).Single();
+True(openRift.InEntryWindow,"scheduled entry begins at boundary");Equal(openRift.Remaining(timerNow.AddSeconds(1)).TotalMinutes,10,"rift entry duration");
+True(!Aion2DPSPro.Schedules.EventSchedule.Evaluate(timerProfile,new DateTimeOffset(2026,10,14,3,10,0,TimeSpan.Zero)).Single().InEntryWindow,"entry end is exclusive");
+Equal(Aion2DPSPro.Schedules.EventSchedule.Evaluate(timerProfile,new DateTimeOffset(2026,10,14,23,59,0,TimeSpan.Zero)).Single().Start.Hour,0,"rift rolls into tomorrow");
+var dst=timerProfile with {TimeZoneId="America/New_York",Events=new[]{new Aion2DPSPro.Schedules.ScheduleEvent("dst","DST test",new[]{2},30,10)}};
+var afterGap=Aion2DPSPro.Schedules.EventSchedule.Evaluate(dst,new DateTimeOffset(2026,3,8,6,59,0,TimeSpan.Zero)).Single();
+Equal(afterGap.Start.Day,9,"nonexistent DST opening skipped");
+var repeated=dst with {Events=new[]{new Aion2DPSPro.Schedules.ScheduleEvent("dst","DST test",new[]{1},30,60)}};
+var fallNow=new DateTimeOffset(2026,11,1,6,45,0,TimeSpan.Zero);
+var fall=Aion2DPSPro.Schedules.EventSchedule.Evaluate(repeated,fallNow).Single();True(fall.InEntryWindow,"fall DST repeated opening supported");Equal(fall.Start.Hour,6,"fall uses latest active occurrence");
+var imported=Aion2DPSPro.Schedules.EventSchedule.Load("src/Schedules/global-community.json");Equal(imported.Length,3,"three source-labeled schedule candidates import");
+var badSchedule=Path.Combine(Path.GetTempPath(),Guid.NewGuid()+".json");try{
+ File.WriteAllText(badSchedule,System.Text.Json.JsonSerializer.Serialize(new[]{timerProfile with {Events=new[]{new Aion2DPSPro.Schedules.ScheduleEvent("bad","Bad",new[]{24},0,10)}}}));
+ bool rejected=false;try{Aion2DPSPro.Schedules.EventSchedule.Load(badSchedule);}catch(InvalidDataException){rejected=true;}True(rejected,"invalid imported hour rejected");
+ File.WriteAllText(badSchedule,"[null]");rejected=false;try{Aion2DPSPro.Schedules.EventSchedule.Load(badSchedule);}catch(InvalidDataException){rejected=true;}True(rejected,"null imported profile rejected");
+}finally{File.Delete(badSchedule);}
 Console.WriteLine($"PASS: {checks} regression assertions");
