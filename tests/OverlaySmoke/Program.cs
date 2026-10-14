@@ -14,7 +14,7 @@ internal static class Program
   var window=new OverlayWindow();
   void Invoke(string name,string value)=>typeof(OverlayWindow).GetMethod(name,BindingFlags.NonPublic|BindingFlags.Instance)!.Invoke(window,new object[]{value});
   string? previous=null;
-  foreach(var theme in new[]{"Aion Blue/Red","Neon Spectrum","Void Purple","Emerald Glass","Solar Flare","Ice Crystal","Midnight Gold","Rose Quartz","Aurora"})
+  foreach(var theme in new[]{"Aion Blue/Red","Neon Spectrum","Void Purple","Emerald Glass","Solar Flare","Ice Crystal","Midnight Gold","Rose Quartz","Aurora","Black / Orange","Black / Yellow","Nightmare Before Christmas"})
   {
    Invoke("ApplyTheme",theme);
    string color=((SolidColorBrush)((Border)window.FindName("Root")).Background).Color.ToString();
@@ -115,6 +115,43 @@ internal static class Program
    var png=new System.Windows.Media.Imaging.PngBitmapEncoder();png.Frames.Add(System.Windows.Media.Imaging.BitmapFrame.Create(overlayBitmap));
    using(var output=System.IO.File.Create("overlay-"+style.Replace(" ","-")+".png"))png.Save(output);
   }
+  // Render both requested layouts in both black themes from the actual WPF tree.
+  foreach(var style in new[]{"Encounter Focus","Modern Glass"})
+  {
+   Invoke("ApplyOverlayStyle",style);window.Render(previewEngine.Snapshot());window.UpdateLayout();
+   string[] originalClassColors=rows.Items.Cast<object>().Select(r=>((SolidColorBrush)r.GetType().GetProperty("Brush")!.GetValue(r)!).Color.ToString()).ToArray();
+   foreach(var theme in style=="Encounter Focus"?new[]{"Black / Orange","Black / Yellow","Nightmare Before Christmas"}:new[]{"Black / Orange","Black / Yellow"})
+   {
+    Invoke("ApplyTheme",theme);window.Render(previewEngine.Snapshot());window.UpdateLayout();
+    var actualClassColors=rows.Items.Cast<object>().Select(r=>((SolidColorBrush)r.GetType().GetProperty("Brush")!.GetValue(r)!).Color.ToString()).ToArray();
+    if(!originalClassColors.SequenceEqual(actualClassColors))throw new Exception("Black theme changed class colors");
+    var rootColor=((SolidColorBrush)((Border)window.FindName("Root")).Background).Color;
+    if(rootColor.R!=8||rootColor.G!=8||rootColor.B!=8)throw new Exception("Black theme did not retain neutral black surface");
+    var expectedAccent=(Color)ColorConverter.ConvertFromString(theme=="Black / Orange"?"#FF8A00":theme=="Black / Yellow"?"#FFD400":"#EEEBDD");
+    if(((SolidColorBrush)((Border)window.FindName("Root")).BorderBrush).Color!=expectedAccent)throw new Exception("Black theme accent incorrect");
+    // Inspect the visible row progress bars as well as the row model brushes.
+    for(int i=0;i<rows.Items.Count;i++)
+    {
+     if(rows.ItemContainerGenerator.ContainerFromIndex(i) is not DependencyObject container)continue;
+     var pending=new Queue<DependencyObject>();pending.Enqueue(container);
+     while(pending.Count>0)
+     {
+      var child=pending.Dequeue();
+      if(child is ProgressBar bar && ((SolidColorBrush)bar.Foreground).Color.ToString()!=originalClassColors[i])throw new Exception("Theme recolored class damage bar");
+      for(int c=0;c<VisualTreeHelper.GetChildrenCount(child);c++)pending.Enqueue(VisualTreeHelper.GetChild(child,c));
+     }
+    }
+    var bitmap=new System.Windows.Media.Imaging.RenderTargetBitmap((int)window.ActualWidth,(int)window.ActualHeight,96,96,PixelFormats.Pbgra32);bitmap.Render(window);
+    var encoderTheme=new System.Windows.Media.Imaging.PngBitmapEncoder();encoderTheme.Frames.Add(System.Windows.Media.Imaging.BitmapFrame.Create(bitmap));
+    if(theme=="Nightmare Before Christmas" && ((Image)window.FindName("NightmarePortrait")).Visibility!=Visibility.Visible)throw new Exception("Nightmare portrait missing");
+    string suffix=theme=="Black / Orange"?"Black-Orange":theme=="Black / Yellow"?"Black-Yellow":"Nightmare-Before-Christmas";
+    using(var output=System.IO.File.Create("overlay-"+style.Replace(" ","-")+"-"+suffix+".png"))encoderTheme.Save(output);
+   }
+  }
+  Invoke("ApplyTheme","Aion Blue/Red");
+  if(((Image)window.FindName("NightmarePortrait")).Visibility!=Visibility.Collapsed)throw new Exception("Nightmare decoration leaked into another theme");
+  Console.WriteLine("PASS: black/orange and black/yellow chrome preserves class text and bars");
+  Invoke("ApplyTheme","Aion Blue/Red");
   Invoke("ApplyOverlayStyle","Encounter Focus");window.Render(previewEngine.Snapshot());window.UpdateLayout();
   var lockButton=(Button)window.FindName("PositionLock");
   lockButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
