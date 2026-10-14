@@ -61,7 +61,7 @@ public sealed class CaptureIdentityBridge
     public IReadOnlyList<CombatEvent> Identities(string scope,DateTime utc)
     {
         Prune(utc);
-        return names.Where(x=>x.Key.Scope==KeyScope(scope)).Select(x=>x.Value.Event with {Utc=utc}).ToArray();
+        return names.Where(x=>x.Key.Scope==KeyScope(scope)).Select(x=>FreshStats(x.Value.Event with {Utc=utc},utc)).ToArray();
     }
     public CombatEvent Resolve(string scope,CombatEvent e)
     {
@@ -82,7 +82,13 @@ public sealed class CaptureIdentityBridge
             else if(npcs.TryGetValue((keyScope,e.TargetId),out var npcTarget))
                 e=e with {Target=npcTarget.Name};
         }
-        return MergeProfile(keyScope,e);
+        return FreshStats(MergeProfile(keyScope,e),e.Utc);
+    }
+    private static CombatEvent FreshStats(CombatEvent e,DateTime utc)
+    {
+        if(e.StatsObservedUtc is not DateTime observed)return e;
+        if(observed<=utc && utc-observed<=TimeSpan.FromMinutes(10))return e;
+        return e with {SourceGearScore=null,SourceCombatPower=null,StatsObservedUtc=null};
     }
     private CombatEvent MergeProfile(string keyScope,CombatEvent e)
     {
