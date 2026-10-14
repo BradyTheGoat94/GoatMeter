@@ -94,6 +94,10 @@ public sealed class CaptureIdentityBridge
     {
         if(e.SourceCharacterId<=0||e.SourceServerId<=0||!profiles.TryGetValue((keyScope,e.SourceCharacterId,e.SourceServerId),out var p)||p.Event.Source!=e.Source||e.Utc<p.Event.StatsObservedUtc||e.Utc-p.Event.StatsObservedUtc>TimeSpan.FromMinutes(10))return e;
         if(e.StatsObservedUtc>p.Event.StatsObservedUtc)return e;
+        // A same-timestamp identity update may carry newer, explicit fields.
+        // Do not replace those observed values with cached nulls or older data.
+        if(e.StatsObservedUtc==p.Event.StatsObservedUtc && (e.SourceGearScore.HasValue||e.SourceCombatPower.HasValue))
+            return e with {SourceGearScore=e.SourceGearScore??p.Event.SourceGearScore,SourceCombatPower=e.SourceCombatPower??p.Event.SourceCombatPower};
         return e with {SourceGearScore=p.Event.SourceGearScore,SourceCombatPower=p.Event.SourceCombatPower,StatsObservedUtc=p.Event.StatsObservedUtc};
     }
     private void Prune(DateTime utc)
