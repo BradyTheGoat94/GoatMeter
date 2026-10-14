@@ -21,7 +21,7 @@ public static class ArmoryScoreVerifier
            observedUtc.Kind!=DateTimeKind.Utc)return false;
         try
         {
-            using var document=JsonDocument.Parse(json);
+            using var document=JsonDocument.Parse(json,new JsonDocumentOptions { MaxDepth=24,AllowTrailingCommas=false,CommentHandling=JsonCommentHandling.Disallow });
             var root=document.RootElement;
             if(root.ValueKind!=JsonValueKind.Object)return false;
             if(!root.TryGetProperty("characterId",out var id)||
