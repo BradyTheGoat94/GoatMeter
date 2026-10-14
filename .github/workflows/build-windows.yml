@@ -6,7 +6,7 @@ on:
     branches: [main]
     paths: ["src/**", "tests/**", "installer/**", ".github/workflows/build-windows.yml"]
   push:
-    branches: [main, accuracy-reliability, identity-reports, overlay-designs]
+    branches: [main, accuracy-reliability, identity-reports, overlay-designs, 'testing/**']
     paths: ["src/**", "tests/**", "installer/**", ".github/workflows/build-windows.yml"]
 
 jobs:
