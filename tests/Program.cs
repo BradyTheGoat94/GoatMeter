@@ -113,7 +113,7 @@ True(PublicGameData.EnglishTargetLabel("Boss 마족")==null,"mixed language targ
 // Synthetic roster fixture built from the published layout, separate from live damage evidence.
 byte[] ScoreRoster(uint stable=304076,ushort server=1102,uint gear=2800,ulong power=121600,string name="TestHero")
 {
- var data=new List<byte>();data.AddRange(BitConverter.GetBytes(123u));data.Add(0);data.Add(5);data.AddRange(new byte[4+2]);data.AddRange(BitConverter.GetBytes(((ulong)server<<48)|stable));data.AddRange(new byte[3]);data.Add(2);
+ var data=new List<byte>();data.AddRange(BitConverter.GetBytes(123u));data.Add(0);data.Add(5);data.AddRange(new byte[4+2]);data.AddRange(BitConverter.GetBytes(((ulong)server<<48)|stable));data.AddRange(new byte[3]);data.Add(1);
  data.Add(0x2C);data.Add(1);data.AddRange(BitConverter.GetBytes(((ulong)server<<48)|stable));var text=System.Text.Encoding.UTF8.GetBytes(name);data.Add((byte)text.Length);data.AddRange(text);
  data.AddRange(BitConverter.GetBytes(9u));data.AddRange(BitConverter.GetBytes(45u));data.AddRange(BitConverter.GetBytes(gear));data.Add(1);data.AddRange(BitConverter.GetBytes(server));data.AddRange(BitConverter.GetBytes(server));data.Add(0);data.AddRange(BitConverter.GetBytes(power));data.AddRange(new byte[3+11]);return data.ToArray();
 }
