@@ -1,0 +1,35 @@
+GOATMETER FREE APPLICATION USE LICENSE — DRAFT
+
+Review draft only. Not adopted, not included in the current installer, and not an executed commercial agreement. The licensor's legal identity, contribution rights and third-party rights must be confirmed before adoption. Final terms need legal review.
+
+1. SCOPE
+This proposed license concerns the original GoatMeter application and original project material that the licensor has authority to license. Third-party libraries, driver software, data and artwork are governed by their own terms, which take priority for those materials.
+
+2. FREE APPLICATION USE
+The licensor grants users a non-exclusive, non-transferable permission to download official unmodified GoatMeter builds and install and run them for personal or business use without a license fee. Optional donations are voluntary and do not purchase source-code reuse rights. Users may share links to official downloads.
+
+3. RESERVED CODE AND DISTRIBUTION RIGHTS
+The free application-use permission does not grant a general source-code license. Except as applicable law or a third-party license independently permits, users may not incorporate original GoatMeter code into another product, distribute modified GoatMeter builds, sublicense original GoatMeter code, or sell GoatMeter or a product incorporating that code without prior written permission. Unmodified binary redistribution and private modification permissions remain owner review decisions; this draft grants neither.
+
+4. SEPARATE COMMERCIAL LICENSE
+Commercial code reuse and resale rights require a separate written agreement executed before the relevant reuse or distribution. Payment alone, without that agreement, does not grant rights. The agreement defines scope, covered versions, fee or royalty, redistribution, attribution, update rights and support. No commercial price or royalty is set by this draft.
+
+5. RETAINED RIGHTS
+Permissions granted by this license do not transfer ownership. The licensor retains rights in original protectable work to the extent those rights exist. No ownership of third-party components or game assets is asserted. Statutory rights and exceptions are not waived by this draft.
+
+6. THIRD-PARTY SOFTWARE AND SERVICES
+Npcap is a separately installed prerequisite under its own license. Users should obtain it from its official provider. GoatMeter may fetch game-name catalogs from third-party HTTPS endpoints; those sources and applicable terms must be listed in the final notices/privacy documentation. A proprietary license must not override upstream permissions or obligations.
+
+7. BRANDING
+No separate right to use GoatMeter branding to imply an official release, affiliation or endorsement is granted. This clause does not claim ownership of third-party trademarks or character artwork.
+
+8. WARRANTY AND SUPPORT
+To the extent permitted by applicable law, the application is provided as available without a promise of perfect combat accuracy, compatibility or uninterrupted operation. Mandatory consumer rights remain unaffected. Any broader warranty/liability provisions must be reviewed for the intended jurisdictions before adoption.
+
+9. COMPLIANCE AND TERMINATION
+Permissions under this license may terminate upon a material violation, subject to applicable law and any mandatory notice/cure requirements. Commercial agreement termination is governed by that separate agreement. Statutory and third-party rights remain unaffected.
+
+10. CONTACT
+Commercial-license requests should use an owner-confirmed public contact channel. No email address or legal entity is invented in this draft.
+
+Before adoption: confirm licensor identity and rights; settle binary redistribution/private modification permissions; complete component and asset audit; obtain legal review; then approve an operative LICENSE and installer presentation. This draft does not change repository visibility or license existing releases retroactively.
