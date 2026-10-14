@@ -143,7 +143,8 @@ internal static class Program
      }
     }
     var themedBitmap=new System.Windows.Media.Imaging.RenderTargetBitmap((int)window.ActualWidth,(int)window.ActualHeight,96,96,PixelFormats.Pbgra32);themedBitmap.Render(window);
-    var encoderTheme=new System.Windows.Media.Imaging.PngBitmapEncoder();encoderTheme.Frames.Add(System.Windows.Media.Imaging.BitmapFrame.Create(bitmap));
+    var encoderTheme=new System.Windows.Media.Imaging.PngBitmapEncoder();encoderTheme.Frames.Add(System.Windows.Media.Imaging.BitmapFrame.Create(themedBitmap));
+    if(encoderTheme.Frames[0].PixelWidth!=(int)window.ActualWidth||encoderTheme.Frames[0].PixelHeight!=(int)window.ActualHeight)throw new Exception("Themed preview exported the wrong visual");
     if(theme=="Nightmare Before Christmas" && ((Image)window.FindName("NightmarePortrait")).Visibility!=Visibility.Visible)throw new Exception("Nightmare portrait missing");
     string suffix=theme=="Black / Orange"?"Black-Orange":theme=="Black / Yellow"?"Black-Yellow":"Nightmare-Before-Christmas";
     using(var output=System.IO.File.Create("overlay-"+style.Replace(" ","-")+"-"+suffix+".png"))encoderTheme.Save(output);
