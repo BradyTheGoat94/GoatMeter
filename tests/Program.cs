@@ -194,6 +194,10 @@ True(ArmoryScoreVerifier.TryParse(armoryJson,"opaque-id",1102,t,out var armory),
 Equal(armory!.CombatPower!.Value,121600,"armory CP parsed separately");
 Equal(armory.GearScore!.Value,2800,"armory GS parsed separately");
 True(armory.Provenance=="unverified-user-profile-import","imported profile does not claim authenticated origin");
+var nestedArmoryJson="""{"profile":{"characterId":"opaque-id","combatPower":121600},"stat":{"statList":[{"type":"ItemLevel","value":2800}]}}""";
+True(ArmoryScoreVerifier.TryParse(nestedArmoryJson,"opaque-id",1102,t,out var nestedArmory),"nested API profile shape accepted without root server field");
+Equal(nestedArmory!.GearScore!.Value,2800,"nested API profile gear score");
+True(!ArmoryScoreVerifier.TryParse(nestedArmoryJson,"wrong-id",1102,t,out _),"nested profile identity mismatch rejected");
 True(!ArmoryScoreVerifier.TryParse(armoryJson,"other-id",1102,t,out _),"armory identity mismatch rejected");
 True(!ArmoryScoreVerifier.TryParse(armoryJson,"opaque-id",1202,t,out _),"armory server mismatch rejected");
 True(!ArmoryScoreVerifier.TryParse(armoryJson.Replace("121600","99999999999"),"opaque-id",1102,t,out _),"armory unreasonable CP rejected");
