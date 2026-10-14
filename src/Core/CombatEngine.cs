@@ -41,7 +41,7 @@ public sealed class CombatEngine
                 }
                 else if (e.Kind == CombatKind.Ownership && e.SourceId != 0 && e.OwnerId != 0 && e.SourceId != e.OwnerId)
                     owners[e.SourceId] = e.OwnerId;
-                else if (e.SourceId != 0) Remember(e.SourceId, e.Source, e.SourceClass,e.Kind==CombatKind.PlayerName || e.SourceIdentityConfirmed);
+                else if (e.SourceId != 0) Remember(e.SourceId, e.Source, e.SourceClass,e.Kind==CombatKind.PlayerName || e.SourceIdentityConfirmed,e.SourceServerId,e.SourceCharacterId,e.SourceGearScore,e.SourceCombatPower,e.StatsObservedUtc);
                 if (e.TargetId != 0) Remember(e.TargetId, e.Target, "Unknown");
                 bool activity = (e.Kind is CombatKind.Damage or CombatKind.Heal) && e.Amount > 0 || e.Kind == CombatKind.CombatStart;
                 if (activity)
@@ -66,11 +66,11 @@ public sealed class CombatEngine
         if (completed != null) EncounterCompleted?.Invoke(completed);
     }
 
-    private void Remember(long id, string name, string cls,bool confirmed=false)
+    private void Remember(long id, string name, string cls,bool confirmed=false,int server=0,long character=0,int? gear=null,long? power=null,DateTime? statsSeen=null)
     {
         identities.TryGetValue(id, out var old);
         bool named = !string.IsNullOrWhiteSpace(name) && !name.StartsWith("Actor ") && !name.StartsWith("Target ");
-        if(confirmed && confirmedIdentities.Contains(id) && named && old!=null && !old.Name.StartsWith("Actor ") && !old.Name.StartsWith("Target ") && !string.Equals(old.Name,name,StringComparison.Ordinal))
+        if(confirmed && confirmedIdentities.Contains(id) && named && old!=null && !old.Name.StartsWith("Actor ") && !old.Name.StartsWith("Target ") && (!string.Equals(old.Name,name,StringComparison.Ordinal) || character>0&&old.CharacterId>0&&(old.CharacterId!=character||old.ServerId!=server)))
         {
             // An explicit different identity is evidence of reuse even if visibility removal was ignored.
             entityKeys[id]=nextEntityKey--;owners.Remove(id);
@@ -78,7 +78,11 @@ public sealed class CombatEngine
             old=null;
         }
         if(confirmed&&named)confirmedIdentities.Add(id);
-        identities[id] = new Identity(named ? name : old?.Name ?? $"Actor {id}", cls != "Unknown" && !string.IsNullOrWhiteSpace(cls) ? cls : old?.ClassName ?? "Unknown");
+        bool metadata=confirmed&&named&&server is >=1001 and <=9999&&character>0&&statsSeen.HasValue&&statsSeen<=latestUtc&&(old?.StatsObservedUtc==null||statsSeen>=old.StatsObservedUtc);
+        identities[id] = new Identity(named ? name : old?.Name ?? $"Actor {id}", cls != "Unknown" && !string.IsNullOrWhiteSpace(cls) ? cls : old?.ClassName ?? "Unknown",
+            metadata?(gear is >=100 and <=50000?gear:null):old?.GearScore,
+            metadata?(power is >0 and <=10000000?power:null):old?.CombatPower,
+            metadata?server:old?.ServerId??0,metadata?character:old?.CharacterId??0,metadata?statsSeen:old?.StatsObservedUtc);
         long identityKey = Key(id);
         // Identity packets can arrive seconds after combat starts. Refresh the
         // active encounter's cached event labels when a placeholder becomes a
@@ -157,7 +161,7 @@ public sealed class CombatEngine
                 encounter.TargetDamage.TryGetValue(e.TargetId, out var damage);
                 encounter.TargetDamage[e.TargetId] = damage + e.Amount;
                 encounter.ActorTargets[(source,targetId)]=encounter.ActorTargets.GetValueOrDefault((source,targetId))+e.Amount;
-                if (encounter.TargetId != e.TargetId) { encounter.TargetId=e.TargetId; encounter.Target=null; }
+                if (encounter.TargetId != e.TargetId) { encounter.TargetId=e.TargetId;encounter.TargetKey=targetId; encounter.Target=null; }
                 var old=encounter.Target;
                 encounter.Target = new TargetStats(e.Target, e.MaxHp>0?e.CurrentHp:old?.CurrentHp??0, e.MaxHp>0?e.MaxHp:old?.MaxHp??0,
                     e.MaxHp>0?Math.Clamp(e.CurrentHp*100.0/e.MaxHp,0,100):old?.Percent??0,damage+e.Amount);
@@ -170,7 +174,7 @@ public sealed class CombatEngine
         }
         if (e.Kind == CombatKind.TargetHp && e.MaxHp>0)
         {
-            encounter.TargetId=e.TargetId;
+            encounter.TargetId=e.TargetId;encounter.TargetKey=targetId;
             encounter.TargetDamage.TryGetValue(e.TargetId,out var damage);
             encounter.Target=new(e.Target,e.CurrentHp,e.MaxHp,Math.Clamp(e.CurrentHp*100.0/e.MaxHp,0,100),damage);
             encounter.Boss |= e.IsBoss;
@@ -259,7 +263,8 @@ public sealed class CombatEngine
             var stats=categoryMetrics.Where(y=>y.Key.Id==x.Key).Select(y=>y.Value).ToList();
             long hits=stats.Sum(y=>y.Hits), crits=stats.Sum(y=>y.Crits);
             bool rate=category is MeterCategory.Damage or MeterCategory.Healing or MeterCategory.DamageTaken;
-            return new PlayerStats(name.Name,name.ClassName,x.Value,rate?x.Value/divisor:x.Value,total==0?0:x.Value*100.0/total,hits,hits==0?0:crits*100.0/hits,x.Key,x.Value/Math.Max(1,e.ActorActive.GetValueOrDefault(x.Key)),entityKeys.FirstOrDefault(y=>y.Value==x.Key).Key is var raw && raw!=0?raw:x.Key);
+            return new PlayerStats(name.Name,name.ClassName,x.Value,rate?x.Value/divisor:x.Value,total==0?0:x.Value*100.0/total,hits,hits==0?0:crits*100.0/hits,x.Key,x.Value/Math.Max(1,e.ActorActive.GetValueOrDefault(x.Key)),entityKeys.FirstOrDefault(y=>y.Value==x.Key).Key is var raw && raw!=0?raw:x.Key,
+                FreshStats(name,e,isOverall)?name.GearScore:null,FreshStats(name,e,isOverall)?name.CombatPower:null,name.ServerId,name.CharacterId,name.StatsObservedUtc);
         }).OrderByDescending(x=>x.Damage).ToArray();
         var skills=categoryMetrics.Select(x=>new SkillStats(x.Key.Skill,x.Value.Amount,x.Value.Hits,x.Value.Amount/divisor,
             x.Key.Id,x.Value.Crits,x.Value.Hits==0?0:x.Value.Crits*100.0/x.Value.Hits,totals.GetValueOrDefault(x.Key.Id)==0?0:x.Value.Amount*100.0/totals[x.Key.Id],
@@ -271,14 +276,20 @@ public sealed class CombatEngine
         var targets=e.ActorTargets.Where(x=>e.ConfirmedPlayers.Contains(x.Key.Actor)).Select(x=>new ActorTargetStats(x.Key.Actor,x.Key.Target,e.Names.GetValueOrDefault(x.Key.Target)?.Name??$"Target {x.Key.Target}",x.Value,
             x.Value*100.0/Math.Max(1,e.Metrics.Where(y=>y.Key.Id==x.Key.Actor&&y.Key.Category==MeterCategory.Damage).Sum(y=>y.Value.Amount)))).ToArray();
         return new(e.Start!=null&&!e.Completed,PreviewMode,seconds,damage,damage/divisor,overallDamage,overallDamage/Math.Max(1,overallSeconds),e.Target,rows,skills,buffs,e.Events.ToArray())
-        { Targets=targets, Categories=includeCategories?Enum.GetValues<MeterCategory>().ToDictionary(c=>c,c=> {var snapshot=Build(e,c,isOverall,false);return new CategorySnapshot(snapshot.Players,snapshot.Skills,snapshot.MetricLabel);}):new Dictionary<MeterCategory,CategorySnapshot>(), EncounterId=e.Id,StartedUtc=e.Start,EndReason=e.EndReason,Category=category,MetricLabel=category==MeterCategory.Healing?"HPS":category is MeterCategory.Damage or MeterCategory.DamageTaken?"DPS":category is MeterCategory.Buffs or MeterCategory.Debuffs?"SECONDS":"COUNT",ActiveSeconds=e.ActiveSeconds };
+        { SelectedTargetId=e.TargetKey,Targets=targets, Categories=includeCategories?Enum.GetValues<MeterCategory>().ToDictionary(c=>c,c=> {var snapshot=Build(e,c,isOverall,false);return new CategorySnapshot(snapshot.Players,snapshot.Skills,snapshot.MetricLabel);}):new Dictionary<MeterCategory,CategorySnapshot>(), EncounterId=e.Id,StartedUtc=e.Start,EndReason=e.EndReason,Category=category,MetricLabel=category==MeterCategory.Healing?"HPS":category is MeterCategory.Damage or MeterCategory.DamageTaken?"DPS":category is MeterCategory.Buffs or MeterCategory.Debuffs?"SECONDS":"COUNT",ActiveSeconds=e.ActiveSeconds };
     }
-    private sealed record Identity(string Name,string ClassName);
+    private bool FreshStats(Identity identity,Encounter encounter,bool overallView)
+    {
+        var at=encounter.Completed&&!overallView?encounter.Last??clock():clock();
+        if(encounter.Completed&&!overallView&&identity.StatsObservedUtc is DateTime late&&late>at)at=late;
+        return identity.StatsObservedUtc is DateTime observed&&at>=observed&&at-observed<=TimeSpan.FromMinutes(10);
+    }
+    private sealed record Identity(string Name,string ClassName,int? GearScore=null,long? CombatPower=null,int ServerId=0,long CharacterId=0,DateTime? StatsObservedUtc=null);
     private sealed class Stat { public long Amount,Hits,Crits,Max; public long Min=long.MaxValue; public DamageFlags Flags; public Dictionary<DamageFlags,long> FlagHits=new(); }
     private sealed class Encounter
     {
         public Guid Id=Guid.NewGuid(); public DateTime? Start,Last,LastActivity; public bool Completed,Boss; public string EndReason="";
-        public double Duration,CompletedDuration,ActiveSeconds; public long TargetId; public TargetStats? Target;
+        public double Duration,CompletedDuration,ActiveSeconds; public long TargetId,TargetKey; public TargetStats? Target;
         public Dictionary<long,DateTime> ActorLast=new(); public Dictionary<long,double> ActorActive=new();
         public Dictionary<(long Actor,long Target),long> ActorTargets=new();
         public Dictionary<long,Identity> Names=new(); public Dictionary<long,long> TargetDamage=new();

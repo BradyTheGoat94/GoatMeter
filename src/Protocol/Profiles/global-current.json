@@ -49,5 +49,6 @@
       "b": 54
     }
   },
-  "verified": false
+  "verified": false,
+  "experimentalRosterScores": true
 }

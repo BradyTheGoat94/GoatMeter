@@ -28,6 +28,8 @@ public sealed class CaptureIdentityBridge
 
         if(e.Kind==CombatKind.PlayerName && e.SourceId>0 && !string.IsNullOrWhiteSpace(e.Source) && !e.Source.StartsWith("Actor "))
         {
+            if(names.TryGetValue((keyScope,e.SourceId),out var prior)&&e.StatsObservedUtc==null&&e.SourceCharacterId>0&&e.SourceCharacterId==prior.Event.SourceCharacterId&&e.SourceServerId==prior.Event.SourceServerId&&e.Source==prior.Event.Source)
+                e=e with {SourceGearScore=prior.Event.SourceGearScore,SourceCombatPower=prior.Event.SourceCombatPower,StatsObservedUtc=prior.Event.StatsObservedUtc};
             names[(keyScope,e.SourceId)]=new(e,e.Utc);
             if(names.Count>4096)names.Remove(names.MinBy(x=>x.Value.Seen).Key);
             return;

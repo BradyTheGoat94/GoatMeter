@@ -4,6 +4,14 @@ namespace Aion2DPSPro.Protocol;
 /// implausible packets are rejected and logged rather than emitted as combat data.
 public sealed class PacketDispatcher
 {
+    public Aion2Decoded AttachRosterScores(Aion2Decoded e,DateTime utc)
+    {
+        if(!profile.ExperimentalRosterScores||e.Kind!=CombatKind.PlayerName||!sessionToGlobal.TryGetValue(e.SourceId,out var global))return e;
+        var candidates=rosterScores.Values.Where(x=>x.CharacterId==global&&x.Name==e.Source&&utc>=x.ObservedUtc&&utc-x.ObservedUtc<=TimeSpan.FromMinutes(10)).ToArray();
+        if(identityServers.TryGetValue(e.SourceId,out var server)&&server>0)candidates=candidates.Where(x=>x.ServerId==server).ToArray();
+        if(candidates.Length!=1)return e;
+        var r=candidates[0];return e with {SourceServerId=r.ServerId,SourceCharacterId=r.CharacterId,SourceGearScore=r.GearScore,SourceCombatPower=r.CombatPower,StatsObservedUtc=r.ObservedUtc};
+    }
     private long? selfEntityId;
     private readonly HashSet<long> recentCombatIds = new();
     private readonly ProtocolProfile profile;
@@ -17,6 +25,8 @@ public sealed class PacketDispatcher
     private readonly HashSet<long> confirmedSummons = new();
     private readonly Dictionary<long, UnresolvedSummonObservation> unresolvedSummonCandidates = new();
     private readonly Queue<RecentSummonSpawn> recentSummonSpawns = new();
+    private readonly Dictionary<(long Character,int Server),RosterScore> rosterScores=new();
+    private readonly Dictionary<long,int> identityServers=new();
     private readonly Dictionary<string,int> featureCandidateSamples = new();
     public event Action<DecoderDiagnostic>? Diagnostic;
     public event Action<string>? ValidationRecord;
@@ -40,6 +50,23 @@ public sealed class PacketDispatcher
         }
                 if (b == 0x97 && (a == 0x01 || a == 0x02 || a == 0x0B))
         {
+            if(a==0x02 && profile.ExperimentalRosterScores)
+            {
+                foreach(var stats in PartyRosterScores.Parse(frame.AsSpan(p+2),utc))
+                {
+                    rosterScores[(stats.CharacterId,stats.ServerId)]=stats;
+                    if(rosterScores.Count>256)rosterScores.Remove(rosterScores.MinBy(x=>x.Value.ObservedUtc).Key);
+                    // Identity only comes from the structured dbid, never name-only matching.
+                    if(rosterScores.Values.Count(x=>x.CharacterId==stats.CharacterId)==1)
+                        partyIdentities[stats.CharacterId]=new PlayerIdentity(stats.Name,ClassFromJobCode(stats.ClassCode));
+                }
+                foreach(var link in sessionToGlobal)
+                    if(identities.TryGetValue(link.Key,out var known))
+                    {
+                        var resolved=AttachRosterScores(new(CombatKind.PlayerName,link.Key,known.Name,0,"","",0,DamageType.Unknown,0,0,"",0,known.ClassName),utc);
+                        if(resolved.StatsObservedUtc!=null)yield return resolved;
+                    }
+            }
             foreach (var partyEvt in TryObservePartyIdentities(frame, p + 2, utc, a))
                 yield return partyEvt;
             yield break;
@@ -1093,6 +1120,7 @@ public sealed class PacketDispatcher
             }
         }
         selfEntityId=id;
+        if(serverId>0)identityServers[id]=serverId;
         RememberGlobalPlayerIdentity(id, best, className, utc, "selfInfo");
         Diagnostic?.Invoke(new(utc,"identity-map",$"Mapped self entity {id} -> {best} class={className} job={jobCode} server={serverId}",d.Length));
         ValidationRecord?.Invoke($"{utc:O}|tag=selfIdentity|entity={id}|name={best}|class={className}|jobCode={jobCode}|server={serverId}|extra={extra}|nameOffset={nameOffset}|raw={Convert.ToHexString(d)}");

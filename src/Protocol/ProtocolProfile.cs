@@ -9,7 +9,8 @@ public sealed record ProtocolProfile(
     string ClientBuild,
     int GamePort,
     IReadOnlyDictionary<string, PacketTag> Tags,
-    bool Verified = false)
+    bool Verified = false,
+    bool ExperimentalRosterScores = false)
 {
     public static ProtocolProfile SafeGlobalScaffold() => new(
         "GLOBAL-CURRENT-NEEDS-CAPTURE-VALIDATION", "Global", "current", 13328,

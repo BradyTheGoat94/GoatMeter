@@ -19,6 +19,6 @@ public sealed record Aion2Decoded(
     long MaxHp,
     string Effect,
     int Stacks, string SourceClass = "Unknown", DamageFlags DamageFlags = DamageFlags.None,
-    bool SourceIdentityConfirmed = false);
+    bool SourceIdentityConfirmed = false, int SourceServerId=0,long SourceCharacterId=0,int? SourceGearScore=null,long? SourceCombatPower=null,DateTime? StatsObservedUtc=null);
 
 

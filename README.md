@@ -18,7 +18,16 @@ Click **◷** in the overlay header for a separate countdown window. It includes
 
 Global public reports disagree about rift opening anchors and server clocks. Three explicitly labeled community estimates are bundled (UTC 00:00 cycle, UTC+9 00:00 client-data report, UTC+9 02:00 cycle); the initial profile is the UTC estimate, not an inferred player region. Scheduled windows are calculations, not live opening confirmations. Entry windows and times can be corrected by importing a validated profile. Game notices take priority. This feature performs no network polling and sends no game packets.
 
+## Gear score and combat power (testing)
+Experimental passive GS/CP support is enabled in the testing protocol profile. It reads the structured party-roster layout and attaches values only through an explicit stable-character/session identity link, scoped by server when available. Unknown, ambiguous or expired values show **—**; no name-only lookup or DPS-based score estimate is used. This strict mode can leave scores unknown until the required identity packets arrive.
+
+GS and CP are distinct values, shown below player rows in every preset and in detailed reports. Current/overall values expire after ten minutes without a fresh roster observation; completed encounters retain the values observed for that encounter. Identity reuse and server collisions cannot inherit old scores. Toggle display under Settings → Show GS and combat power. To disable the experimental decoder, set `experimentalRosterScores` to false in the protocol profile. Public fixtures validate structure and binding; an in-game GS/CP comparison on the current Global client remains pending.
+
 ## Overlay designs
+All presets now expose fight/history selection, reset, countdown access and target information. **Neon Compact** adds slim contribution tracks and large rate values; **Pulse Cards** adds circular class badges and rounded player cards. **Midnight Gold**, **Rose Quartz**, and **Aurora** join the existing themes. Settings → Stream-safe player names replaces visible player names with class/rank labels; stored combat data remains unchanged.
+
+Player rows also show **Target share** in Damage view: each player's portion of captured damage to the selected target, excluding damage to other targets. It is separate from the player's contribution to all captured damage and is not a claim that all world-boss damage reached this client.
+
 Choose **Encounter Focus** for a large target name and encounter timer, aligned total/share/rate columns, thin class-colored ranking bars, a position/size lock, and a quick opacity slider. Columns follow the selected category (including Healing/HPS). The target HP bar appears only when maximum HP is known. Share means contribution to the selected category total, not boss-only damage. Position locking is also available in settings and is preserved between sessions.
 
 This preset uses existing passive combat data. It does not claim world-boss spawn alerts, event schedules, PvP classification, gear scores, or local-player identity that the current data does not supply.

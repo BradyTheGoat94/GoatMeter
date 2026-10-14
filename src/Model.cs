@@ -10,9 +10,9 @@ public enum MeterSegment { Current, Previous, Overall }
 public sealed record CombatEvent(DateTime Utc, CombatKind Kind, long SourceId = 0, string Source = "", long TargetId = 0,
     string Target = "", string Skill = "", long Amount = 0, DamageType DamageType = DamageType.Unknown,
     long CurrentHp = 0, long MaxHp = 0, string Effect = "", int Stacks = 0, string SourceClass = "Unknown", DamageFlags DamageFlags = DamageFlags.None,
-    long OwnerId = 0, bool IsBoss = false, bool SourceIdentityConfirmed = false);
+    long OwnerId = 0, bool IsBoss = false, bool SourceIdentityConfirmed = false,int SourceServerId=0,long SourceCharacterId=0,int? SourceGearScore=null,long? SourceCombatPower=null,DateTime? StatsObservedUtc=null);
 public sealed record PlayerStats(string Name, string ClassName, long Damage, double Dps, double Share, long Hits, double CritPercent,
-    long ActorId = 0, double ActiveDps = 0, long EntityId = 0);
+    long ActorId = 0, double ActiveDps = 0, long EntityId = 0,int? GearScore=null,long? CombatPower=null,int ServerId=0,long CharacterId=0,DateTime? StatsObservedUtc=null);
 public sealed record SkillStats(string Name, long Damage, long Hits, double Dps, long ActorId = 0, long Crits = 0,
     double CritPercent = 0, double Share = 0, double Average = 0, long MinHit = 0, long MaxHit = 0, DamageFlags Flags = DamageFlags.None)
 {
@@ -28,6 +28,7 @@ public sealed record MeterSnapshot(bool InFight, bool PreviewMode, double FightS
 {
     public IReadOnlyDictionary<MeterCategory,CategorySnapshot> Categories {get;init;} = new Dictionary<MeterCategory,CategorySnapshot>();
     public IReadOnlyList<ActorTargetStats> Targets {get;init;} = Array.Empty<ActorTargetStats>();
+    public long SelectedTargetId { get; init; }
     public Guid EncounterId { get; init; }
     public DateTime? StartedUtc { get; init; }
     public string EndReason { get; init; } = "";

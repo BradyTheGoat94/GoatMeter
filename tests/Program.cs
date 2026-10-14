@@ -110,6 +110,34 @@ reportEngine.ResetFight();reportEngine.Apply(Hit(10,1,999));Equal(reportEngine.S
 True(PublicGameData.EnglishTargetLabel("Training Scarecrow")=="Training Scarecrow","English target label preserved");
 True(PublicGameData.EnglishTargetLabel("노인 주민")==null,"untranslated Korean NPC falls back to English target label");
 True(PublicGameData.EnglishTargetLabel("Boss 마족")==null,"mixed language target label rejected");
+// Synthetic roster fixture built from the published layout, separate from live damage evidence.
+byte[] ScoreRoster(uint stable=304076,ushort server=1102,uint gear=2800,ulong power=121600,string name="TestHero")
+{
+ var data=new List<byte>();data.AddRange(BitConverter.GetBytes(123u));data.Add(0);data.Add(5);data.AddRange(new byte[4+2]);data.AddRange(BitConverter.GetBytes(((ulong)server<<48)|stable));data.AddRange(new byte[3]);data.Add(2);
+ data.Add(0x2C);data.Add(1);data.AddRange(BitConverter.GetBytes(((ulong)server<<48)|stable));var text=System.Text.Encoding.UTF8.GetBytes(name);data.Add((byte)text.Length);data.AddRange(text);
+ data.AddRange(BitConverter.GetBytes(9u));data.AddRange(BitConverter.GetBytes(45u));data.AddRange(BitConverter.GetBytes(gear));data.Add(1);data.AddRange(BitConverter.GetBytes(server));data.AddRange(BitConverter.GetBytes(server));data.Add(0);data.AddRange(BitConverter.GetBytes(power));data.AddRange(new byte[3+11]);return data.ToArray();
+}
+var scoreBody=ScoreRoster();var parsedScores=PartyRosterScores.Parse(scoreBody,t);Equal(parsedScores.Count,1,"strict roster reads score record");Equal(parsedScores.Single().GearScore!.Value,2800,"GS differs from CP");Equal(parsedScores.Single().CombatPower!.Value,121600,"roster CP");
+True(!PartyRosterScores.Parse(ScoreRoster(gear:999999),t).Any(),"invalid gear rejected");True(!PartyRosterScores.Parse(ScoreRoster(power:ulong.MaxValue),t).Any(),"invalid CP rejected");
+for(int length=0;length<scoreBody.Length-14;length++)True(!PartyRosterScores.Parse(scoreBody.AsSpan(0,length),t).Any(),"truncated roster rejected");
+var scoreProfile=profile with {ExperimentalRosterScores=true};var scoreDispatch=new PacketDispatcher(scoreProfile);
+byte[] AsFrame(byte[] body)=>Frame(Convert.ToHexString(body));
+scoreDispatch.Dispatch(AsFrame(new byte[]{2,0x97}.Concat(scoreBody).ToArray()),t).ToArray();
+var linkEvents=scoreDispatch.Dispatch(Convert.FromHexString("CF0B20360000D01E00000000CCA3040000003608A602CC08E615"),t).ToArray();
+var scoreIdentity=scoreDispatch.AttachRosterScores(linkEvents.Single(x=>x.Kind==CombatKind.PlayerName),t);
+Equal(scoreIdentity.SourceId,3920,"roster bound through explicit session link");Equal(scoreIdentity.SourceGearScore!.Value,2800,"linked GS");Equal(scoreIdentity.SourceCombatPower!.Value,121600,"linked CP");Equal(scoreIdentity.SourceServerId,1102,"linked server");
+True(scoreDispatch.AttachRosterScores(scoreIdentity with {SourceGearScore=null,SourceCombatPower=null,StatsObservedUtc=null},t.AddMinutes(11)).SourceGearScore==null,"expired roster does not reattach");
+scoreDispatch.Dispatch(AsFrame(new byte[]{2,0x97}.Concat(ScoreRoster(server:1202)).ToArray()),t).ToArray();
+True(scoreDispatch.AttachRosterScores(scoreIdentity with {SourceGearScore=null,SourceCombatPower=null,StatsObservedUtc=null},t).SourceGearScore==null,"same character id on two servers stays unknown");
+var scoreClock=t;var scoreEngine=new CombatEngine(()=>scoreClock);
+scoreEngine.Apply(new(t,CombatKind.PlayerName,3920,"TestHero",SourceClass:"Templar",SourceServerId:1102,SourceCharacterId:304076,SourceGearScore:2800,SourceCombatPower:121600,StatsObservedUtc:t));
+scoreEngine.Apply(Hit(0,3920,100,"TestHero"));Equal(scoreEngine.Snapshot().Players.Single().GearScore!.Value,2800,"engine GS");Equal(scoreEngine.Snapshot().FightDamage,100,"metadata does not alter damage");
+scoreEngine.Apply(new(t,CombatKind.PlayerName,3920,"TestHero",SourceClass:"Templar",SourceServerId:1102,SourceCharacterId:304076,SourceGearScore:2700,SourceCombatPower:90000,StatsObservedUtc:t.AddSeconds(-1)));
+Equal(scoreEngine.Snapshot().Players.Single().CombatPower!.Value,121600,"older stats cannot overwrite newer");
+scoreEngine.ResetFight();scoreClock=t.AddHours(1);Equal(scoreEngine.Snapshot(MeterSegment.Previous,MeterCategory.Damage).Players.Single().GearScore!.Value,2800,"archived scores stay frozen");
+True(scoreEngine.Snapshot(MeterSegment.Overall,MeterCategory.Damage).Players.Single().GearScore==null,"stale live overall scores expire");
+scoreEngine.Apply(new(scoreClock,CombatKind.Despawn,3920));scoreEngine.Apply(new(scoreClock,CombatKind.PlayerName,3920,"Replacement",SourceClass:"Cleric"));scoreEngine.Apply(new(scoreClock,CombatKind.Damage,3920,"Replacement",99,"Boss","Strike",300));True(scoreEngine.Snapshot().Players.Single().GearScore==null,"reused actor cannot inherit old score");
+var targetEngine=new CombatEngine(()=>t);targetEngine.Apply(new(t,CombatKind.PlayerName,1,"One"));targetEngine.Apply(new(t,CombatKind.PlayerName,2,"Two"));targetEngine.Apply(new(t,CombatKind.Damage,1,"One",90,"Add","Strike",1000));targetEngine.Apply(new(t,CombatKind.Damage,1,"One",99,"Boss","Strike",100));targetEngine.Apply(new(t,CombatKind.Damage,2,"Two",99,"Boss","Strike",300));var targetView=targetEngine.Snapshot();Equal(targetView.Targets.Where(x=>x.TargetId==targetView.SelectedTargetId).Sum(x=>x.Damage),400,"target share excludes add damage");
 var timerProfile=new Aion2DPSPro.Schedules.ScheduleProfile("test","UTC test","UTC","test fixture","2026-10-14",new[]{new Aion2DPSPro.Schedules.ScheduleEvent("rift","Spacetime Rift",new[]{0,3,6,9,12,15,18,21},0,10)});
 var timerNow=new DateTimeOffset(2026,10,14,2,59,59,TimeSpan.Zero);
 var nextRift=Aion2DPSPro.Schedules.EventSchedule.Evaluate(timerProfile,timerNow).Single();

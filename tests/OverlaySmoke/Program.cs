@@ -14,13 +14,13 @@ internal static class Program
   var window=new OverlayWindow();
   void Invoke(string name,string value)=>typeof(OverlayWindow).GetMethod(name,BindingFlags.NonPublic|BindingFlags.Instance)!.Invoke(window,new object[]{value});
   string? previous=null;
-  foreach(var theme in new[]{"Aion Blue/Red","Neon Spectrum","Void Purple","Emerald Glass","Solar Flare","Ice Crystal"})
+  foreach(var theme in new[]{"Aion Blue/Red","Neon Spectrum","Void Purple","Emerald Glass","Solar Flare","Ice Crystal","Midnight Gold","Rose Quartz","Aurora"})
   {
    Invoke("ApplyTheme",theme);
    string color=((SolidColorBrush)((Border)window.FindName("Root")).Background).Color.ToString();
    if(color==previous)throw new Exception($"Theme did not change: {theme}");previous=color;
   }
-  foreach(var style in new[]{"Encounter Focus","Modern Glass","Details Inspired","Kagerou Inspired","Bars Only","Raid Compact","Glass Cards","Tournament","Classic Dashboard"})Invoke("ApplyOverlayStyle",style);
+  foreach(var style in new[]{"Pulse Cards","Neon Compact","Encounter Focus","Modern Glass","Details Inspired","Kagerou Inspired","Bars Only","Raid Compact","Glass Cards","Tournament","Classic Dashboard"})Invoke("ApplyOverlayStyle",style);
   if(((FrameworkElement)window.FindName("EncounterSummary")).Visibility!=Visibility.Collapsed)throw new Exception("Classic did not hide encounter header");
   if(((FrameworkElement)window.FindName("ToolbarGrid")).Visibility!=Visibility.Visible)throw new Exception("Classic did not restore toolbar");
   var t=DateTime.UtcNow;var engine=new CombatEngine(()=>t);
@@ -98,17 +98,18 @@ internal static class Program
   string[] classes={"Templar","Sorcerer","Assassin","Ranger","Spiritmaster","Gladiator","Cleric","Chanter"};
   for(int i=0;i<classes.Length;i++) {
    string playerName=i==0?"TestHero":"Party member "+(i+1);
-   previewEngine.Apply(new(t,CombatKind.PlayerName,i+100,playerName,SourceClass:classes[i]));
+   previewEngine.Apply(new(t,CombatKind.PlayerName,i+100,playerName,SourceClass:classes[i],SourceServerId:1102,SourceCharacterId:i+100000,SourceGearScore:2800+i*35,SourceCombatPower:121600-i*8500,StatsObservedUtc:t));
    previewEngine.Apply(new(t,CombatKind.Damage,i+100,playerName,900,"Training target","Opening skill",(8-i)*5000,SourceClass:classes[i]));
    previewEngine.Apply(new(t.AddSeconds(25),CombatKind.Damage,i+100,playerName,900,"Training target","Finishing skill",(8-i)*3500,SourceClass:classes[i]));
   }
   tabs.SelectedIndex=0;segment.SelectedIndex=0;Invoke("ApplyTheme","Ice Crystal");window.Show();
   var rows=(ListView)window.FindName("Rows");
   DataTemplate? previousTemplate=null;
-  foreach(var style in new[]{"Encounter Focus","Modern Glass","Details Inspired","Kagerou Inspired","Classic Dashboard"}) {
-   Invoke("ApplyOverlayStyle",style);Invoke("ApplyTheme",style is "Modern Glass" or "Encounter Focus"?"Aion Blue/Red":"Ice Crystal");window.Render(previewEngine.Snapshot());window.UpdateLayout();
+  foreach(var style in new[]{"Pulse Cards","Neon Compact","Encounter Focus","Modern Glass","Details Inspired","Kagerou Inspired","Classic Dashboard"}) {
+   Invoke("ApplyOverlayStyle",style);Invoke("ApplyTheme",style is "Modern Glass" or "Encounter Focus" or "Pulse Cards" or "Neon Compact"?"Aion Blue/Red":"Ice Crystal");window.Render(previewEngine.Snapshot());window.UpdateLayout();
    if(rows.ItemTemplate==previousTemplate)throw new Exception("Styles reused the same row design");previousTemplate=rows.ItemTemplate;
    if(rows.Items.Count!=8)throw new Exception("Style lost party rows");
+   if(!rows.Items.Cast<object>().All(r=>r.GetType().GetProperty("CharacterStats")!.GetValue(r)!.ToString()!.Contains("GS")))throw new Exception("Preset lost universal GS/CP metadata");
    rows.SelectedIndex=0;
    var overlayBitmap=new System.Windows.Media.Imaging.RenderTargetBitmap((int)window.ActualWidth,(int)window.ActualHeight,96,96,PixelFormats.Pbgra32);overlayBitmap.Render(window);
    var png=new System.Windows.Media.Imaging.PngBitmapEncoder();png.Frames.Add(System.Windows.Media.Imaging.BitmapFrame.Create(overlayBitmap));
@@ -136,6 +137,19 @@ internal static class Program
   window.Render(previewEngine.Snapshot(MeterSegment.Current,MeterCategory.Healing));
   if(rows.Items.Count!=0)throw new Exception("Compact healing view reused damage");
   Console.WriteLine("PASS: distinct responsive meter designs, party rows and compact category selection");
+  // All presets retain fight selectors, target information and countdown access.
+  foreach(var style in new[]{"Pulse Cards","Neon Compact","Encounter Focus","Modern Glass","Details Inspired","Kagerou Inspired","Bars Only","Raid Compact","Glass Cards","Tournament","Classic Dashboard"})
+  {
+   Invoke("ApplyOverlayStyle",style);window.Render(previewEngine.Snapshot());window.UpdateLayout();
+   if(((FrameworkElement)window.FindName("ToolbarGrid")).Visibility!=Visibility.Visible)throw new Exception("Preset lost fight/history selection: "+style);
+   if(style!="Encounter Focus"&&((FrameworkElement)window.FindName("FooterBar")).Visibility!=Visibility.Visible)throw new Exception("Preset lost target information: "+style);
+   if(((Button)window.FindName("ResetCurrentFight")).Visibility!=Visibility.Visible)throw new Exception("Preset lost reset");
+  }
+  typeof(OverlayWindow).GetField("hideNames",BindingFlags.NonPublic|BindingFlags.Instance)!.SetValue(window,true);tabs.SelectedIndex=0;window.Render(previewEngine.Snapshot());
+  if(rows.Items.Cast<object>().Any(r=>r.GetType().GetProperty("Name")!.GetValue(r)!.ToString()!.Contains("TestHero")))throw new Exception("Stream-safe names exposed actor name");
+  typeof(OverlayWindow).GetField("showCharacterStats",BindingFlags.NonPublic|BindingFlags.Instance)!.SetValue(window,false);window.Render(previewEngine.Snapshot());
+  if(rows.Items.Cast<object>().Any(r=>r.GetType().GetProperty("CharacterStats")!.GetValue(r)!.ToString()!.Contains("GS")))throw new Exception("Character stats toggle ignored");
+  Console.WriteLine("PASS: shared controls/info across all presets, stream-safe names, GS/CP toggle");
   var eventWindow=new EventTimersWindow {Owner=window,Clock=()=>new DateTimeOffset(2026,10,14,2,59,0,TimeSpan.Zero)};
   eventWindow.Show();eventWindow.Refresh();eventWindow.UpdateLayout();
   var eventItems=(ItemsControl)eventWindow.FindName("EventRows");

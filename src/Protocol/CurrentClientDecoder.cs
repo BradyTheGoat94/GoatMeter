@@ -41,6 +41,6 @@ public sealed class CurrentClientDecoder : IAion2Decoder
             framer.Diagnostic += d => Diagnostic?.Invoke(d);
         }
         foreach(var frame in framer.Push(payload,utc))
-            foreach(var evt in dispatcher.Dispatch(frame,utc)) yield return evt;
+            foreach(var evt in dispatcher.Dispatch(frame,utc)) yield return dispatcher.AttachRosterScores(evt,utc);
     }
 }
