@@ -158,6 +158,12 @@ True(gearBridge.Resolve("other-server|local|other",linkedName).SourceGearScore==
 True(gearBridge.Resolve(gearScope,linkedName with {SourceServerId=1202}).SourceGearScore==null,"profile bridge requires exact server");
 True(gearBridge.Resolve(gearScope,linkedName with {SourceCharacterId=304077}).SourceGearScore==null,"profile bridge requires exact character");
 True(gearBridge.Resolve(gearScope,linkedName with {SourceServerId=0}).SourceGearScore==null,"profile bridge refuses unknown server");
+var equalTimeBridge=new Aion2DPSPro.Capture.CaptureIdentityBridge();
+equalTimeBridge.Observe(gearScope,rosterMeta);
+var explicitScore=linkedName with {SourceGearScore=2900,SourceCombatPower=125000,StatsObservedUtc=t};
+equalTimeBridge.Observe(gearScope,explicitScore);
+Equal(equalTimeBridge.Identities(gearScope,t).Single().SourceGearScore!.Value,2900,"equal timestamp explicit GS wins over cache");
+Equal(equalTimeBridge.Identities(gearScope,t).Single().SourceCombatPower!.Value,125000,"equal timestamp explicit CP wins over cache");
 var lateGearBridge=new Aion2DPSPro.Capture.CaptureIdentityBridge();lateGearBridge.Observe(gearScope,linkedName);lateGearBridge.Observe(gearScope,rosterMeta);Equal(lateGearBridge.Identities(gearScope,t).Single().SourceCombatPower!.Value,121600,"late roster updates cached identity");
 var identityScope="\\Device\\NPF_TEST|local|game";var socketScope="\\Device\\NPF_OTHER|local|game";var socketBridge=new Aion2DPSPro.Capture.CaptureIdentityBridge();socketBridge.Observe(identityScope,rosterMeta);socketBridge.Observe(socketScope,linkedName);Equal(socketBridge.Identities(socketScope,t).Single().SourceGearScore!.Value,2800,"score bridge shares duplicate adapter/endpoint scope");
 var copyScore=Aion2DPSPro.Sharing.FightSummary.Format(scoreEngine.Snapshot(MeterSegment.Previous,MeterCategory.Damage));True(copyScore.Contains("GS 2800 / CP 121.6K"),"summary includes distinct GS/CP");
