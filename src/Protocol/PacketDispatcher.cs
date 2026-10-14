@@ -17,6 +17,7 @@ public sealed class PacketDispatcher
     private readonly HashSet<long> confirmedSummons = new();
     private readonly Dictionary<long, UnresolvedSummonObservation> unresolvedSummonCandidates = new();
     private readonly Queue<RecentSummonSpawn> recentSummonSpawns = new();
+    private readonly Dictionary<string,int> featureCandidateSamples = new();
     public event Action<DecoderDiagnostic>? Diagnostic;
     public event Action<string>? ValidationRecord;
     public PacketDispatcher(ProtocolProfile profile) => this.profile = profile;
@@ -27,6 +28,16 @@ public sealed class PacketDispatcher
         if (!ProtocolUtils.TryReadVarUInt(frame, ref p, out _, out _)) yield break;
         if (p+1>=frame.Length) yield break;
         byte a=frame[p], b=frame[p+1];
+        // Public Global research identifies these packet families. Collect bounded
+        // evidence for comparison with the current client; do not interpret it as
+        // validated GS/CP or a confirmed boss spawn.
+        var feature=a==0x02 && b==0x97?"partyRoster":a==0x01 && b==0x91?"fieldBossList":null;
+        if(feature!=null && ValidationRecord!=null && featureCandidateSamples.GetValueOrDefault(feature)<12)
+        {
+            featureCandidateSamples[feature]=featureCandidateSamples.GetValueOrDefault(feature)+1;
+            var raw=frame.Length<=32768?Convert.ToHexString(frame):"omitted-oversize";
+            ValidationRecord.Invoke($"{utc:O}|tag=featureCandidate|feature={feature}|opcode={a:X2}{b:X2}|bytes={frame.Length}|status=unverified|raw={raw}");
+        }
                 if (b == 0x97 && (a == 0x01 || a == 0x02 || a == 0x0B))
         {
             foreach (var partyEvt in TryObservePartyIdentities(frame, p + 2, utc, a))

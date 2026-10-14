@@ -58,6 +58,16 @@ byte[] Frame(string bodyHex)
  do {byte part=(byte)(v&127);v>>=7;length.Add((byte)(part|(v>0?128:0)));}while(v>0);
  return length.Concat(body).ToArray();
 }
+// Research candidates are recorded as evidence only, never as score/spawn facts.
+var researchDispatcher=new PacketDispatcher(profile);
+var researchRecords=new List<string>();researchDispatcher.ValidationRecord+=researchRecords.Add;
+for(int sample=0;sample<20;sample++)
+{
+ True(!researchDispatcher.Dispatch(Frame("0191"+new string('0',32)),t).Any(),"boss-list candidate creates no combat events");
+ True(!researchDispatcher.Dispatch(Frame("0297"+new string('0',32)),t).Any(),"roster candidate creates no combat events");
+}
+Equal(researchRecords.Count(x=>x.Contains("tag=featureCandidate")),24,"research logging capped at 12 samples per family");
+True(researchRecords.Where(x=>x.Contains("tag=featureCandidate")).All(x=>x.Contains("status=unverified")&&x.Contains("raw=")),"research samples preserve evidence and uncertainty");
 var identityProfile=profile with {Tags=new Dictionary<string,PacketTag>(profile.Tags) {{"selfInfo",new(51,54)},{"otherInfo",new(69,54)}}};
 var identityDecoder=new CurrentClientDecoder(identityProfile);
 var self=identityDecoder.Decode(Frame("3336FD235F81C1283708546573744865726F000000"),t).Single(x=>x.Kind==CombatKind.PlayerName);
