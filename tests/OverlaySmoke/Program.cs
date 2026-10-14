@@ -105,7 +105,7 @@ internal static class Program
   var rows=(ListView)window.FindName("Rows");
   DataTemplate? previousTemplate=null;
   foreach(var style in new[]{"Modern Glass","Details Inspired","Kagerou Inspired","Classic Dashboard"}) {
-   Invoke("ApplyOverlayStyle",style);window.Render(previewEngine.Snapshot());window.UpdateLayout();
+   Invoke("ApplyOverlayStyle",style);Invoke("ApplyTheme",style=="Modern Glass"?"Aion Blue/Red":"Ice Crystal");window.Render(previewEngine.Snapshot());window.UpdateLayout();
    if(rows.ItemTemplate==previousTemplate)throw new Exception("Styles reused the same row design");previousTemplate=rows.ItemTemplate;
    if(rows.Items.Count!=8)throw new Exception("Style lost party rows");
    rows.SelectedIndex=0;
