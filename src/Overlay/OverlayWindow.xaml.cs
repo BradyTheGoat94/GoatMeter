@@ -446,7 +446,10 @@ public partial class OverlayWindow : Window
     [DllImport("user32.dll")] static extern int GetWindowLong(IntPtr hWnd,int nIndex);
     [DllImport("user32.dll")] static extern int SetWindowLong(IntPtr hWnd,int nIndex,int dwNewLong);
     static string F(double v)=>v>=1_000_000?$"{v/1_000_000:0.00}M":v>=1_000?$"{v/1_000:0.0}K":$"{v:0}";
-    sealed record HistoryChoice(string Label,string? Path);
+    sealed record HistoryChoice(string Label,string? Path)
+    {
+        public override string ToString()=>Label;
+    }
     sealed record Row(int Rank,string Name,string ClassName,string Dps,string Damage,string Share,Brush Brush,double BarWidth,double Relative,PlayerStats Stats);
 }
 
