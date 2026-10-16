@@ -1,0 +1,26 @@
+name: GS CP test branch validation
+on:
+  push:
+    branches: [testing/score-identity-oct16]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+      - name: Combat and metadata regression checks
+        run: dotnet run --project tests/Regression.csproj -c Release
+      - name: Compile Windows application without opening windows
+        run: dotnet build src/Aion2DPSPro.csproj -c Release
+      - name: Publish isolated test binary
+        run: dotnet publish src/Aion2DPSPro.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -o test-publish
+      - uses: actions/upload-artifact@v4
+        with:
+          name: GoatMeter-GS-CP-test-only
+          path: test-publish/
+          if-no-files-found: error

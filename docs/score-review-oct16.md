@@ -5,7 +5,7 @@ Scope: testing/score-identity-oct16, based on public main 2e4a269. No release/pu
 ## Fixed
 
 - The live capture filter compared adapter-prefixed scopes literally, rejecting duplicate-Npcap-adapter identity observations before the existing bridge could normalize them. Use the same normalized endpoint identity for filtering, retaining isolation between different game hosts/local addresses and retaining primary-flow-only damage dispatch.
-- Accept the consistent 1001–9999 server-id range in party identities, replacing the obsolete 2021 ceiling; retain server identity through stable/session links and invalidate conflicting stable-id server shortcuts. A private October 14 capture has 95 roster frames, 93 accepted by the unchanged score parser, including server 2102. Private bytes/names are not committed.
+- Accept the consistent 1001–9999 server-id range in party identities, replacing the obsolete 2021 ceiling; retain server identity through stable/session links and invalidate conflicting stable-id server shortcuts. A private October 14 capture has 95 roster frames, 93 accepted by the unchanged score parser, including server 2102. The two rejected samples contain only eight payload bytes and cannot form full score records; do not relax the parser to accept them. Private bytes/names are not committed.
 - Persist confirmed character/server identity even before a GS/CP value exists. Previously both were gated by a score timestamp, preventing subsequent exact metadata matching.
 - Apply late CharacterStats updates only to previously confirmed matching character/server/name identities. Refuse future/expired observations. No new players, fight lifecycle activity or damage; completed fight snapshots remain frozen.
 - Preserve stable identity enrichment when experimental score parsing is disabled.
@@ -16,7 +16,7 @@ Scope: testing/score-identity-oct16, based on public main 2e4a269. No release/pu
 
 Roster parsing remains experimental and conservative. No parser offsets or plausible-value assumptions were relaxed. Existing research/diagnostic observations are not proof that the decoded GS or CP equals the current in-game value. Need simultaneous in-game GS/CP comparison for exact server/character, both before/after party changes, before calling this live-validated. No raw diagnostic captures are included in this branch.
 
-Validation: compiled cross-platform regression sources directly with the official .NET 8 SDK Roslyn compiler because dotnet CLI Process.GetStat is unavailable in this execution environment. 247 assertions passed, including late exact score refresh, wrong-name/server/future rejection, identity without scores, duplicate-adapter scope matching, no combat extension, and frozen completed scores. WPF Windows build and visual checks remain unrun; no desktop test windows launched.
+Validation: compiled cross-platform regression sources directly with the official .NET 8 SDK Roslyn compiler because dotnet CLI Process.GetStat is unavailable in this execution environment. 247 assertions passed, including late exact score refresh, wrong-name/server/future rejection, identity without scores, duplicate-adapter scope matching, no combat extension, and frozen completed scores. A branch-only Windows compile/publish workflow checks the application without running OverlaySmoke or opening UI. Its result is tracked separately; live visual checks remain unrun. No desktop test windows launched.
 
 ## Recommended next work, in priority order
 
