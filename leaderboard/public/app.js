@@ -26,8 +26,7 @@ async function rankings() {
     nextOffset = data.nextOffset; $('rows').replaceChildren();
     data.rows.forEach((entry, index) => {
       const row = $('rows').insertRow(); cell(row, String(offset + index + 1).padStart(2, '0'));
-      const player = cell(row, entry.name), label = document.createElement('small');
-      label.textContent = entry.className; player.append(label);
+      playerCell(row, entry);
       const link = document.createElement('a'); link.href = '#fight=' + entry.id; link.textContent = entry.boss + ' ↗';
       cell(row, '').append(link);
       cell(row, Math.floor(entry.durationSeconds / 60) + ':' + String(Math.floor(entry.durationSeconds % 60)).padStart(2, '0'));
@@ -138,14 +137,15 @@ async function detail() {
   const section = $('detail'); section.hidden = false; section.replaceChildren();
   try {
     const fight = await api('/api/fights/' + encodeURIComponent(params.get('fight')), {headers: params.has('key') ? {Authorization: 'Bearer ' + params.get('key')} : {}});
-    const heading = document.createElement('h2'); heading.textContent = fight.boss; section.append(heading);
-    const context = document.createElement('p'); context.textContent = `UNVERIFIED · ${fight.visibility} · ${fight.durationSeconds.toFixed(1)} seconds · ${new Date(fight.startedUtc).toLocaleString()} · Captured damage across all targets; not confirmed boss-only damage or a confirmed kill.`; section.append(context);
+    const title = document.createElement('div'), heading = document.createElement('h2'), badge = document.createElement('span'); title.className = 'detail-title'; heading.textContent = fight.boss; badge.className = 'badge'; badge.textContent = 'UNVERIFIED CAPTURE'; title.append(heading,badge); section.append(title);
+    const context = document.createElement('p'); context.className = 'detail-context'; context.textContent = `UNVERIFIED · ${fight.visibility} · ${fight.durationSeconds.toFixed(1)} seconds · ${new Date(fight.startedUtc).toLocaleString()} · Captured damage across all targets; not confirmed boss-only damage or a confirmed kill.`; section.append(context);
+    const summary = document.createElement('div'); summary.className = 'detail-summary'; const capturedDamage = fight.players.reduce((sum,p) => sum + p.damage,0); detailStat(summary,'CAPTURED DAMAGE',format(capturedDamage)); detailStat(summary,'GROUP ENCOUNTER DPS',format(capturedDamage / fight.durationSeconds)); detailStat(summary,'CAPTURED PLAYERS',String(fight.players.length)); section.append(summary);
     const table = document.createElement('table'), head = table.createTHead().insertRow();
     for (const text of ['PLAYER', 'CLASS', 'DAMAGE', 'DPS', 'SHARE']) { const th = document.createElement('th'); th.textContent = text; head.append(th); }
     const body = table.createTBody(), total = fight.players.reduce((sum, p) => sum + p.damage, 0);
     for (const player of [...fight.players].sort((a, b) => b.damage - a.damage)) {
-      const row = body.insertRow(); cell(row, player.name); cell(row, player.className); cell(row, format(player.damage));
-      cell(row, format(player.damage / fight.durationSeconds), 'score'); cell(row, (100 * player.damage / total).toFixed(1) + '%');
+      const row = body.insertRow(); playerCell(row, player); cell(row, player.className); cell(row, format(player.damage));
+      cell(row, format(player.damage / fight.durationSeconds), 'score'); const share = cell(row, (100 * player.damage / total).toFixed(1) + '%'); const progress = document.createElement('progress'); progress.max = 100; progress.value = 100 * player.damage / total; progress.setAttribute('aria-label',player.name + ' captured damage share'); share.append(progress);
     }
     const wrap = document.createElement('div'); wrap.className = 'table-scroll'; wrap.append(table); section.append(wrap); section.scrollIntoView({behavior: 'smooth'});
   } catch (error) { section.textContent = error.message; }
@@ -154,3 +154,15 @@ window.addEventListener('hashchange', detail);
 $('manage-visibility').onchange = () => { deleteArmed = false; $('delete').textContent = 'Delete this upload'; };
 api('/api/health').then(health => { if (!health.uploadsEnabled) { $('upload-form').querySelector('button').disabled = true; $('upload-status').textContent = 'Uploads are disabled on this test environment.'; } }).catch(() => {});
 bosses().catch(() => {}); rankings(); detail();
+const classCodes = {Gladiator:'GL',Templar:'TE',Assassin:'AS',Ranger:'RA',Sorcerer:'SO',Spiritmaster:'SP',Cleric:'CL',Chanter:'CH',Unknown:'?'};
+function playerCell(row, player) {
+  const td = cell(row, ''), mark = document.createElement('span'), info = document.createElement('span'), label = document.createElement('small');
+  const className = Object.hasOwn(classCodes, player.className) ? player.className : 'Unknown';
+  mark.className = 'class-mark class-' + className.toLowerCase(); mark.textContent = classCodes[className]; mark.setAttribute('aria-hidden','true');
+  info.className = 'player-info'; info.textContent = player.name; label.textContent = className; info.append(label); td.append(mark,info);
+  return td;
+}
+function detailStat(container, title, value) {
+  const card = document.createElement('div'), label = document.createElement('small'), number = document.createElement('strong');
+  card.className = 'detail-stat'; label.textContent = title; number.textContent = value; card.append(label,number); container.append(card);
+}
