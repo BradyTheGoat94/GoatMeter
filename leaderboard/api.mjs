@@ -16,14 +16,14 @@ export function createStore(db){
   insert:(r,capacity)=>run('INSERT INTO fights(id,created,visibility,verification,owner_hash,share_hash,payload) SELECT ?,?,?,?,?,?,? WHERE (SELECT COUNT(*) FROM fights) < ?',...r,capacity),
   remove:id=>run('DELETE FROM fights WHERE id=?',id),
   visibility:(id,visibility,payload)=>run('UPDATE fights SET visibility=?,payload=? WHERE id=?',visibility,JSON.stringify(payload),id),
-  catalog:()=>all("SELECT DISTINCT json_extract(payload,'$.boss') AS boss FROM fights WHERE visibility='public' ORDER BY boss"),
-  leaderboard:(boss,cls,limit,offset)=>all(`SELECT f.id,json_extract(f.payload,'$.boss') AS boss,
-   json_extract(f.payload,'$.startedUtc') AS startedUtc,json_extract(f.payload,'$.durationSeconds') AS durationSeconds,
+  catalog:()=>all("SELECT DISTINCT json_extract(t.value,'$.name') AS boss FROM fights f,json_each(f.payload,'$.targets') t WHERE f.visibility='public' AND json_extract(f.payload,'$.schemaVersion')=2 AND json_extract(t.value,'$.id')=json_extract(f.payload,'$.rankingTargetId') ORDER BY boss"),
+  leaderboard:(boss,cls,limit,offset)=>all(`SELECT f.id,json_extract(t.value,'$.name') AS boss,
+   json_extract(f.payload,'$.startedUtc') AS startedUtc,json_extract(t.value,'$.durationSeconds') AS durationSeconds,
    json_extract(p.value,'$.name') AS name,json_extract(p.value,'$.serverId') AS serverId,json_extract(p.value,'$.className') AS className,
-   json_extract(p.value,'$.damage') AS damage,
-   CAST(json_extract(p.value,'$.damage') AS REAL)/json_extract(f.payload,'$.durationSeconds') AS dps,f.verification
-   FROM fights f,json_each(f.payload,'$.players') p WHERE f.visibility='public' AND f.verification='unverified'
-   AND (?='' OR json_extract(f.payload,'$.boss')=?) AND (?='' OR json_extract(p.value,'$.className')=?)
+   json_extract(t.value,'$.damageByPlayer[' || p.key || ']') AS damage,
+   CAST(json_extract(t.value,'$.damageByPlayer[' || p.key || ']') AS REAL)/json_extract(t.value,'$.durationSeconds') AS dps,f.verification
+   FROM fights f,json_each(f.payload,'$.players') p,json_each(f.payload,'$.targets') t WHERE f.visibility='public' AND f.verification='unverified' AND json_extract(f.payload,'$.schemaVersion')=2 AND json_extract(t.value,'$.id')=json_extract(f.payload,'$.rankingTargetId') AND json_extract(t.value,'$.damageByPlayer[' || p.key || ']')>0
+   AND (?='' OR json_extract(t.value,'$.name')=?) AND (?='' OR json_extract(p.value,'$.className')=?)
    ORDER BY dps DESC,f.created DESC,f.id,p.key LIMIT ? OFFSET ?`,boss,boss,cls,cls,limit,offset)
  };
 }
@@ -39,7 +39,7 @@ export function createApi(store,{limitUpload=async()=>true,capacity=10000,enable
  return async function handle(request){
   const url=new URL(request.url);if(!url.pathname.startsWith('/api/'))return null;
   try{
-   if(url.pathname==='/api/health'&&request.method==='GET')return json(200,{service:'GoatMeter fight archive',schemaVersion:1,verificationAvailable:false,uploadsEnabled:enabled});
+   if(url.pathname==='/api/health'&&request.method==='GET')return json(200,{service:'GoatMeter fight archive',schemaVersion:2,verificationAvailable:false,uploadsEnabled:enabled});
    const auth=(request.headers.get('Authorization')||'').replace(/^Bearer /,'');const origin=request.headers.get('Origin');
    if(!['GET','HEAD'].includes(request.method)&&origin&&origin!==url.origin)return json(403,{error:'Cross-origin mutation rejected'});
    if(request.method==='POST'&&url.pathname==='/api/fights'){

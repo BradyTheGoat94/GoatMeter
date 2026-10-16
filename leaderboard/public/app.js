@@ -67,7 +67,7 @@ async function readFight() {
   const file = $('file').files[0];
   if (!file || file.size > 65536) throw Error('Choose a JSON file under 64 KiB.');
   const fight = JSON.parse(await file.text());
-  if (!fight || fight.schemaVersion !== 1 || !Array.isArray(fight.players)) throw Error('Choose a GoatMeter v1 fight export. Raw validation logs are private diagnostics and cannot be uploaded here.');
+  if (!fight || fight.schemaVersion !== 2 || !Array.isArray(fight.players) || !Array.isArray(fight.targets)) throw Error('Choose a GoatMeter v2 export with per-target damage. Re-export older fights from the updated desktop build. Raw validation logs cannot be uploaded here.');
   return fight;
 }
 $('file').onchange = async () => {
@@ -137,18 +137,34 @@ async function detail() {
   const section = $('detail'); section.hidden = false; section.replaceChildren();
   try {
     const fight = await api('/api/fights/' + encodeURIComponent(params.get('fight')), {headers: params.has('key') ? {Authorization: 'Bearer ' + params.get('key')} : {}});
-    const title = document.createElement('div'), heading = document.createElement('h2'), badge = document.createElement('span'); title.className = 'detail-title'; heading.textContent = fight.boss; badge.className = 'badge'; badge.textContent = 'UNVERIFIED CAPTURE'; title.append(heading,badge); section.append(title);
-    const context = document.createElement('p'); context.className = 'detail-context'; context.textContent = `UNVERIFIED · ${fight.visibility} · ${fight.durationSeconds.toFixed(1)} seconds · ${new Date(fight.startedUtc).toLocaleString()} · Captured damage across all targets; not confirmed boss-only damage or a confirmed kill.`; section.append(context);
-    const summary = document.createElement('div'); summary.className = 'detail-summary'; const capturedDamage = fight.players.reduce((sum,p) => sum + p.damage,0); detailStat(summary,'CAPTURED DAMAGE',format(capturedDamage)); detailStat(summary,'GROUP ENCOUNTER DPS',format(capturedDamage / fight.durationSeconds)); detailStat(summary,'CAPTURED PLAYERS',String(fight.players.length)); section.append(summary);
+    const title = document.createElement('div'), heading = document.createElement('h2'), badge = document.createElement('span');
+    title.className = 'detail-title'; heading.textContent = fight.boss; badge.className = 'badge'; badge.textContent = 'UNVERIFIED CAPTURE'; title.append(heading,badge); section.append(title);
+    const context = document.createElement('p'); context.className = 'detail-context';
+    context.textContent = `${fight.visibility} · ${fight.durationSeconds.toFixed(1)} seconds · ${new Date(fight.startedUtc).toLocaleString()} · A selected target is not a verified boss identity or confirmed kill. DPS uses the selected target first-to-last captured player damage window.`; section.append(context);
+    const pickerLabel = document.createElement('label'), picker = document.createElement('select'); pickerLabel.textContent = 'Inspect captured damage to';
+    picker.add(new Option('All targets — archive totals',''));
+    for (const target of fight.targets || []) picker.add(new Option(target.name,target.id));
+    picker.value = fight.rankingTargetId || ''; pickerLabel.append(picker); section.append(pickerLabel);
+    const metricNote = document.createElement('p'); metricNote.className = 'subtle'; section.append(metricNote);
+    const summary = document.createElement('div'); summary.className = 'detail-summary'; section.append(summary);
     const table = document.createElement('table'), head = table.createTHead().insertRow();
     for (const text of ['PLAYER', 'CLASS', 'DAMAGE', 'DPS', 'SHARE']) { const th = document.createElement('th'); th.textContent = text; head.append(th); }
-    const body = table.createTBody(), total = fight.players.reduce((sum, p) => sum + p.damage, 0);
-    for (const player of [...fight.players].sort((a, b) => b.damage - a.damage)) {
-      const row = body.insertRow(); playerCell(row, player); cell(row, player.className); cell(row, format(player.damage));
-      cell(row, format(player.damage / fight.durationSeconds), 'score'); const share = cell(row, (100 * player.damage / total).toFixed(1) + '%'); const progress = document.createElement('progress'); progress.max = 100; progress.value = 100 * player.damage / total; progress.setAttribute('aria-label',player.name + ' captured damage share'); share.append(progress);
+    const body = table.createTBody(), wrap = document.createElement('div'); wrap.className = 'table-scroll'; wrap.append(table); section.append(wrap);
+    function renderTarget() {
+      const target = (fight.targets || []).find(t => t.id === picker.value);
+      const players = fight.players.map((p,i)=>({...p,damage:target ? target.damageByPlayer[i] : p.damage}));
+      const total = players.reduce((sum,p)=>sum+p.damage,0), duration = target ? target.durationSeconds : fight.durationSeconds;
+      metricNote.textContent = target ? `Only damage to ${target.name} · ${target.durationSeconds.toFixed(1)}s observed window. ${target.id === fight.rankingTargetId ? 'This is the target selected for the community leaderboard.' : 'This view does not change the upload’s ranking target.'}` : 'All-target totals are for analysis and do not enter boss rankings. Older v1 logs are excluded from boss rankings.';
+      summary.replaceChildren(); detailStat(summary,target ? 'SELECTED TARGET DAMAGE' : 'ALL-TARGET DAMAGE',format(total)); detailStat(summary,target ? 'TARGET DPS' : 'ENCOUNTER DPS',format(total/duration)); detailStat(summary,'CAPTURED PLAYERS',String(players.length));
+      body.replaceChildren();
+      for (const player of players.sort((a,b)=>b.damage-a.damage)) {
+        const row = body.insertRow(); playerCell(row,player); cell(row,player.className); cell(row,format(player.damage)); cell(row,format(player.damage/duration),'score');
+        const value = total > 0 ? 100*player.damage/total : 0, share = cell(row,value.toFixed(1)+'%'), progress = document.createElement('progress');
+        progress.max=100; progress.value=value; progress.setAttribute('aria-label',player.name+' captured damage share'); share.append(progress);
+      }
     }
-    const wrap = document.createElement('div'); wrap.className = 'table-scroll'; wrap.append(table); section.append(wrap); section.scrollIntoView({behavior: 'smooth'});
-  } catch (error) { section.textContent = error.message; }
+    picker.onchange=renderTarget; renderTarget(); section.scrollIntoView({behavior:'smooth'});
+  } catch (error) { section.textContent=error.message; }
 }
 window.addEventListener('hashchange', detail);
 $('manage-visibility').onchange = () => { deleteArmed = false; $('delete').textContent = 'Delete this upload'; };
@@ -166,3 +182,8 @@ function detailStat(container, title, value) {
   const card = document.createElement('div'), label = document.createElement('small'), number = document.createElement('strong');
   card.className = 'detail-stat'; label.textContent = title; number.textContent = value; card.append(label,number); container.append(card);
 }
+
+$('ranking-target').onchange = async () => {
+  try { const fight=await readFight(), target=fight.targets.find(t=>t.id===$('ranking-target').value); if(target)$('boss-label').value=target.name; }
+  catch(error){$('file-preview').textContent=error.message;}
+};

@@ -27,18 +27,18 @@ npm run build
 
 1. Finish an encounter and open a player's combat report for that saved fight.
 2. Select **Export fight**. Current combat, simulated previews, and Overall are rejected.
-3. Save the JSON. It contains character names, known server IDs, class, captured damage,
-   start time and duration. Raw events, skills, network packets, character IDs,
-   targets, GS and CP are excluded by an explicit allowlist.
-4. Choose that JSON in the archive, annotate the encounter name, and select privacy.
+3. Save the JSON. It contains character names, known server IDs, class, per-target captured damage,
+   start time and observed durations. Raw events, skills, network packets, stable character IDs,
+   GS and CP are excluded by an explicit allowlist.
+4. Choose that JSON in the archive, select the recorded boss target, annotate the fight name, and select privacy.
 5. Save the returned access receipt. It allows access, visibility changes and deletion.
 
 The 124 MB validation `.log` supplied for protocol analysis is **not** an upload
 format. It remains private. `example-fight.json` is explicitly labeled sample data.
 Do not represent sample values as measured gameplay.
 
-The metric is captured **all-target encounter damage / encounter duration**.
-It is not boss-only DPS, a kill confirmation, effective damage, or an independently
+The community ranking metric is captured **selected-target damage / observed target duration**.
+Boss selection is uploader supplied, not independently verified. This is not a kill confirmation, effective damage, or an independently
 validated party total. The encounter label is user supplied. Scores are comparable
 only within the limits of their capture completeness and manually supplied labels.
 
@@ -47,7 +47,7 @@ only within the limits of their capture completeness and manually supplied label
 | Route | Behavior |
 | --- | --- |
 | `GET /api/health` | Schema, upload availability and verification availability. |
-| `POST /api/fights` | Strict JSON upload, 64 KiB maximum, 1–24 players, 1–7200 seconds. |
+| `POST /api/fights` | Strict JSON upload, 64 KiB maximum, 1–24 players, 1–64 targets, 1–7200 seconds. |
 | `GET /api/catalog` | Boss labels from public fights only. |
 | `GET /api/leaderboard?mode=community&boss=…&class=…&limit=50&offset=0` | Public unverified rows, server-computed DPS, bounded pagination. |
 | `GET /api/leaderboard?mode=verified` | Always empty in this MVP. |
@@ -122,7 +122,31 @@ Workers/D1 behavior was checked against Cloudflare's primary documentation:
 ## Known MVP limits
 
 No identity-verified characters, percentiles, difficulty/patch partitions,
-boss-only damage, signed capture provenance, guild authentication, or automatic
+verified boss classification, signed capture provenance, guild authentication, or automatic
 desktop background uploader. Upload receipts support request retry deduplication;
 they cannot prove that differently exported files represent the same real fight.
 The trusted leaderboard stays closed until that broader verification design is ready.
+
+## Current v2 boss-ranking behavior
+
+Desktop exports now retain character names, known server IDs, per-target damage,
+and per-target observed duration. They deliberately leave rankingTargetId null.
+Choose a recorded boss in the upload page before submitting. The API requires a
+real target reference and rejects target totals exceeding each player's encounter
+damage. Target IDs in exports are opaque labels, not raw game entity IDs.
+
+Public community rankings use only the selected target's damage divided by its
+first-to-last captured player-damage window (one-second minimum). Timings are
+aggregated from accepted events and do not depend on the 2,000-event recent feed.
+Other-target damage is excluded. A selected target is still not a verified boss
+identity or kill, and uploads remain unverified. Legacy v1 logs remain readable
+but cannot enter boss rankings. Old desktop history without target timing needs
+new captures before it can supply a v2 ranking.
+
+The existing production site was located in prior Sites deployment history:
+project appgprj_6ac310a815bc8191b9bcff40c7700de8. Publishing must use that existing
+project's current source and bindings, preserving its homepage and domain.
+Sites management/publishing tools are unavailable in this chat at this checkpoint.
+The standalone Cloudflare adapter is a tested portability option, not the confirmed
+production deployment route. Do not create a replacement site or point the domain
+to a new Worker merely to bypass missing Sites access.

@@ -15,14 +15,20 @@ public static class FightLogExport
         if (players.Select(p=>(p.Name.Trim(),Server:p.ServerId is >=1001 and <=9999?p.ServerId:0)).Distinct().Count()!=players.Count)
             throw new InvalidOperationException("This encounter contains repeated character names on the same or unknown server. Export a single completed fight.");
         var known = new HashSet<string> { "Gladiator", "Templar", "Assassin", "Ranger", "Sorcerer", "Spiritmaster", "Cleric", "Chanter" };
+        var targets=s.Targets.Where(t=>!players.Any(p=>p.ActorId==t.TargetId)).GroupBy(t=>t.TargetId).Take(65)
+            .Select((g,i)=>new {id=$"target-{i+1:00}",name=g.First().Name,durationSeconds=s.TargetSeconds.GetValueOrDefault(g.Key),damageByPlayer=players.Select(p=>g.Where(t=>t.ActorId==p.ActorId).Sum(t=>t.Damage)).ToArray()}).ToArray();
+        if(targets.Length is <1 or >64 || targets.Any(t=>!double.IsFinite(t.durationSeconds)||t.durationSeconds<1||t.durationSeconds>s.FightSeconds||string.IsNullOrWhiteSpace(t.name)||t.name.Length>80||t.name.Any(char.IsControl)))
+            throw new InvalidOperationException("Export requires named per-target damage (1–64 targets). Per-target timing is required; older history may need a new capture.");
         return JsonSerializer.Serialize(new {
-            schemaVersion = 1,
-            // Target names can contain player identities. Boss annotation is manual in this MVP.
+            schemaVersion = 2,
+            // The uploader explicitly selects one of the recorded targets for ranking.
             boss = "Unclassified encounter",
             startedUtc = s.StartedUtc.Value.ToUniversalTime().ToString("O"),
             durationSeconds = s.FightSeconds,
             visibility = "private",
-            players = players.Select(p=>new {name=p.Name.Trim(),serverId=p.ServerId is >=1001 and <=9999?(int?)p.ServerId:null,className=known.Contains(p.ClassName)?p.ClassName:"Unknown",damage=p.Damage})
+            players = players.Select(p=>new {name=p.Name.Trim(),serverId=p.ServerId is >=1001 and <=9999?(int?)p.ServerId:null,className=known.Contains(p.ClassName)?p.ClassName:"Unknown",damage=p.Damage}),
+            targets,
+            rankingTargetId=(string?)null
         },new JsonSerializerOptions {WriteIndented=true});
     }
 }

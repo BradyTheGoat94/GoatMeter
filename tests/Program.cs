@@ -178,12 +178,29 @@ var exportEngine=new CombatEngine(()=>t.AddSeconds(10));
 exportEngine.Apply(new(t,CombatKind.PlayerName,909,"SecretPlayerName",SourceClass:"Templar",SourceServerId:1102,SourceCharacterId:123456,SourceGearScore:2900,SourceCombatPower:120000,StatsObservedUtc:t));
 exportEngine.Apply(new(t,CombatKind.Damage,909,"SecretPlayerName",101,"PrivateTargetName","SecretSkill",500));
 exportEngine.Apply(new(t.AddSeconds(5),CombatKind.Damage,909,"SecretPlayerName",101,"PrivateTargetName","SecretSkill",500));
+exportEngine.Apply(new(t.AddSeconds(6),CombatKind.Damage,909,"SecretPlayerName",102,"Test add","SecretSkill",750));
 bool ExportRejected(MeterSnapshot snapshot){try{Aion2DPSPro.Sharing.FightLogExport.Serialize(snapshot);return false;}catch(InvalidOperationException){return true;}}
 True(ExportRejected(exportEngine.Snapshot()),"in-progress export rejected");exportEngine.ResetFight();var exported=exportEngine.Snapshot(MeterSegment.Previous,MeterCategory.Damage,true);
 var uploadJson=Aion2DPSPro.Sharing.FightLogExport.Serialize(exported);
-True(uploadJson.Contains("SecretPlayerName")&&!uploadJson.Contains("PrivateTargetName")&&!uploadJson.Contains("SecretSkill")&&!uploadJson.Contains("123456"),"export keeps character names but strips target, stable IDs and raw events");
+True(uploadJson.Contains("SecretPlayerName")&&uploadJson.Contains("PrivateTargetName")&&!uploadJson.Contains("SecretSkill")&&!uploadJson.Contains("123456"),"export keeps names and targets but strips stable IDs and raw events");
 using(var namedDoc=System.Text.Json.JsonDocument.Parse(uploadJson)){Equal(namedDoc.RootElement.GetProperty("players")[0].GetProperty("serverId").GetInt32(),1102,"export preserves known server");}
-using(var doc=System.Text.Json.JsonDocument.Parse(uploadJson)){Equal(doc.RootElement.GetProperty("players")[0].GetProperty("damage").GetInt64(),1000L,"export preserves damage");True(doc.RootElement.GetProperty("visibility").GetString()=="private","export private default");}
+using(var doc=System.Text.Json.JsonDocument.Parse(uploadJson)){Equal(doc.RootElement.GetProperty("players")[0].GetProperty("damage").GetInt64(),1750L,"export preserves damage");True(doc.RootElement.GetProperty("visibility").GetString()=="private","export private default");}
 True(ExportRejected(exported with {PreviewMode=true}),"sample export rejected");True(ExportRejected(exported with {EncounterId=Guid.Empty}),"overall export rejected");
 True(ExportRejected(exported with {FightSeconds=double.NaN}),"non-finite duration rejected");
 Console.WriteLine($"PASS: {checks} regression assertions including export privacy");
+
+using(var targetDoc=System.Text.Json.JsonDocument.Parse(uploadJson)){
+ var root=targetDoc.RootElement;Equal(root.GetProperty("schemaVersion").GetInt32(),2,"per-target export version");
+ Equal(root.GetProperty("targets").GetArrayLength(),2,"boss and adds exported separately");
+ Equal(root.GetProperty("targets")[0].GetProperty("damageByPlayer")[0].GetInt64(),1000,"boss damage excludes adds");
+ Equal(root.GetProperty("targets")[1].GetProperty("damageByPlayer")[0].GetInt64(),750,"add damage kept separately");
+ True(root.GetProperty("rankingTargetId").ValueKind==System.Text.Json.JsonValueKind.Null,"boss selection explicit before upload");
+}
+Console.WriteLine($"PASS: {checks} total regression assertions including target export");
+
+// Target windows are independent of the bounded recent-event feed.
+var windowEngine=new CombatEngine(()=>t.AddSeconds(210.4));windowEngine.Apply(new(t,CombatKind.PlayerName,1,"TimingTester",SourceClass:"Templar"));
+for(int i=0;i<2105;i++)windowEngine.Apply(new(t.AddSeconds(i/10.0),CombatKind.Damage,1,"TimingTester",55,"Boss","Strike",1));
+var timed=windowEngine.Snapshot();Equal(timed.TargetSeconds[55],210.4,"target duration retains first event beyond 2000-event feed");Equal(timed.RecentEvents.Count,2000,"recent feed remains bounded");
+using(var doc=System.Text.Json.JsonDocument.Parse(uploadJson)){Equal(doc.RootElement.GetProperty("targets")[0].GetProperty("durationSeconds").GetDouble(),5,"boss uses own damage window");Equal(doc.RootElement.GetProperty("targets")[1].GetProperty("durationSeconds").GetDouble(),1,"single-hit target minimum one second");}
+Console.WriteLine($"PASS: {checks} total regression assertions including target timing");

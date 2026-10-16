@@ -162,6 +162,8 @@ public sealed class CombatEngine
                 encounter.TargetDamage.TryGetValue(e.TargetId, out var damage);
                 encounter.TargetDamage[e.TargetId] = damage + e.Amount;
                 encounter.ActorTargets[(source,targetId)]=encounter.ActorTargets.GetValueOrDefault((source,targetId))+e.Amount;
+                var windowKey=(source,targetId);
+                encounter.ActorTargetWindows[windowKey]=encounter.ActorTargetWindows.TryGetValue(windowKey,out var window)?(window.First,t):(t,t);
                 if (encounter.TargetId != e.TargetId) { encounter.TargetId=e.TargetId;encounter.TargetKey=targetId; encounter.Target=null; }
                 var old=encounter.Target;
                 encounter.Target = new TargetStats(e.Target, e.MaxHp>0?e.CurrentHp:old?.CurrentHp??0, e.MaxHp>0?e.MaxHp:old?.MaxHp??0,
@@ -277,7 +279,7 @@ public sealed class CombatEngine
         var targets=e.ActorTargets.Where(x=>e.ConfirmedPlayers.Contains(x.Key.Actor)).Select(x=>new ActorTargetStats(x.Key.Actor,x.Key.Target,e.Names.GetValueOrDefault(x.Key.Target)?.Name??$"Target {x.Key.Target}",x.Value,
             x.Value*100.0/Math.Max(1,e.Metrics.Where(y=>y.Key.Id==x.Key.Actor&&y.Key.Category==MeterCategory.Damage).Sum(y=>y.Value.Amount)))).ToArray();
         return new(e.Start!=null&&!e.Completed,PreviewMode,seconds,damage,damage/divisor,overallDamage,overallDamage/Math.Max(1,overallSeconds),e.Target,rows,skills,buffs,e.Events.ToArray())
-        { SelectedTargetId=e.TargetKey,Targets=targets, Categories=includeCategories?Enum.GetValues<MeterCategory>().ToDictionary(c=>c,c=> {var snapshot=Build(e,c,isOverall,false);return new CategorySnapshot(snapshot.Players,snapshot.Skills,snapshot.MetricLabel);}):new Dictionary<MeterCategory,CategorySnapshot>(), EncounterId=e.Id,StartedUtc=e.Start,EndReason=e.EndReason,Category=category,MetricLabel=category==MeterCategory.Healing?"HPS":category is MeterCategory.Damage or MeterCategory.DamageTaken?"DPS":category is MeterCategory.Buffs or MeterCategory.Debuffs?"SECONDS":"COUNT",ActiveSeconds=e.ActiveSeconds };
+        { SelectedTargetId=e.TargetKey,Targets=targets, TargetSeconds=e.ActorTargetWindows.Where(w=>e.ConfirmedPlayers.Contains(w.Key.Actor)).GroupBy(w=>w.Key.Target).ToDictionary(g=>g.Key,g=>Math.Max(1,(g.Max(w=>w.Value.Last)-g.Min(w=>w.Value.First)).TotalSeconds)), Categories=includeCategories?Enum.GetValues<MeterCategory>().ToDictionary(c=>c,c=> {var snapshot=Build(e,c,isOverall,false);return new CategorySnapshot(snapshot.Players,snapshot.Skills,snapshot.MetricLabel);}):new Dictionary<MeterCategory,CategorySnapshot>(), EncounterId=e.Id,StartedUtc=e.Start,EndReason=e.EndReason,Category=category,MetricLabel=category==MeterCategory.Healing?"HPS":category is MeterCategory.Damage or MeterCategory.DamageTaken?"DPS":category is MeterCategory.Buffs or MeterCategory.Debuffs?"SECONDS":"COUNT",ActiveSeconds=e.ActiveSeconds };
     }
     private bool FreshStats(Identity identity,Encounter encounter,bool overallView)
     {
@@ -289,6 +291,7 @@ public sealed class CombatEngine
     private sealed class Stat { public long Amount,Hits,Crits,Max; public long Min=long.MaxValue; public DamageFlags Flags; public Dictionary<DamageFlags,long> FlagHits=new(); }
     private sealed class Encounter
     {
+        public Dictionary<(long Actor,long Target),(DateTime First,DateTime Last)> ActorTargetWindows=new();
         public Guid Id=Guid.NewGuid(); public DateTime? Start,Last,LastActivity; public bool Completed,Boss; public string EndReason="";
         public double Duration,CompletedDuration,ActiveSeconds; public long TargetId,TargetKey; public TargetStats? Target;
         public Dictionary<long,DateTime> ActorLast=new(); public Dictionary<long,double> ActorActive=new();

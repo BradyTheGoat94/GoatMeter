@@ -2,7 +2,7 @@ import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {createApp} from './server.mjs';
 import {validate} from './validation.mjs';
-const fight=(visibility='public')=>({schemaVersion:1,boss:'Test encounter',startedUtc:'2026-10-01T00:00:00Z',durationSeconds:60,visibility,players:[{name:'Player 01',className:'Cleric',damage:6000}]});
+const fight=(visibility='public')=>({schemaVersion:2,rankingTargetId:'target-01',targets:[{id:'target-01',name:'Test encounter',durationSeconds:60,damageByPlayer:[6000]}],boss:'Test encounter',startedUtc:'2026-10-01T00:00:00Z',durationSeconds:60,visibility,players:[{name:'Player 01',className:'Cleric',damage:6000}]});
 test('strict validation rejects trust flags, identity fields, bad durations and damage',()=>{
  for(const edit of [x=>x.verified=true,x=>x.players[0].characterId=42,x=>x.durationSeconds=0,x=>x.durationSeconds=Infinity,x=>x.players[0].damage=-1,x=>x.players[0].className='Fake',x=>x.players.push({...x.players[0]}),x=>x.startedUtc='tomorrow']){const x=fight();edit(x);assert.throws(()=>validate(x));}
 });

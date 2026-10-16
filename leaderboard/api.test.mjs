@@ -12,7 +12,7 @@ function database(path=':memory:'){
  const binding={prepare:sql=>({bind:(...values)=>({first:()=>db.prepare(sql).get(...values),all:()=>({results:db.prepare(sql).all(...values)}),run:()=>db.prepare(sql).run(...values)})})};
  return {db,binding};
 }
-const fixture=(visibility='public')=>({schemaVersion:1,boss:'Training target',startedUtc:'2026-10-01T00:00:00Z',durationSeconds:60,visibility,players:[{name:'Player 01',className:'Templar',damage:90000},{name:'Player 02',className:'Sorcerer',damage:180000}]});
+const fixture=(visibility='public')=>({schemaVersion:2,rankingTargetId:'target-01',targets:[{id:'target-01',name:'Training target',durationSeconds:60,damageByPlayer:[90000,180000]}],boss:'Training target',startedUtc:'2026-10-01T00:00:00Z',durationSeconds:60,visibility,players:[{name:'Player 01',className:'Templar',damage:90000},{name:'Player 02',className:'Sorcerer',damage:180000}]});
 const request=(path,method='GET',input,token)=>new Request('https://thegoatmeter.us'+path,{method,headers:{...(input?{'Content-Type':'application/json'}:{}),...(token?{Authorization:'Bearer '+token}:{})},...(input?{body:JSON.stringify(input)}:{})});
 const setup=t=>{const {db,binding}=database();t.after(()=>db.close());return {db,api:createApi(createStore(binding)),binding};};
 
@@ -79,4 +79,18 @@ test('character names and known servers survive upload and ranking without mergi
  const ranking=await (await api(request('/api/leaderboard?mode=community'))).json();assert.equal(ranking.rows.length,2);assert.deepEqual(ranking.rows.map(p=>p.serverId),[1202,1102]);assert.ok(ranking.rows.every(p=>p.name==='TestHero'&&p.verification==='unverified'));
  input.players[1].serverId=1102;assert.equal((await api(request('/api/fights','POST',input))).status,400);
  input.players[1].serverId=42;assert.equal((await api(request('/api/fights','POST',input))).status,400);
+});
+
+
+test('boss rankings exclude add damage and legacy all-target logs',async t=>{
+ const {api}=setup(t),input=fixture();input.targets=[{id:'target-01',name:'Actual boss',durationSeconds:30,damageByPlayer:[30000,120000]},{id:'target-02',name:'Adds',durationSeconds:30,damageByPlayer:[60000,60000]}];
+ const receipt=await (await api(request('/api/fights','POST',input))).json();assert.ok(receipt.id);
+ const ranking=await (await api(request('/api/leaderboard?mode=community&boss=Actual%20boss'))).json();
+ assert.deepEqual(ranking.rows.map(p=>[p.damage,p.dps]),[[120000,4000],[30000,1000]]);
+ assert.deepEqual((await (await api(request('/api/catalog'))).json()).bosses,['Actual boss']);
+ const legacy=fixture();legacy.schemaVersion=1;delete legacy.targets;delete legacy.rankingTargetId;
+ assert.equal((await api(request('/api/fights','POST',legacy))).status,201);
+ assert.equal((await (await api(request('/api/leaderboard?mode=community'))).json()).rows.length,2);
+ input.targets[1].damageByPlayer[0]=90000;assert.equal((await api(request('/api/fights','POST',input))).status,400);
+ input.targets[1].damageByPlayer[0]=60000;input.rankingTargetId='target-99';assert.equal((await api(request('/api/fights','POST',input))).status,400);
 });

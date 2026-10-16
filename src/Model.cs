@@ -28,6 +28,7 @@ public sealed record MeterSnapshot(bool InFight, bool PreviewMode, double FightS
 {
     public IReadOnlyDictionary<MeterCategory,CategorySnapshot> Categories {get;init;} = new Dictionary<MeterCategory,CategorySnapshot>();
     public IReadOnlyList<ActorTargetStats> Targets {get;init;} = Array.Empty<ActorTargetStats>();
+    public IReadOnlyDictionary<long,double> TargetSeconds {get;init;} = new Dictionary<long,double>();
     public long SelectedTargetId { get; init; }
     public Guid EncounterId { get; init; }
     public DateTime? StartedUtc { get; init; }
