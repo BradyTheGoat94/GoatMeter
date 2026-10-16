@@ -29,7 +29,8 @@ public partial class OverlayWindow : Window
     bool showCharacterStats=true;
     EventTimersWindow? eventTimers;
     bool showDetails = true;
-    public OverlayWindow() { InitializeComponent(); CategoryPicker.ItemsSource=new[]{"Damage","Healing","Damage Taken","Deaths","Buffs","Debuffs","Interrupts","Dispels"}; CategoryPicker.SelectedIndex=0; FightHistory.ItemsSource=new[]{new HistoryChoice("Saved fights ▾",null)}; FightHistory.SelectedIndex=0; ApplyTheme(currentTheme); ApplyOverlayStyle(currentStyle); LoadPreferences(); }
+    private readonly string preferencesPath;
+    public OverlayWindow(string? dataDirectory=null) { preferencesPath=System.IO.Path.Combine(dataDirectory??System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),"Aion2DPSPro"),"overlay-settings.json"); InitializeComponent(); CategoryPicker.ItemsSource=new[]{"Damage","Healing","Damage Taken","Deaths","Buffs","Debuffs","Interrupts","Dispels"}; CategoryPicker.SelectedIndex=0; FightHistory.ItemsSource=new[]{new HistoryChoice("Saved fights ▾",null)}; FightHistory.SelectedIndex=0; ApplyTheme(currentTheme); ApplyOverlayStyle(currentStyle); LoadPreferences(); }
     static readonly Dictionary<string,string> Colors = new(StringComparer.OrdinalIgnoreCase) {
         ["Gladiator"]="#E65353", ["Templar"]="#E8903D", ["Assassin"]="#C45CFF", ["Ranger"]="#F2C94C",
         ["Sorcerer"]="#4DA3FF", ["Spiritmaster"]="#48C9D8", ["Cleric"]="#6DDB72", ["Chanter"]="#D6DCE8", ["Brawler"]="#FF7A45", ["Unknown"]="#AAB6CC" };
@@ -65,7 +66,7 @@ public partial class OverlayWindow : Window
         string Metadata(PlayerStats p)
         {
             var parts=new List<string>();
-            if(showCharacterStats)parts.Add($"GS {(p.GearScore.HasValue?p.GearScore.Value.ToString():"—")}   CP {(p.CombatPower.HasValue?F(p.CombatPower.Value):"—")}");
+            if(showCharacterStats)parts.Add($"GS {(p.GearScore.HasValue?p.GearScore.Value.ToString():"—")}   CP {(p.CombatPower.HasValue?p.CombatPower.Value.ToString("N0"):"—")}");
             if(category==MeterCategory.Damage&&targetTotal>0)parts.Add($"Target share {100.0*s.Targets.Where(x=>x.ActorId==p.ActorId&&x.TargetId==s.SelectedTargetId).Sum(x=>x.Damage)/targetTotal:0.0}%");
             return string.Join("   •   ",parts);
         }
@@ -309,7 +310,7 @@ public partial class OverlayWindow : Window
     {
         ResumeDisplay();
         currentStyle=name;
-        ((System.Windows.Controls.TextBlock)PreviewBadge.Child).Text=name is "Details Inspired" or "Kagerou Inspired"?"PREVIEW":"SIMULATED PREVIEW";
+        ((System.Windows.Controls.TextBlock)PreviewBadge.Child).Text="SAMPLE DATA";
         Rows.ItemTemplate=(DataTemplate)Resources["ClassicRows"];
         CategoryTabs.Visibility=Visibility.Visible; CategoryPicker.Visibility=Visibility.Collapsed;
         EncounterSummary.Visibility=EncounterColumns.Visibility=EncounterControls.Visibility=Visibility.Collapsed;
@@ -501,7 +502,7 @@ public partial class OverlayWindow : Window
         };
         var bg=Brush(p.Item1); var accent=Brush(p.Item2); var secondary=Brush(p.Item3);
         var chrome=Brush(p.Item4); var primaryText=Brush(p.Item5); var hot=Brush(p.Item6); var control=Brush(p.Item7);
-        if(currentStyle=="Kagerou Inspired") {bg=BrushWithOpacity(p.Item1,.62);chrome=BrushWithOpacity(p.Item4,.78);}
+        if(currentStyle=="Kagerou Inspired") {bg=BrushWithOpacity(p.Item1,.94);chrome=BrushWithOpacity(p.Item4,.96);}
         if(currentStyle=="Modern Glass" && name=="Aion Blue/Red") {
             bg=Brush("#E6101725"); chrome=Brush("#B4162032"); accent=Brush("#33465F");
         }
@@ -564,7 +565,7 @@ public partial class OverlayWindow : Window
         var report=new CombatReportWindow(provider,r.Stats.ActorId,(MeterCategory)Math.Clamp(Tabs.SelectedIndex,0,7),hideNames,showCharacterStats) {Owner=this};
         report.Show();
     }
-    static string PreferencesPath=>System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),"Aion2DPSPro","overlay-settings.json");
+    string PreferencesPath=>preferencesPath;
     public sealed record OverlayPreferences(string Style,string Theme,double Opacity,bool Details,bool Topmost,double Width,double Height,double Left,double Top,bool PositionLocked=false,bool HideNames=false,bool ShowCharacterStats=true,double UiScale=1);
     void LoadPreferences()
     {
@@ -618,4 +619,3 @@ public partial class OverlayWindow : Window
     }
     sealed record Row(int Rank,string Name,string ClassName,string Dps,string Damage,string Share,Brush Brush,double BarWidth,double Relative,PlayerStats Stats,string CharacterStats);
 }
-
