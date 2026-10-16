@@ -65,7 +65,11 @@ public partial class OverlayWindow : Window
         string Metadata(PlayerStats p)
         {
             var parts=new List<string>();
-            if(showCharacterStats)parts.Add($"GS {(p.GearScore.HasValue?p.GearScore.Value.ToString():"—")}   CP {(p.CombatPower.HasValue?F(p.CombatPower.Value):"—")}");
+            if(showCharacterStats)
+            {
+                parts.Add($"GS {(p.GearScore.HasValue?p.GearScore.Value.ToString():"—")}   CP {(p.CombatPower.HasValue?F(p.CombatPower.Value):"—")}");
+                if(!p.GearScore.HasValue&&!p.CombatPower.HasValue)parts.Add(p.StatsObservedUtc.HasValue?"Scores unavailable / expired":"Waiting for captured scores");
+            }
             if(category==MeterCategory.Damage&&targetTotal>0)parts.Add($"Target share {100.0*s.Targets.Where(x=>x.ActorId==p.ActorId&&x.TargetId==s.SelectedTargetId).Sum(x=>x.Damage)/targetTotal:0.0}%");
             return string.Join("   •   ",parts);
         }

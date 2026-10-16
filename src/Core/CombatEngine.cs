@@ -23,7 +23,20 @@ public sealed class CombatEngine
 
     public void Apply(CombatEvent e)
     {
-        if(e.Kind==CombatKind.CharacterStats)return;
+        if(e.Kind==CombatKind.CharacterStats)
+        {
+            // Metadata never starts/extends a fight or creates a player. Only
+            // refresh a previously confirmed exact character/server identity.
+            lock(gate)
+            {
+                if(e.StatsObservedUtc is not DateTime observed || observed>e.Utc || e.Utc-observed>TimeSpan.FromMinutes(10) || e.SourceCharacterId<=0 || e.SourceServerId is <1001 or >9999)return;
+                var matches=identities.Where(x=>confirmedIdentities.Contains(x.Key)&&x.Value.CharacterId==e.SourceCharacterId&&x.Value.ServerId==e.SourceServerId&&x.Value.Name==e.Source).Select(x=>x.Key).ToArray();
+                if(matches.Length==0)return;
+                latestUtc=latestUtc is DateTime prior&&prior>e.Utc?prior:e.Utc;
+                foreach(var id in matches)Remember(id,e.Source,e.SourceClass,true,e.SourceServerId,e.SourceCharacterId,e.SourceGearScore,e.SourceCombatPower,observed);
+            }
+            return;
+        }
         MeterSnapshot? completed = null;
         lock(gate)
         {
@@ -79,11 +92,13 @@ public sealed class CombatEngine
             old=null;
         }
         if(confirmed&&named)confirmedIdentities.Add(id);
-        bool metadata=confirmed&&named&&server is >=1001 and <=9999&&character>0&&statsSeen.HasValue&&statsSeen<=latestUtc&&(old?.StatsObservedUtc==null||statsSeen>=old.StatsObservedUtc);
+        bool exactIdentity=confirmed&&named&&server is >=1001 and <=9999&&character>0;
+        bool metadata=exactIdentity&&statsSeen.HasValue&&statsSeen<=latestUtc&&(old?.StatsObservedUtc==null||statsSeen>=old.StatsObservedUtc);
         identities[id] = new Identity(named ? name : old?.Name ?? $"Actor {id}", cls != "Unknown" && !string.IsNullOrWhiteSpace(cls) ? cls : old?.ClassName ?? "Unknown",
             metadata?(gear is >=100 and <=50000?gear:null):old?.GearScore,
             metadata?(power is >0 and <=10000000?power:null):old?.CombatPower,
-            metadata?server:old?.ServerId??0,metadata?character:old?.CharacterId??0,metadata?statsSeen:old?.StatsObservedUtc);
+            exactIdentity?server:old?.ServerId??0,exactIdentity?character:old?.CharacterId??0,metadata?statsSeen:old?.StatsObservedUtc);
+        bool labelsChanged=old==null||old.Name!=identities[id].Name||old.ClassName!=identities[id].ClassName;
         long identityKey = Key(id);
         // Identity packets can arrive seconds after combat starts. Refresh the
         // active encounter's cached event labels when a placeholder becomes a
@@ -97,14 +112,14 @@ public sealed class CombatEngine
             if (confirmed && named)
             {
                 current.ConfirmedPlayers.Add(identityKey);
-                RefreshActiveIdentity(current, identityKey, identities[id]);
+                if(labelsChanged)RefreshActiveIdentity(current, identityKey, identities[id]);
             }
         }
         overall.Names[identityKey] = identities[id];
         if (confirmed && named)
         {
             overall.ConfirmedPlayers.Add(identityKey);
-            RefreshActiveIdentity(overall, identityKey, identities[id]);
+            if(labelsChanged)RefreshActiveIdentity(overall, identityKey, identities[id]);
         }
     }
     private static void RefreshActiveIdentity(Encounter encounter, long id, Identity identity)

@@ -84,7 +84,7 @@ public sealed class LiveCaptureAdapter : IDisposable
         var local=tcp.SourcePort==13328?ip.DestinationAddress:ip.SourceAddress;
         string scope=$"{device}|{local}|{server}";
         if(lockedConversation!=null && utc-lastPayload>TimeSpan.FromSeconds(30)) ResetConnection();
-        if(lockedScope!=null && scope!=lockedScope) return;
+        if(lockedScope!=null && !CaptureIdentityBridge.SameScope(scope,lockedScope)) return;
         bool primary=lockedConversation==conversation && lockedDevice==device;
         string candidateKey=device+conversation;
         if(tcp.Synchronize || tcp.Finished || tcp.Reset)

@@ -6,10 +6,12 @@ public sealed class PacketDispatcher
 {
     public Aion2Decoded AttachRosterScores(Aion2Decoded e,DateTime utc)
     {
-        if(!profile.ExperimentalRosterScores||e.Kind!=CombatKind.PlayerName||!sessionToGlobal.TryGetValue(e.SourceId,out var global))return e;
-        e=e with {SourceCharacterId=global,SourceServerId=identityServers.GetValueOrDefault(e.SourceId,e.SourceServerId)};
+        if(e.Kind!=CombatKind.PlayerName||!sessionToGlobal.TryGetValue(e.SourceId,out var global))return e;
+        e=e with {SourceCharacterId=global,SourceServerId=identityServers.GetValueOrDefault(e.SourceId,identityServers.GetValueOrDefault(global,e.SourceServerId))};
+        if(!profile.ExperimentalRosterScores)return e;
         var candidates=rosterScores.Values.Where(x=>x.CharacterId==global&&x.Name==e.Source&&utc>=x.ObservedUtc&&utc-x.ObservedUtc<=TimeSpan.FromMinutes(10)).ToArray();
-        if(identityServers.TryGetValue(e.SourceId,out var server)&&server>0)candidates=candidates.Where(x=>x.ServerId==server).ToArray();
+        int server=identityServers.GetValueOrDefault(e.SourceId,identityServers.GetValueOrDefault(global));
+        if(server>0)candidates=candidates.Where(x=>x.ServerId==server).ToArray();
         if(candidates.Length!=1)return e;
         var r=candidates[0];return e with {SourceServerId=r.ServerId,SourceCharacterId=r.CharacterId,SourceGearScore=r.GearScore,SourceCombatPower=r.CombatPower,StatsObservedUtc=r.ObservedUtc};
     }
@@ -1142,7 +1144,7 @@ public sealed class PacketDispatcher
             int len = d[off];
             if (len < 2 || len > 48 || off + 1 + len > end) continue;
             int sid = d[off - 2] | (d[off - 1] << 8);
-            if (sid < 1001 || sid > 2021) continue;
+            if (sid < 1001 || sid > 9999) continue;
             uint cid = (uint)(d[off - 8] | (d[off - 7] << 8) | (d[off - 6] << 16) | (d[off - 5] << 24));
             if (cid == 0 || cid > 500000) continue;
             string name;
@@ -1168,12 +1170,16 @@ public sealed class PacketDispatcher
                     className = ClassFromJobCode(jobCode);
                 }
             }
+            // Stable ids are server-scoped. A conflicting roster observation
+            // invalidates the server shortcut instead of choosing the last one.
+            if(!identityServers.TryGetValue(id,out var priorServer))identityServers[id]=sid;
+            else if(priorServer!=sid)identityServers[id]=0;
             partyIdentities[id] = new PlayerIdentity(name, className);
             RememberGlobalPlayerIdentity(id, name, className, utc, "party");
             ValidationRecord?.Invoke($"{utc:O}|tag=partyIdentity|opcode=0x{opcode:X2}|entity={id}|name={name}|server={sid}|jobCode={jobCode}|class={className}|level={level}|combatMatch={recentCombatEntityIds.Contains(id)}");
             Diagnostic?.Invoke(new(utc,"party-identity",$"Mapped party entity {id} -> {name} class={className} job={jobCode} level={level} server={sid}",d.Length));
             if (emitted.Add(id))
-                yield return new(CombatKind.PlayerName, id, name, 0, "", "", 0, DamageType.Unknown, 0,0,"",0);
+                yield return new(CombatKind.PlayerName, id, name, 0, "", "", 0, DamageType.Unknown, 0,0,"",0,className,SourceServerId:sid,SourceCharacterId:id);
         }
     }
 

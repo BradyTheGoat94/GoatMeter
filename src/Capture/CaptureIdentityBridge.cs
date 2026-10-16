@@ -8,6 +8,7 @@ public sealed class CaptureIdentityBridge
     private readonly Dictionary<(string Scope,long Id),Entry> names=new();
     private readonly Dictionary<(string Scope,long Id),NpcEntry> npcs=new();
     private readonly Dictionary<(string Scope,long Character,int Server),Entry> profiles=new();
+    public static bool SameScope(string left,string right)=>string.Equals(KeyScope(left),KeyScope(right),StringComparison.Ordinal);
     private static string KeyScope(string scope)
     {
         if(string.IsNullOrWhiteSpace(scope)) return scope;
