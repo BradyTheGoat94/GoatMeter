@@ -23,6 +23,16 @@ public partial class CombatReportWindow : Window
         Loaded+=(_,_)=> {Refresh();timer.Start();};Closed+=(_,_)=>timer.Stop();
         Refresh();
     }
+    private async void ExportFight(object sender,RoutedEventArgs e)
+    {
+        try
+        {
+            var json=Aion2DPSPro.Sharing.FightLogExport.Serialize(displayed??provider());
+            var dialog=new Microsoft.Win32.SaveFileDialog {Filter="GoatMeter fight log (*.json)|*.json",FileName="goatmeter-fight.json"};
+            if(dialog.ShowDialog(this)==true) await System.IO.File.WriteAllTextAsync(dialog.FileName,json);
+        }
+        catch(Exception ex) {MessageBox.Show(this,ex.Message,"Fight export",MessageBoxButton.OK,MessageBoxImage.Information);}
+    }
     private void CategoryChanged(object sender,SelectionChangedEventArgs e) {if(ready)Refresh(Pause.IsChecked==true);}
     private void PauseChanged(object sender,RoutedEventArgs e) {if(ready)Refresh(Pause.IsChecked==true);}
     public void Refresh(bool useDisplayed=false)

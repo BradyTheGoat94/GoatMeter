@@ -1,0 +1,5 @@
+**/bin/
+**/obj/
+overlay-*.png
+report-preview.png
+.test-output/

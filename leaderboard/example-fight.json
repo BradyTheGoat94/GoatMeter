@@ -1,0 +1,1 @@
+{"schemaVersion":1,"boss":"Training encounter (sample)","startedUtc":"2026-10-01T00:00:00Z","durationSeconds":120,"visibility":"private","players":[{"name":"Player 01","className":"Templar","damage":8400000},{"name":"Player 02","className":"Sorcerer","damage":12400000},{"name":"Player 03","className":"Cleric","damage":2400000}]}

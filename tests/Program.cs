@@ -173,3 +173,16 @@ var badSchedule=Path.Combine(Path.GetTempPath(),Guid.NewGuid()+".json");try{
  File.WriteAllText(badSchedule,"[null]");rejected=false;try{Aion2DPSPro.Schedules.EventSchedule.Load(badSchedule);}catch(InvalidDataException){rejected=true;}True(rejected,"null imported profile rejected");
 }finally{File.Delete(badSchedule);}
 Console.WriteLine($"PASS: {checks} regression assertions");
+// Export privacy and unsupported dataset regressions.
+var exportEngine=new CombatEngine(()=>t.AddSeconds(10));
+exportEngine.Apply(new(t,CombatKind.PlayerName,909,"SecretPlayerName",SourceClass:"Templar",SourceServerId:1102,SourceCharacterId:123456,SourceGearScore:2900,SourceCombatPower:120000,StatsObservedUtc:t));
+exportEngine.Apply(new(t,CombatKind.Damage,909,"SecretPlayerName",101,"PrivateTargetName","SecretSkill",500));
+exportEngine.Apply(new(t.AddSeconds(5),CombatKind.Damage,909,"SecretPlayerName",101,"PrivateTargetName","SecretSkill",500));
+bool ExportRejected(MeterSnapshot snapshot){try{Aion2DPSPro.Sharing.FightLogExport.Serialize(snapshot);return false;}catch(InvalidOperationException){return true;}}
+True(ExportRejected(exportEngine.Snapshot()),"in-progress export rejected");exportEngine.ResetFight();var exported=exportEngine.Snapshot(MeterSegment.Previous,MeterCategory.Damage,true);
+var uploadJson=Aion2DPSPro.Sharing.FightLogExport.Serialize(exported);
+True(!uploadJson.Contains("SecretPlayerName")&&!uploadJson.Contains("PrivateTargetName")&&!uploadJson.Contains("SecretSkill")&&!uploadJson.Contains("123456"),"export strips identity, target and raw event details");
+using(var doc=System.Text.Json.JsonDocument.Parse(uploadJson)){Equal(doc.RootElement.GetProperty("players")[0].GetProperty("damage").GetInt64(),1000L,"export preserves damage");True(doc.RootElement.GetProperty("visibility").GetString()=="private","export private default");}
+True(ExportRejected(exported with {PreviewMode=true}),"sample export rejected");True(ExportRejected(exported with {EncounterId=Guid.Empty}),"overall export rejected");
+True(ExportRejected(exported with {FightSeconds=double.NaN}),"non-finite duration rejected");
+Console.WriteLine($"PASS: {checks} regression assertions including export privacy");
