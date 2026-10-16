@@ -15,8 +15,7 @@ and no production routes. No public service has been created or deployed.
 
 Overlay updates: darker readable rows and metadata chips, brighter larger GS/CP
 text, exact CP formatting, compact sample label, reduced header button spacing,
-no activation on showing the main overlay. Visual tests now use isolated settings
-and offscreen windows by default; --visible explicitly opts into foreground tests.
+no activation on showing the main overlay. Visual tests use isolated settings and require --visible explicitly before constructing any Windows UI. The attempted offscreen mode still surfaced windows, so it was removed. No further visual tests will be run.
 The earlier legacy smoke run did use the normal local settings location; the
 new isolation prevents further test changes to that location. Website production
 and its settings were not changed.
