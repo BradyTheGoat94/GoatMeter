@@ -27,6 +27,9 @@ public partial class MainWindow : Window
         overlay.SnapshotProvider=(segment,category)=>engine.Snapshot(segment,category);
         overlay.HistoryProvider=()=>store.List().ToArray();
         overlay.HistoryLoader=path=>store.LoadAsync(path);
+        store.Warning+=message=>{lock(diagnosticsGate)historyError=message;};
+        overlay.HistoryRetention=store.RetentionCount;
+        overlay.HistoryRetentionChanged=count=>{lock(diagnosticsGate)saveTail=saveTail.ContinueWith(async _=>{try{await store.SetRetentionAsync(count);}catch(Exception ex){lock(diagnosticsGate)historyError="History settings failed: "+ex.Message;}}).Unwrap();};
         var path=System.IO.Path.Combine(AppContext.BaseDirectory,"Protocol","Profiles","global-current.json");
         ProtocolProfile profile;
         try {profile=ProtocolProfile.Load(path);} catch {profile=ProtocolProfile.SafeGlobalScaffold();}
@@ -64,11 +67,13 @@ public partial class MainWindow : Window
             }).Unwrap();
         };
         capture=new LiveCaptureAdapter(decoder);
+        engine.CaptureMonitoringEnabled=true;
+        capture.CaptureLoss+=(drops,gaps)=>engine.MarkCaptureLoss(drops,gaps);
         capture.ValidationRecord+=RecordValidation;
         capture.PacketCaptured += ()=>Interlocked.Increment(ref packets);
         capture.DuplicateSuppressed += ()=>Interlocked.Increment(ref duplicates);
         capture.FlowLocked += s=> {lock(diagnosticsGate)activeFlow=s;};
-        capture.ConnectionReset += ()=>engine.Apply(new(DateTime.UtcNow,CombatKind.Zone));
+        capture.ConnectionReset += ()=>{engine.MarkCaptureLoss(tcpGaps:1);engine.Apply(new(DateTime.UtcNow,CombatKind.Zone));};
         capture.StatusChanged += s=> {lock(diagnosticsGate)captureStatus=s;};
         capture.EventReceived += e=>
         {

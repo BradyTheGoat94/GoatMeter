@@ -204,3 +204,66 @@ var badSchedule=Path.Combine(Path.GetTempPath(),Guid.NewGuid()+".json");try{
  File.WriteAllText(badSchedule,"[null]");rejected=false;try{Aion2DPSPro.Schedules.EventSchedule.Load(badSchedule);}catch(InvalidDataException){rejected=true;}True(rejected,"null imported profile rejected");
 }finally{File.Delete(badSchedule);}
 Console.WriteLine($"PASS: {checks} regression assertions");
+
+// Export privacy and unsupported dataset regressions.
+var exportEngine=new CombatEngine(()=>t.AddSeconds(10));
+exportEngine.Apply(new(t,CombatKind.PlayerName,909,"SecretPlayerName",SourceClass:"Templar",SourceServerId:1102,SourceCharacterId:123456,SourceGearScore:2900,SourceCombatPower:120000,StatsObservedUtc:t));
+exportEngine.Apply(new(t,CombatKind.Damage,909,"SecretPlayerName",101,"PrivateTargetName","SecretSkill",500));
+exportEngine.Apply(new(t.AddSeconds(5),CombatKind.Damage,909,"SecretPlayerName",101,"PrivateTargetName","SecretSkill",500));
+exportEngine.Apply(new(t.AddSeconds(6),CombatKind.Damage,909,"SecretPlayerName",102,"Test add","SecretSkill",750));
+bool ExportRejected(MeterSnapshot snapshot){try{Aion2DPSPro.Sharing.FightLogExport.Serialize(snapshot);return false;}catch(InvalidOperationException){return true;}}
+True(ExportRejected(exportEngine.Snapshot()),"in-progress export rejected");exportEngine.ResetFight();var exported=exportEngine.Snapshot(MeterSegment.Previous,MeterCategory.Damage,true);
+var uploadJson=Aion2DPSPro.Sharing.FightLogExport.Serialize(exported);
+True(uploadJson.Contains("SecretPlayerName")&&uploadJson.Contains("PrivateTargetName")&&!uploadJson.Contains("SecretSkill")&&!uploadJson.Contains("123456"),"export keeps names and targets but strips stable IDs and raw events");
+using(var namedDoc=System.Text.Json.JsonDocument.Parse(uploadJson)){Equal(namedDoc.RootElement.GetProperty("players")[0].GetProperty("serverId").GetInt32(),1102,"export preserves known server");}
+using(var doc=System.Text.Json.JsonDocument.Parse(uploadJson)){Equal(doc.RootElement.GetProperty("players")[0].GetProperty("damage").GetInt64(),1750L,"export preserves damage");True(doc.RootElement.GetProperty("visibility").GetString()=="private","export private default");}
+True(ExportRejected(exported with {PreviewMode=true}),"sample export rejected");True(ExportRejected(exported with {EncounterId=Guid.Empty}),"overall export rejected");
+True(ExportRejected(exported with {FightSeconds=double.NaN}),"non-finite duration rejected");
+Console.WriteLine($"PASS: {checks} regression assertions including export privacy");
+
+using(var targetDoc=System.Text.Json.JsonDocument.Parse(uploadJson)){
+ var root=targetDoc.RootElement;Equal(root.GetProperty("schemaVersion").GetInt32(),2,"per-target export version");
+ Equal(root.GetProperty("targets").GetArrayLength(),2,"boss and adds exported separately");
+ Equal(root.GetProperty("targets")[0].GetProperty("damageByPlayer")[0].GetInt64(),1000,"boss damage excludes adds");
+ Equal(root.GetProperty("targets")[1].GetProperty("damageByPlayer")[0].GetInt64(),750,"add damage kept separately");
+ True(root.GetProperty("rankingTargetId").ValueKind==System.Text.Json.JsonValueKind.Null,"boss selection explicit before upload");
+}
+Console.WriteLine($"PASS: {checks} total regression assertions including target export");
+
+// Target windows are independent of the bounded recent-event feed.
+var windowEngine=new CombatEngine(()=>t.AddSeconds(210.4));windowEngine.Apply(new(t,CombatKind.PlayerName,1,"TimingTester",SourceClass:"Templar"));
+for(int i=0;i<2105;i++)windowEngine.Apply(new(t.AddSeconds(i/10.0),CombatKind.Damage,1,"TimingTester",55,"Boss","Strike",1));
+var timed=windowEngine.Snapshot();Equal(timed.TargetSeconds[55],210.4,"target duration retains first event beyond 2000-event feed");Equal(timed.RecentEvents.Count,2000,"recent feed remains bounded");
+using(var doc=System.Text.Json.JsonDocument.Parse(uploadJson)){Equal(doc.RootElement.GetProperty("targets")[0].GetProperty("durationSeconds").GetDouble(),5,"boss uses own damage window");Equal(doc.RootElement.GetProperty("targets")[1].GetProperty("durationSeconds").GetDouble(),1,"single-hit target minimum one second");}
+Console.WriteLine($"PASS: {checks} total regression assertions including target timing");
+// Integrity belongs to a captured encounter, survives storage, and never creates damage.
+var integrityClock=t;var integrityEngine=new CombatEngine(()=>integrityClock){CaptureMonitoringEnabled=true};
+integrityEngine.Apply(new(t,CombatKind.PlayerName,1,"SyntheticPlayer",SourceClass:"Templar"));
+integrityEngine.Apply(Hit(0,1,100,"SyntheticPlayer"));
+True(integrityEngine.Snapshot().CaptureIntegrity.Status=="no-known-loss","monitored encounter is not called verified or complete");
+integrityEngine.MarkCaptureLoss(3,1);Equal(integrityEngine.Snapshot().FightDamage,100,"capture loss does not alter totals");
+True(integrityEngine.Snapshot().CaptureIntegrity.Status=="incomplete","known loss marks current fight incomplete");
+integrityEngine.ResetFight();var incomplete=integrityEngine.Snapshot(MeterSegment.Previous,MeterCategory.Damage,true);
+Equal(incomplete.CaptureIntegrity.DroppedPackets,3,"completed fight retains dropped count");
+integrityEngine.Apply(Hit(1,1,200,"SyntheticPlayer"));True(integrityEngine.Snapshot().CaptureIntegrity.Status=="no-known-loss","next fight does not inherit previous loss");
+Equal(incomplete.CaptureIntegrity.TcpGaps,1,"completed integrity stays frozen");
+var pendingEngine=new CombatEngine(()=>t);pendingEngine.MarkCaptureLoss(1);pendingEngine.Apply(new(t,CombatKind.PlayerName,1,"SyntheticPlayer"));pendingEngine.Apply(Hit(0,1,10,"SyntheticPlayer"));True(pendingEngine.Snapshot().CaptureIntegrity.Status=="incomplete","loss before first captured hit is not forgotten");
+var scorePlayer=new PlayerStats("SyntheticPlayer","Templar",100,10,100,1,0,ServerId:2102,GearScore:1800,CombatPower:80000,StatsObservedUtc:t);
+True(CharacterScoreDisplay.Describe(scorePlayer,t.AddSeconds(30)).Contains("30s old"),"live score age displayed");
+True(CharacterScoreDisplay.Describe(scorePlayer,t.AddMinutes(11)).Contains("expired"),"stale score explained");
+True(CharacterScoreDisplay.Describe(scorePlayer,t.AddDays(1),true).Contains("Frozen"),"historical score uses observation timestamp");
+var safeFolder=Path.Combine(Path.GetTempPath(),Guid.NewGuid().ToString("N"));try{
+ var safeStore=new FightStore(safeFolder);var warnings=0;safeStore.Warning+=_=>warnings++;
+ var corrupt=Path.Combine(safeFolder,"broken.json");await File.WriteAllTextAsync(corrupt,"{broken");True(await safeStore.LoadAsync(corrupt)==null,"corrupt history isolated");
+ var oversized=Path.Combine(safeFolder,"large.json");using(var sparse=File.Create(oversized))sparse.SetLength(FightStore.MaxFileBytes+1);True(await safeStore.LoadAsync(oversized)==null,"oversized history rejected before allocation");
+ File.Delete(oversized);File.Delete(corrupt);True(warnings==2,"bad history produces actionable warnings");
+ await safeStore.SetRetentionAsync(50);
+ for(int i=0;i<51;i++)await safeStore.SaveAsync(incomplete with {EncounterId=Guid.NewGuid(),StartedUtc=t.AddSeconds(i)});
+ Equal(safeStore.List().Count(),50,"active history obeys retention");Equal(Directory.GetFiles(Path.Combine(safeFolder,"Archive"),"*.json").Length,1,"old history archived rather than deleted");
+ var restored=new FightStore(safeFolder);Equal(restored.RetentionCount,50,"retention preference persists");
+ var stored=await restored.LoadAsync(restored.List().First());True(stored!.CaptureIntegrity.Status=="incomplete","integrity persists in history");
+ bool escape=false;try{await restored.LoadAsync(Path.Combine(Path.GetTempPath(),"outside.json"));}catch(UnauthorizedAccessException){escape=true;}True(escape,"history traversal rejected");
+ True(!Directory.EnumerateFiles(safeFolder,"*.tmp").Any(),"atomic writes leave no temporary files");
+}finally{Directory.Delete(safeFolder,true);}
+using(var integrityDoc=System.Text.Json.JsonDocument.Parse(Aion2DPSPro.Sharing.FightLogExport.Serialize(incomplete))){True(integrityDoc.RootElement.GetProperty("captureIntegrity").GetProperty("status").GetString()=="incomplete","export carries capture warning");}
+Console.WriteLine($"PASS: {checks} total regression assertions including score provenance, integrity and history safety");

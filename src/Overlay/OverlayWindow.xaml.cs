@@ -10,6 +10,8 @@ public partial class OverlayWindow : Window
 {
     public CombatEngine? Engine {get;set;}
     public Func<MeterSegment,MeterCategory,MeterSnapshot>? SnapshotProvider {get;set;}
+    public Action<int>? HistoryRetentionChanged {get;set;}
+    public int HistoryRetention {get;set;}=500;
     public Func<string[]>? HistoryProvider {get;set;}
     public Func<string,Task<MeterSnapshot?>>? HistoryLoader {get;set;}
     MeterSnapshot? last;
@@ -60,6 +62,8 @@ public partial class OverlayWindow : Window
         TargetHp.Text=s.Target is null?"":s.Target.MaxHp<=0?"HP unavailable":$"{s.Target.Percent:0.0}%   {F(s.Target.CurrentHp)} / {F(s.Target.MaxHp)}";
         StatusText.ToolTip="Captured combat data. Regression checks validate supported fields; live totals still depend on the packets received.";
         StatusText.Text=s.PreviewMode?"SIMULATED DATA":s.Players.Count==0?"WAITING FOR COMBAT":$"{(s.InFight?"CURRENT":"COMPLETED")} • CAPTURED";
+        if(s.CaptureIntegrity.Status=="incomplete")StatusText.Text+=" • INCOMPLETE CAPTURE";
+        StatusText.ToolTip+=$"\nCapture integrity: {s.CaptureIntegrity.Status}; dropped packets {s.CaptureIntegrity.DroppedPackets}; TCP gaps {s.CaptureIntegrity.TcpGaps}. No-known-loss does not prove completeness.";
         ResetCurrentFight.IsEnabled=Engine!=null;
         var targetTotal=s.Targets.Where(x=>x.TargetId==s.SelectedTargetId).Sum(x=>x.Damage);
         string Metadata(PlayerStats p)
@@ -75,6 +79,7 @@ public partial class OverlayWindow : Window
         }
         var max=Math.Max(1,s.Players.FirstOrDefault()?.Dps??1);
         Rows.ItemsSource=s.Players.Select((p,i)=>new Row(i+1,hideNames?$"{p.ClassName} #{i+1}":p.Name,p.ClassName,F(p.Dps),F(p.Damage),$"{p.Share:0.0}%",Brush(p.ClassName),Math.Max(0,150*p.Dps/max),Math.Clamp(100*p.Dps/max,0,100),p,Metadata(p))).ToList();
+        Rows.ToolTip=showCharacterStats?"GS/CP: captured experimental roster metadata; values expire after 10 minutes. Select a player and open the report for source and age.":null;
         Rows.SelectedItem=Rows.Items.Cast<Row>().FirstOrDefault(r=>r.Stats.ActorId==selectedActor);
         EmptyRows.Visibility=s.Players.Count==0?Visibility.Visible:Visibility.Collapsed;
         if(Rows.SelectedItem==null){SelectedPlayer.Text="Select a player";SelectedMeta.Text="";}
@@ -196,6 +201,13 @@ public partial class OverlayWindow : Window
         locked.Checked += (_,__)=>SetPositionLock(true); locked.Unchecked += (_,__)=>SetPositionLock(false); panel.Children.Add(locked);
         var scores=new System.Windows.Controls.CheckBox {Content="Show GS and combat power",IsChecked=showCharacterStats,Margin=new Thickness(0,4,0,8)};
         scores.Checked+=(_,_)=>{showCharacterStats=true;RefreshReports();ResumeDisplay();if(last!=null)Render(last);};scores.Unchecked+=(_,_)=>{showCharacterStats=false;RefreshReports();ResumeDisplay();if(last!=null)Render(last);};panel.Children.Add(scores);
+        if(HistoryRetentionChanged!=null)
+        {
+            panel.Children.Add(new System.Windows.Controls.TextBlock {Text="Active saved fights (older fights move to History/Archive)"});
+            var retention=new System.Windows.Controls.ComboBox {ItemsSource=new[]{50,100,500,1000,5000},SelectedItem=HistoryRetention,Margin=new Thickness(0,5,0,8)};
+            retention.SelectionChanged+=(_,_)=>{if(retention.SelectedItem is int n){HistoryRetention=n;HistoryRetentionChanged?.Invoke(n);}};panel.Children.Add(retention);
+            panel.Children.Add(new System.Windows.Controls.TextBlock {Text="16 MiB per file; 512 MiB total. Archived fights are preserved. Move archives elsewhere if storage is full.",TextWrapping=TextWrapping.Wrap});
+        }
         var privacy=new System.Windows.Controls.CheckBox {Content="Stream-safe player names",IsChecked=hideNames,Margin=new Thickness(0,4,0,8)};
         privacy.Checked+=(_,_)=>{hideNames=true;RefreshReports();ResumeDisplay();if(last!=null)Render(last);};privacy.Unchecked+=(_,_)=>{hideNames=false;RefreshReports();ResumeDisplay();if(last!=null)Render(last);};panel.Children.Add(privacy);
         var top = new System.Windows.Controls.CheckBox { Content="Always on top", IsChecked=Topmost, Margin=new Thickness(0,4,0,8) };

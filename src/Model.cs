@@ -22,12 +22,15 @@ public sealed record BuffStats(string Name, double Uptime, int MaxStacks, long S
 public sealed record TargetStats(string Name, long CurrentHp, long MaxHp, double Percent, long DamageTaken);
 public sealed record ActorTargetStats(long ActorId,long TargetId,string Name,long Damage,double Share);
 public sealed record CategorySnapshot(IReadOnlyList<PlayerStats> Players,IReadOnlyList<SkillStats> Skills,string MetricLabel);
+public sealed record CaptureIntegrity(string Status="unknown",long DroppedPackets=0,long TcpGaps=0);
 public sealed record MeterSnapshot(bool InFight, bool PreviewMode, double FightSeconds, long FightDamage, double FightDps,
     long OverallDamage, double OverallDps, TargetStats? Target, IReadOnlyList<PlayerStats> Players,
     IReadOnlyList<SkillStats> Skills, IReadOnlyList<BuffStats> Buffs, IReadOnlyList<CombatEvent> RecentEvents)
 {
     public IReadOnlyDictionary<MeterCategory,CategorySnapshot> Categories {get;init;} = new Dictionary<MeterCategory,CategorySnapshot>();
     public IReadOnlyList<ActorTargetStats> Targets {get;init;} = Array.Empty<ActorTargetStats>();
+    public CaptureIntegrity CaptureIntegrity {get;init;} = new();
+    public IReadOnlyDictionary<long,double> TargetSeconds {get;init;} = new Dictionary<long,double>();
     public long SelectedTargetId { get; init; }
     public Guid EncounterId { get; init; }
     public DateTime? StartedUtc { get; init; }

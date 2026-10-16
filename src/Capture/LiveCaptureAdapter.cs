@@ -25,6 +25,7 @@ public sealed class LiveCaptureAdapter : IDisposable
     public event Action<CombatEvent>? EventReceived;
     public event Action<string>? StatusChanged;
     public event Action? PacketCaptured;
+    public event Action<long,long>? CaptureLoss;
     public event Action? DuplicateSuppressed;
     public event Action<string>? FlowLocked;
     public event Action? ConnectionReset;
@@ -40,6 +41,7 @@ public sealed class LiveCaptureAdapter : IDisposable
             if(selectedDecoder is CurrentClientDecoder selected) selected.ResetStream(key);
             if(decoder is CurrentClientDecoder c) c.ResetStream(key);
             foreach(var candidate in candidates.Values) candidate.Decoder.ResetStream(key);
+            CaptureLoss?.Invoke(0,1);
             StatusChanged?.Invoke("TCP gap/flow reset; incomplete data discarded.");
         };
         worker=Task.Run(()=> { foreach(var action in queue.GetConsumingEnumerable()) try { action(); } catch(Exception ex) { StatusChanged?.Invoke($"Capture/decoder error: {ex.Message}"); } });
@@ -64,7 +66,7 @@ public sealed class LiveCaptureAdapter : IDisposable
         var bytes=raw.Data.ToArray(); var link=raw.LinkLayerType;
         var device=(sender as ICaptureDevice)?.Name??"unknown";
         var utc=DateTime.UtcNow;
-        try { if(!queue.TryAdd(()=>Process(device,Packet.ParsePacket(link,bytes),utc))) Interlocked.Increment(ref dropped); }
+        try { if(!queue.TryAdd(()=>Process(device,Packet.ParsePacket(link,bytes),utc))) { Interlocked.Increment(ref dropped); CaptureLoss?.Invoke(1,0); } }
         catch(InvalidOperationException) { }
     }
     private void ResetConnection()
