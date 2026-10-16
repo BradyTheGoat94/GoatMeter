@@ -32,7 +32,7 @@ and JSON imports. The timer window/settings isolation was improved and its smoke
 check passes; no new claim of a verified event schedule or live spawn alerts is made.
 
 Final checks: 9 Node tests pass; 238 desktop regression assertions pass; Windows
-Release build succeeds with zero warnings and errors. Offscreen WPF smoke results
+Release build succeeds with zero warnings and errors. Completed WPF smoke results
 are recorded in the final review report.
 
 Remaining before public opening: authenticate and confirm existing hosting source,

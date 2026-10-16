@@ -26,7 +26,7 @@ jobs:
       - name: Restore
         run: dotnet restore src/Aion2DPSPro.csproj
       - name: WPF overlay smoke checks
-        run: dotnet run --project tests/OverlaySmoke/OverlaySmoke.csproj -c Release
+        run: dotnet run --project tests/OverlaySmoke/OverlaySmoke.csproj -c Release -- --visible
       - name: Upload report preview
         uses: actions/upload-artifact@v4
         with:
