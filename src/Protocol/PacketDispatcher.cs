@@ -53,7 +53,9 @@ public sealed class PacketDispatcher
         {
             if(a==0x02 && profile.ExperimentalRosterScores)
             {
-                foreach(var stats in PartyRosterScores.Parse(frame.AsSpan(p+2),utc))
+                var parsedScores=PartyRosterScores.Parse(frame.AsSpan(p+2),utc);
+                ValidationRecord?.Invoke($"{utc:O}|tag=rosterScoreStatus|accepted={parsedScores.Count}|gs={parsedScores.Count(x=>x.GearScore.HasValue)}|cp={parsedScores.Count(x=>x.CombatPower.HasValue)}|experimental=true");
+                foreach(var stats in parsedScores)
                 {
                     rosterScores[(stats.CharacterId,stats.ServerId)]=stats;
                     yield return new(CombatKind.CharacterStats,0,stats.Name,0,"","",0,DamageType.Unknown,0,0,"",0,ClassFromJobCode(stats.ClassCode),SourceServerId:stats.ServerId,SourceCharacterId:stats.CharacterId,SourceGearScore:stats.GearScore,SourceCombatPower:stats.CombatPower,StatsObservedUtc:stats.ObservedUtc);
@@ -204,7 +206,7 @@ public sealed class PacketDispatcher
             recentCombatIds.Remove(id);recentCombatEntityIds.Remove(id);
             return null;
         }
-        identities.Remove(id);globalPlayerNames.Remove(id);partyIdentities.Remove(id);sessionToGlobal.Remove(id);
+        identities.Remove(id);globalPlayerNames.Remove(id);partyIdentities.Remove(id);sessionToGlobal.Remove(id);identityServers.Remove(id);
         mobs.Remove(id);summonOwners.Remove(id);confirmedSummons.Remove(id);recentCombatIds.Remove(id);recentCombatEntityIds.Remove(id);
         foreach(var key in sessionToGlobal.Where(x=>x.Value==id).Select(x=>x.Key).ToArray())sessionToGlobal.Remove(key);
         foreach(var key in summonOwners.Where(x=>x.Value==id).Select(x=>x.Key).ToArray())summonOwners.Remove(key);
