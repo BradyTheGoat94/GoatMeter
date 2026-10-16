@@ -12,12 +12,15 @@ export function validate(x) {
   if(!Array.isArray(x.players)||x.players.length<1||x.players.length>24) fail('Expected 1–24 players');
   const names=new Set();
   for(const p of x.players){
-    keys(p,['name','className','damage']);
-    if(!str(p.name,40)||names.has(p.name)) fail('Player aliases must be unique and 1–40 characters'); names.add(p.name);
+    keys(p,['name','serverId','className','damage']);
+    if(!str(p.name,40)) fail('Character names must be 1–40 characters');
+    if(p.serverId!=null&&(!Number.isInteger(p.serverId)||p.serverId<1001||p.serverId>9999)) fail('Invalid server ID');
+    const identity=JSON.stringify([p.name.trim(),p.serverId??null]);
+    if(names.has(identity)) fail('Duplicate character name on the same or unknown server'); names.add(identity);
     if(!classes.includes(p.className)) fail('Unsupported class');
     if(!Number.isSafeInteger(p.damage)||p.damage<0||p.damage>1e12) fail('Invalid damage');
   }
   if(!x.players.some(p=>p.damage>0)) fail('Encounter has no damage');
   // Stable canonical order makes retries independent of input property order.
-  return {schemaVersion:1,boss:x.boss.trim(),startedUtc:new Date(x.startedUtc).toISOString(),durationSeconds:x.durationSeconds,visibility:x.visibility,players:x.players.map(p=>({name:p.name,className:p.className,damage:p.damage}))};
+  return {schemaVersion:1,boss:x.boss.trim(),startedUtc:new Date(x.startedUtc).toISOString(),durationSeconds:x.durationSeconds,visibility:x.visibility,players:x.players.map(p=>({name:p.name.trim(),serverId:p.serverId??null,className:p.className,damage:p.damage}))};
 }

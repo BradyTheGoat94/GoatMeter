@@ -181,7 +181,8 @@ exportEngine.Apply(new(t.AddSeconds(5),CombatKind.Damage,909,"SecretPlayerName",
 bool ExportRejected(MeterSnapshot snapshot){try{Aion2DPSPro.Sharing.FightLogExport.Serialize(snapshot);return false;}catch(InvalidOperationException){return true;}}
 True(ExportRejected(exportEngine.Snapshot()),"in-progress export rejected");exportEngine.ResetFight();var exported=exportEngine.Snapshot(MeterSegment.Previous,MeterCategory.Damage,true);
 var uploadJson=Aion2DPSPro.Sharing.FightLogExport.Serialize(exported);
-True(!uploadJson.Contains("SecretPlayerName")&&!uploadJson.Contains("PrivateTargetName")&&!uploadJson.Contains("SecretSkill")&&!uploadJson.Contains("123456"),"export strips identity, target and raw event details");
+True(uploadJson.Contains("SecretPlayerName")&&!uploadJson.Contains("PrivateTargetName")&&!uploadJson.Contains("SecretSkill")&&!uploadJson.Contains("123456"),"export keeps character names but strips target, stable IDs and raw events");
+using(var namedDoc=System.Text.Json.JsonDocument.Parse(uploadJson)){Equal(namedDoc.RootElement.GetProperty("players")[0].GetProperty("serverId").GetInt32(),1102,"export preserves known server");}
 using(var doc=System.Text.Json.JsonDocument.Parse(uploadJson)){Equal(doc.RootElement.GetProperty("players")[0].GetProperty("damage").GetInt64(),1000L,"export preserves damage");True(doc.RootElement.GetProperty("visibility").GetString()=="private","export private default");}
 True(ExportRejected(exported with {PreviewMode=true}),"sample export rejected");True(ExportRejected(exported with {EncounterId=Guid.Empty}),"overall export rejected");
 True(ExportRejected(exported with {FightSeconds=double.NaN}),"non-finite duration rejected");

@@ -74,7 +74,7 @@ $('file').onchange = async () => {
   pendingUpload = null;
   try {
     const fight = await readFight(); $('boss-label').value = fight.boss || '';
-    $('file-preview').textContent = `${fight.players.length} player aliases · ${fight.durationSeconds} seconds · ${format(fight.players.reduce((n, p) => n + (Number(p.damage) || 0), 0))} captured damage. Review your encounter label and visibility before uploading.`;
+    $('file-preview').textContent = `${fight.players.length} named players · ${fight.durationSeconds} seconds · ${format(fight.players.reduce((n, p) => n + (Number(p.damage) || 0), 0))} captured damage. Review your encounter label and visibility before uploading.`;
   } catch (error) { $('file-preview').textContent = error.message; }
 };
 function showReceipt() {
@@ -159,7 +159,7 @@ function playerCell(row, player) {
   const td = cell(row, ''), mark = document.createElement('span'), info = document.createElement('span'), label = document.createElement('small');
   const className = Object.hasOwn(classCodes, player.className) ? player.className : 'Unknown';
   mark.className = 'class-mark class-' + className.toLowerCase(); mark.textContent = classCodes[className]; mark.setAttribute('aria-hidden','true');
-  info.className = 'player-info'; info.textContent = player.name; label.textContent = className; info.append(label); td.append(mark,info);
+  info.className = 'player-info'; info.textContent = player.name; label.textContent = className + (player.serverId ? ' · Server ' + player.serverId : ' · Server unknown'); info.append(label); td.append(mark,info);
   return td;
 }
 function detailStat(container, title, value) {

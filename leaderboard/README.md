@@ -27,9 +27,9 @@ npm run build
 
 1. Finish an encounter and open a player's combat report for that saved fight.
 2. Select **Export fight**. Current combat, simulated previews, and Overall are rejected.
-3. Save the JSON. It contains anonymous player aliases, class, captured damage,
+3. Save the JSON. It contains character names, known server IDs, class, captured damage,
    start time and duration. Raw events, skills, network packets, character IDs,
-   names, targets, GS and CP are excluded by an explicit allowlist.
+   targets, GS and CP are excluded by an explicit allowlist.
 4. Choose that JSON in the archive, annotate the encounter name, and select privacy.
 5. Save the returned access receipt. It allows access, visibility changes and deletion.
 
@@ -56,7 +56,7 @@ only within the limits of their capture completeness and manually supplied label
 | `DELETE /api/fights/:id` | Owner-only deletion. |
 
 `upload.schema.json` documents the format. `validation.mjs` additionally rejects
-control characters, duplicate aliases, future start times, nonfinite numbers,
+control characters, duplicate names on the same or unknown server, future start times, nonfinite numbers,
 unsupported fields, and zero-damage encounters. No uploader-supplied DPS, trust
 flag, raw identity field or verification status is accepted.
 
@@ -68,7 +68,7 @@ server-generated key, but cannot recover a lost initial response without it.
 
 ## Privacy and trust model
 
-- Private is the desktop and web default. Public records alone enter the community table.
+- Exports include character names and known servers. Private is the desktop and web default. Public records alone enter the community table.
 - Unlisted share keys are read-only. Owner keys can read private records, change visibility and delete.
 - Only hashes of keys persist in the database. Receipts deliberately contain the
   access keys; keep them private. Losing the receipt loses management access in

@@ -19,7 +19,7 @@ export function createStore(db){
   catalog:()=>all("SELECT DISTINCT json_extract(payload,'$.boss') AS boss FROM fights WHERE visibility='public' ORDER BY boss"),
   leaderboard:(boss,cls,limit,offset)=>all(`SELECT f.id,json_extract(f.payload,'$.boss') AS boss,
    json_extract(f.payload,'$.startedUtc') AS startedUtc,json_extract(f.payload,'$.durationSeconds') AS durationSeconds,
-   json_extract(p.value,'$.name') AS name,json_extract(p.value,'$.className') AS className,
+   json_extract(p.value,'$.name') AS name,json_extract(p.value,'$.serverId') AS serverId,json_extract(p.value,'$.className') AS className,
    json_extract(p.value,'$.damage') AS damage,
    CAST(json_extract(p.value,'$.damage') AS REAL)/json_extract(f.payload,'$.durationSeconds') AS dps,f.verification
    FROM fights f,json_each(f.payload,'$.players') p WHERE f.visibility='public' AND f.verification='unverified'

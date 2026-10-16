@@ -70,3 +70,13 @@ test('worker fails closed without database or rate limiter, and serves only arch
  assert.equal(response.status,200);assert.equal(response.headers.get('Referrer-Policy'),'no-referrer');
  assert.equal((await worker.fetch(request('/'),{})).status,404);
 });
+
+test('character names and known servers survive upload and ranking without merging same-name players',async t=>{
+ const {api}=setup(t),input=fixture();
+ input.players=[{name:'TestHero',serverId:1102,className:'Templar',damage:90000},{name:'TestHero',serverId:1202,className:'Sorcerer',damage:180000}];
+ const response=await api(request('/api/fights','POST',input));assert.equal(response.status,201);const receipt=await response.json();
+ const detail=await (await api(request('/api/fights/'+receipt.id))).json();assert.deepEqual(detail.players.map(p=>[p.name,p.serverId]),[['TestHero',1102],['TestHero',1202]]);
+ const ranking=await (await api(request('/api/leaderboard?mode=community'))).json();assert.equal(ranking.rows.length,2);assert.deepEqual(ranking.rows.map(p=>p.serverId),[1202,1102]);assert.ok(ranking.rows.every(p=>p.name==='TestHero'&&p.verification==='unverified'));
+ input.players[1].serverId=1102;assert.equal((await api(request('/api/fights','POST',input))).status,400);
+ input.players[1].serverId=42;assert.equal((await api(request('/api/fights','POST',input))).status,400);
+});
