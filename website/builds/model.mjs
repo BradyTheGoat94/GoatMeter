@@ -7,11 +7,12 @@ export function effectivePreset(build,modeId,{charged=false}={}){
  if(charged&&chargeSkill){for(const line of mode.lines)line.priority=line.priority.filter(s=>s===chargeSkill?false:true);mode.manual=[...new Set([...mode.manual,chargeSkill+' (manual charge)'])];}
  return mode;
 }
-export function eligibility(mode,{characterLevel=45,skillTier=16,stigmaLevels={}}={}){
+export function eligibility(mode,{characterLevel=45,skillTier=16,stigmaLevels={},skillLevels={}}={}){
  if(!Number.isInteger(characterLevel)||characterLevel<1||characterLevel>45)return 'Choose a character level from 1 to 45.';
  if(![8,12,16].includes(Number(skillTier)))return 'Choose the equipped skill tier.';
  if(characterLevel<mode.minCharacterLevel)return `This candidate is scoped to character level ${mode.minCharacterLevel}; use the leveling worksheet.`;
  if(skillTier<mode.minSkillTier)return `Requires the relevant skill at ${mode.minSkillTier} and its selected specialty. Character level alone is insufficient.`;
+ for(const [skill,level] of Object.entries(mode.skillRequirements??{})){const actual=skillLevels[skill]??0;if(!Number.isInteger(actual)||actual<0)return `Enter a valid equipped ${skill} skill level.`;if(actual<level)return `Requires equipped ${skill} skill level ${level}; character level 45 alone is insufficient.`;}
  for(const [skill,level] of Object.entries(mode.stigmaRequirements??{})){const actual=stigmaLevels[skill]??0;if(!Number.isInteger(actual)||actual<0||actual>20)return `Enter a valid equipped ${skill} stigma level (0–20).`;if(actual<level)return `Requires ${skill} stigma level ${level}; enter your actual equipped level.`;}
  if(!mode.copyEnabled)return 'Research worksheet: exact compatibility or configuration is unresolved; copying is disabled.';
  return '';
@@ -31,6 +32,7 @@ export function copyPlan(build,mode,options={}){
  return [`GoatMeter Build Lab · ${build.name} · ${mode.label} · TEST CANDIDATE`,
  `Global Season 1 source scope; exact client build and execution unverified. Character level ${options.characterLevel??45}; equipped skill tier ${options.skillTier??16}.`,
  'ONE native macro button: bind a single held key to the macro. The Q/E/T labels are hotbar slots cycled by that macro, not separate buttons to hold. Row 0 = bottom / highest priority.',
+ ...Object.entries(mode.skillRequirements??{}).map(([skill])=>`Equipped ${skill}: ${options.skillLevels?.[skill]??'unknown'}; verify the required specialty is selected.`),
  ...mode.lines.map(l=>`${l.key}: ${l.priority.map((s,i)=>`Row ${i}: ${s}`).join('; ')}`),
  `Macro steps: ${mode.steps.join(' → ')}; delay ${delay} ms.`,
  ...(mode.basicAttack?[`Basic attack: ${mode.basicAttack.skill} on ${mode.basicAttack.binding}. ${mode.basicAttack.usage}`]:[]),

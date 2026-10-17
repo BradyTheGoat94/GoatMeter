@@ -47,7 +47,7 @@ test('Cleric composition candidate requires the equipped Absolution specialty le
 });
 test('all copy-enabled plans agree with their selected preview rows and never auto-cast manual charge skills',()=>{
  for(const b of catalog.classes)for(const m of b.modes){
-  if(!m.copyEnabled)continue;const plan=copyPlan(b,m,{stigmaLevels:m.stigmaRequirements??{}});
+  if(!m.copyEnabled)continue;const plan=copyPlan(b,m,{stigmaLevels:m.stigmaRequirements??{},skillLevels:m.skillRequirements??{}});
   for(const l of m.lines)for(const [row,skill] of l.priority.entries())assert.ok(plan.includes(`Row ${row}: ${skill}`));
   for(const l of m.lines)assert.ok(l.priority.every(s=>!['Punishment','Hellfire','Deadshot','Bolt'].includes(s)));
  }
@@ -73,4 +73,10 @@ test('Assassin and Ranger comparisons preserve distinct basic inputs and four st
 });
 test('copy instructions distinguish a single held macro key from its internal hotbar steps',()=>{
  const b=build('templar'),plan=copyPlan(b,effectivePreset(b,'one-button'));assert.match(plan,/ONE native macro button/);assert.match(plan,/not separate buttons to hold/);assert.match(plan,/Macro steps: Q → E/);
+});
+test('Gladiator split setup prioritizes its enabler and requires actual equipped core levels',()=>{
+ const b=build('gladiator'),m=effectivePreset(b,'one-button');assert.deepEqual(m.lines[0].priority,['Rage Burst','Overhead Slam']);assert.equal(highestReady(m.lines[0]),'Rage Burst');assert.equal(highestReady(m.lines[0],{disabled:['Rage Burst']}),'Overhead Slam');assert.ok(!m.manual.includes('Rage Burst'));
+ assert.throws(()=>copyPlan(b,m),/equipped Overhead Slam/);assert.throws(()=>copyPlan(b,m,{skillLevels:{'Overhead Slam':16,'Rending Blow':15}}),/Rending Blow/);assert.ok(copyPlan(b,m,{skillLevels:{'Overhead Slam':16,'Rending Blow':16}}));
+ const early=effectivePreset(b,'community-single-line');assert.ok(early.manual.includes('Ruinous Blow'));assert.equal(early.basicAttack.skill,'Keen Strike');
+ const boss=effectivePreset(b,'boss-manual');assert.ok(boss.manual.includes('Rage Burst'));assert.ok(boss.manual.includes('Ruinous Blow'));
 });

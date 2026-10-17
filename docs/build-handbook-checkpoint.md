@@ -23,3 +23,7 @@ Evripides’ original Global Spiritmaster guide was additionally inspected. It d
 ## Website integration preparation
 
 The handbook now explicitly distinguishes one held macro key from the multiple hotbar lines it cycles. Added a separate-basic Assassin comparison following newer guide revisions, and a Ranger Explosive Arrow alternative that replaces Griffon Arrow within four stigma slots. These remain source comparisons, not measured winners. The existing Site is being prepared as an unpublished review version; no production publication is authorized by this checkpoint.
+
+## Gladiator focused review
+
+Corrected the automatic-enabler candidate to put Rage Burst before Overhead Slam. The deliberate boss variant still keeps Rage Burst and Ruinous Blow manual, with an explicit enabling-window requirement. The older single-line comparison now explicitly lists manual Ruinous Blow. The later split-line candidate requires actual equipped Overhead Slam and Rending Blow levels, rather than treating a generic skill-tier selector or character level 45 as sufficient. Keen Strike guidance remains a source/progression comparison, not a measured winner. New class-mechanics notes explain immunity, stagger, trigger starvation and manual defensive decisions. No client execution or benchmark label was upgraded.

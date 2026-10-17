@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "version": "0.2.5-test",
+  "version": "0.2.6-test",
   "reviewed": "2026-10-17",
   "classes": [
     {
@@ -600,9 +600,9 @@
       ],
       "labSource": "https://github.com/BradyTheGoat94/GoatMeter-Rotation-Lab/blob/e97db9e/docs/rotation-evidence.md",
       "specializations": [
-        "Overhead Slam 16: compare the cooldown-removal specialty with your current client tooltip.",
-        "Rending Blow: assess resource sustain and movement specialization separately from damage.",
-        "Ruinous Blow: compare speed versus critical-hit options; maintain its observed buff window without assuming a perfect uptime."
+        "Overhead Slam: verify the extra chain at skill 8 and cooldown-removal specialty at 16; skill level alone does not select the specialty.",
+        "Rending Blow: mobile use supports movement; the skill-16 critical-hit MP restoration option changes whether separate Keen Strike is needed. Verify the exact tooltip before choosing.",
+        "Ruinous Blow: the source options differ between speed and critical-hit emphasis at early specialties. Keep its damage-buff window aligned with usable boss uptime."
       ],
       "compatibility": {
         "region": "Global",
@@ -622,6 +622,7 @@
               "key": "Q",
               "name": "Overhead engine",
               "priority": [
+                "Rage Burst",
                 "Overhead Slam"
               ]
             },
@@ -639,8 +640,7 @@
             "Lunge Stance",
             "Zikel’s Blessing",
             "Focused Block",
-            "Gap closers and crowd control",
-            "Rage Burst"
+            "Gap closers and crowd control"
           ],
           "stigmas": [
             "Lunge Stance",
@@ -649,13 +649,13 @@
             "Zikel’s Blessing"
           ],
           "notes": [
-            "One held native macro cycles the shown lines. This does not prove automatic basic-attack weaving or maximum DPS.",
-            "Charges, defensives, interrupts and encounter-critical burst remain manual.",
-            "Compare Q/E sustained loops with Ruinous Blow timed before a fixed damage window; record Rending Blow frequency and resource failures.",
-            "Community sources describe both a single four-skill priority line and a split Overhead line at skill 16. No controlled comparison in the reviewed source proves which wins."
+            "Single held native macro: Q (Rage Burst before Overhead Slam), then E (Ruinous Blow, Sword Aura Rampage, Rending Blow).",
+            "Rage Burst is the availability enabler in this convenience setup, not a manually saved long-burst buff. Lunge Stance, Zikel’s Blessing, Focused Block and movement remain manual.",
+            "The split-line candidate requires actual equipped Overhead Slam and Rending Blow levels of at least 16, plus the relevant specialties.",
+            "Keen Strike advice differs by progression and source. Compare with and without separate LMB weaving; do not assume removing it is better before mana sustain works."
           ],
           "minCharacterLevel": 45,
-          "minSkillTier": 8,
+          "minSkillTier": 16,
           "evidence": {
             "communitySupported": true,
             "mechanicallyVerified": false,
@@ -670,7 +670,11 @@
           "steps": [
             "Q",
             "E"
-          ]
+          ],
+          "skillRequirements": {
+            "Overhead Slam": 16,
+            "Rending Blow": 16
+          }
         },
         {
           "id": "boss-manual",
@@ -707,12 +711,11 @@
             "Zikel’s Blessing"
           ],
           "notes": [
-            "Control burst around boss vulnerability and mechanics. This is the comparison preset, not a benchmark winner.",
-            "Compare Q/E sustained loops with Ruinous Blow timed before a fixed damage window; record Rending Blow frequency and resource failures.",
-            "Community sources describe both a single four-skill priority line and a split Overhead line at skill 16. No controlled comparison in the reviewed source proves which wins."
+            "Rage Burst and Ruinous Blow are deliberate manual inputs in this comparison. Activate the enabling window before expecting Overhead Slam to fire.",
+            "Compare fixed boss vulnerability windows against automatic enabling, with matched gear, duration, buffs and target. No winner has been measured here."
           ],
           "minCharacterLevel": 45,
-          "minSkillTier": 8,
+          "minSkillTier": 16,
           "evidence": {
             "communitySupported": true,
             "mechanicallyVerified": false,
@@ -727,7 +730,11 @@
           "steps": [
             "Q",
             "E"
-          ]
+          ],
+          "skillRequirements": {
+            "Overhead Slam": 16,
+            "Rending Blow": 16
+          }
         },
         {
           "id": "solo",
@@ -825,7 +832,7 @@
             "Community sources describe both a single four-skill priority line and a split Overhead line at skill 16. No controlled comparison in the reviewed source proves which wins."
           ],
           "minCharacterLevel": 45,
-          "minSkillTier": 8,
+          "minSkillTier": 16,
           "evidence": {
             "communitySupported": true,
             "mechanicallyVerified": false,
@@ -840,7 +847,11 @@
           "steps": [
             "Q",
             "E"
-          ]
+          ],
+          "skillRequirements": {
+            "Overhead Slam": 16,
+            "Rending Blow": 16
+          }
         },
         {
           "id": "pvp",
@@ -940,7 +951,7 @@
         },
         {
           "id": "community-single-line",
-          "label": "Community comparison · single damage line",
+          "label": "Earlier skills · single damage line",
           "lines": [
             {
               "key": "Q",
@@ -957,7 +968,8 @@
             "Lunge Stance",
             "Zikel’s Blessing",
             "Focused Block",
-            "Gap closers and crowd control"
+            "Gap closers and crowd control",
+            "Ruinous Blow"
           ],
           "stigmas": [
             "Lunge Stance",
@@ -966,12 +978,9 @@
             "Zikel’s Blessing"
           ],
           "notes": [
-            "One held native macro cycles the shown lines. This does not prove automatic basic-attack weaving or maximum DPS.",
-            "Charges, defensives, interrupts and encounter-critical burst remain manual.",
-            "Compare Q/E sustained loops with Ruinous Blow timed before a fixed damage window; record Rending Blow frequency and resource failures.",
-            "Community sources describe both a single four-skill priority line and a split Overhead line at skill 16. No controlled comparison in the reviewed source proves which wins.",
-            "Rage Burst is automatic in this published convenience comparison, unlike the manual-burst preset. Do not assume it aligns with a boss window.",
-            "Verify actual skill behavior and native stack compatibility before use."
+            "Community comparison for earlier skills: Rage Burst → Overhead Slam → Sword Aura Rampage → Rending Blow in one priority line. This is one macro step.",
+            "Ruinous Blow and offensive buffs remain manual. Keen Strike on LMB can support mana; later setups may omit it only when actual resource sustain allows.",
+            "This configuration is not proven superior to the split-line setup. Compare at your equipped skill levels."
           ],
           "minCharacterLevel": 45,
           "minSkillTier": 8,
@@ -988,7 +997,12 @@
           ],
           "steps": [
             "Q"
-          ]
+          ],
+          "basicAttack": {
+            "skill": "Keen Strike",
+            "binding": "LMB",
+            "usage": "Early-skill sustain comparison; hold separately if needed. Later omission requires actual sustain testing."
+          }
         }
       ],
       "levelNotes": {
@@ -996,7 +1010,25 @@
         "12": "Mid progression: verify the second specialty in the actual client; charge variants change automation suitability.",
         "16": "Later setup: explicitly equip required specialties. Skill 20 and extra slots still require the appropriate gear and board investment."
       },
-      "researchComparison": "Community sources describe both a single four-skill priority line and a split Overhead line at skill 16. No controlled comparison in the reviewed source proves which wins."
+      "researchComparison": "Community sources describe both a single four-skill priority line and a split Overhead line at skill 16. No controlled comparison in the reviewed source proves which wins.",
+      "mechanics": [
+        {
+          "title": "Rage Burst must win the ready-skill check",
+          "detail": "In the automatic-enabler candidate, row 0 is Rage Burst and row 1 is Overhead Slam. Otherwise a repeatedly available Slam can starve the enabler. This is a source-supported priority rationale, not a client test."
+        },
+        {
+          "title": "Separate Overhead from the filler in the later comparison",
+          "detail": "Q handles the enabling window and Overhead. E handles Ruinous Blow, the conditional stagger attack and Rending Blow. The older four-skill line remains available for a fair comparison."
+        },
+        {
+          "title": "A boss is not a permanently knocked-down target",
+          "detail": "Check the actual enable window, immunity and stagger conditions. The model’s ready toggle cannot infer these from the target name."
+        },
+        {
+          "title": "Keep defensive and movement decisions manual",
+          "detail": "Focused Block, crowd control and gap closers are encounter decisions. The guide does not trade them for an automatic personal-DPS opener."
+        }
+      ]
     },
     {
       "id": "assassin",
