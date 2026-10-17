@@ -27,3 +27,9 @@ After confirming the full layout, compare against catalog `sorcerer/boss-manual`
 Use total damage to that same target divided by the fixed 120-second test window. Archive first-to-last observed target duration is a different denominator and must not substitute for this fixed window. Exclude adds; reject capture loss, death, movement or target downtime. Record cast attempts where available separately from damage hits; no cooldown-efficiency claim can be recovered from hit counts alone. Keep raw logs private.
 
 `compareTrials` in `compare-trials.mjs` accepts only complete paired trial records with an identical explicit scenario fingerprint and confirmed layouts. It summarizes observed per-pair DPS differences and range; it does not establish statistical significance, independently validate data, or declare an optimal macro. No real trials have been supplied for this comparison, and no real result is available.
+
+## Run the offline prototype
+
+`node labs/goatsim/run.mjs labs/goatsim/synthetic-example.json`
+
+Optionally append a new output filename to save the JSON report. Existing files are never overwritten. The example contains deliberately fictional skills and timings, not any AION class. Reports include a cast timeline, counts, skipped manual taps and remaining resources, with an explicit warning that they are not game DPS. This makes the current core runnable without needing a game account or Sorcerer character.

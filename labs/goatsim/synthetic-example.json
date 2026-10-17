@@ -1,0 +1,15 @@
+{
+  "durationMs": 1000,
+  "delayMs": 10,
+  "skills": {
+    "Synthetic spender": {"cooldownMs":200,"lockMs":50,"cost":2},
+    "Synthetic generator": {"cooldownMs":0,"lockMs":50,"gain":1},
+    "Synthetic basic": {"cooldownMs":0,"lockMs":30},
+    "Synthetic manual burst": {"cooldownMs":500,"lockMs":100}
+  },
+  "resource":{"initial":2,"max":4},
+  "lines":{"Q":["Synthetic spender","Synthetic generator"]},
+  "steps":["Q"],
+  "basic":{"skill":"Synthetic basic","intervalMs":100},
+  "manual":[{"atMs":0,"skill":"Synthetic manual burst"},{"atMs":500,"skill":"Synthetic manual burst"}]
+}
