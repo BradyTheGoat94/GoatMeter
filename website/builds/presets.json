@@ -1,0 +1,3832 @@
+{
+  "schemaVersion": 1,
+  "version": "0.2.0-test",
+  "reviewed": "2026-10-17",
+  "classes": [
+    {
+      "id": "templar",
+      "name": "Templar",
+      "role": "Tank · party protection",
+      "color": "#58a9ff",
+      "intro": "A shield-triggered damage loop with deliberate charged burst. Keep threat and survival under your control.",
+      "core": [
+        [
+          "Judgment",
+          "20",
+          "Shield-triggered damage; the level-16 cooldown-removal specialty changes its loop."
+        ],
+        [
+          "Punishment",
+          "20",
+          "Charged burst; release it deliberately."
+        ],
+        [
+          "Pummel",
+          "20",
+          "Sustained damage and Punishing Strike continuation."
+        ],
+        [
+          "Shield Smite / Annihilate",
+          "16",
+          "Add their useful specializations after the core."
+        ]
+      ],
+      "stigmas": [
+        "Doom Shield",
+        "Battlefield Banner",
+        "Empyrean Lord’s Punishment",
+        "Taunt"
+      ],
+      "passives": [
+        "Fury",
+        "Punishing Benediction",
+        "Insulting Roar",
+        "Ironclad Defense"
+      ],
+      "lines": [
+        {
+          "key": "Q",
+          "name": "Shield / Judgment",
+          "priority": [
+            "Judgment",
+            "Shield Smite",
+            "Warding Strike"
+          ]
+        },
+        {
+          "key": "E",
+          "name": "Melee filler",
+          "priority": [
+            "Annihilate",
+            "Debilitating Smash",
+            "Pummel"
+          ]
+        }
+      ],
+      "steps": [
+        "Q line",
+        "E line"
+      ],
+      "manual": [
+        "Punishment (charge)",
+        "Doom Shield (charge variant)",
+        "Taunt",
+        "Block, Defiance and survival cooldowns"
+      ],
+      "opener": [
+        "Establish threat and position the boss.",
+        "Block the important hit to support Fury.",
+        "Use a shield trigger, then take the Judgment opportunity.",
+        "Charge Punishment in a safe window; resume the two-line loop."
+      ],
+      "progression": [
+        "Build Judgment, Pummel and Punishment before spreading points.",
+        "Do not expect a zero-cooldown Judgment loop before selecting its level-16 specialty.",
+        "Use the four equipped stigmas above; advanced skill targets require extra skill levels from gear/boards."
+      ],
+      "gear": "Prioritize useful core-skill levels, combat speed and cooldown reduction. Fix accuracy issues before chasing a dummy damage result; retain enough defensive investment to tank the actual encounter.",
+      "variant": "For an offensive non-tank preset, swap Taunt only when someone else owns threat. Do not drop required group utility to copy a solo damage test.",
+      "lab": "The Lab observes shield-skill → Judgment and Pummel → Punishing Strike opportunities. Its Annihilate recommendation still requires observed Stun/Knockdown; it does not assume your boss-immunity specialty. A macro cannot make that hidden state trustworthy.",
+      "pitfall": "Do not copy a specialization-dependent Judgment or Annihilate loop before equipping that specialization.",
+      "guide": "https://aion2-guides.info/en/templar/",
+      "guideUpdated": "Oct 16, 2026",
+      "credits": [
+        {
+          "label": "Global class guide and comparisons",
+          "url": "https://aion2-guides.info/en/templar/"
+        },
+        {
+          "label": "SolAshur’s original Templar macro guide",
+          "url": "https://solashur.com/builds/templar-macro-guide.html"
+        }
+      ],
+      "videos": [
+        {
+          "title": "aLuckyRO — Level 16 Judgment PvE macro (Brady’s current baseline)",
+          "url": "https://www.youtube.com/watch?v=3hTiLQCRtJw&t=522s",
+          "review": "Creator page and level-16 scope confirmed. Playback stalled and no transcript was available; exact setup not independently verified. This page does not claim to reproduce it."
+        },
+        {
+          "title": "his video walkthrough",
+          "url": "https://www.youtube.com/watch?v=ayyzLdGOaNc",
+          "review": "Referenced by the written guide; video transcript not independently available."
+        },
+        {
+          "title": "NoBS Game Guides — Aion 2 Templar Guide: Skills Introduction + Early Game Macro",
+          "url": "https://www.youtube.com/watch?v=JEWRiaOb9JY",
+          "review": "Referenced by the written guide; video transcript not independently available."
+        },
+        {
+          "title": "Grobs — AION 2 Macro Guide",
+          "url": "https://www.youtube.com/watch?v=HMod6Z4GrE0",
+          "review": "Referenced by the written guide; video transcript not independently available."
+        }
+      ],
+      "labSource": "https://github.com/BradyTheGoat94/GoatMeter-Rotation-Lab/blob/e97db9e/docs/rotation-evidence.md",
+      "specializations": [
+        "Judgment 16: select cooldown removal before testing the repeat-trigger loop.",
+        "Annihilate: verify the CC-immunity specialty for bosses; do not infer it from a hit.",
+        "Doom Shield: confirm its Judgment trigger and actual charge behavior in the Global client. No instant-cast specialty is assumed."
+      ],
+      "compatibility": {
+        "region": "Global",
+        "season": "Season 1",
+        "reviewed": "2026-10-17",
+        "clientBuild": "Not captured; exact client compatibility pending",
+        "skillCapAssumption": 20,
+        "stigmaSlotsAssumption": 4
+      },
+      "modes": [
+        {
+          "id": "one-button",
+          "label": "One-button PvE candidate",
+          "lines": [
+            {
+              "key": "Q",
+              "name": "Q skill line",
+              "priority": [
+                "Judgment",
+                "Shield Smite",
+                "Warding Strike",
+                "Doom Shield"
+              ]
+            },
+            {
+              "key": "E",
+              "name": "E skill line",
+              "priority": [
+                "Annihilate",
+                "Debilitating Smash",
+                "Pummel"
+              ]
+            }
+          ],
+          "manual": [
+            "Punishment charge",
+            "Taunt",
+            "Block, Defiance and defensive cooldowns"
+          ],
+          "stigmas": [
+            "Doom Shield",
+            "Battlefield Banner",
+            "Empyrean Lord’s Punishment",
+            "Taunt"
+          ],
+          "notes": [
+            "One held native macro cycles the shown lines. This does not prove automatic basic-attack weaving or maximum DPS.",
+            "Charges, defensives, interrupts and encounter-critical burst remain manual.",
+            "Exact requested bottom-first candidate. Doom Shield shares the Judgment line. Stack legality and charge behavior are not yet verified in the Global client.",
+            "Judgment must have its level-16 cooldown-removal specialty selected. Doom Shield’s observed Judgment window does not by itself prove macro compatibility."
+          ],
+          "minCharacterLevel": 45,
+          "minSkillTier": 16,
+          "evidence": {
+            "communitySupported": true,
+            "mechanicallyVerified": false,
+            "logTested": false,
+            "benchmarkValidated": false
+          },
+          "copyEnabled": true,
+          "sources": [
+            "https://aion2-guides.info/en/templar/",
+            "https://solashur.com/builds/templar-macro-guide.html"
+          ],
+          "steps": [
+            "Q",
+            "E"
+          ]
+        },
+        {
+          "id": "boss-manual",
+          "label": "Boss PvE · manual burst",
+          "lines": [
+            {
+              "key": "Q",
+              "name": "Shield / Judgment",
+              "priority": [
+                "Judgment",
+                "Shield Smite",
+                "Warding Strike"
+              ]
+            },
+            {
+              "key": "E",
+              "name": "Melee filler",
+              "priority": [
+                "Annihilate",
+                "Debilitating Smash",
+                "Pummel"
+              ]
+            }
+          ],
+          "manual": [
+            "Doom Shield",
+            "Punishment charge",
+            "Taunt",
+            "Block and defensives"
+          ],
+          "stigmas": [
+            "Doom Shield",
+            "Battlefield Banner",
+            "Empyrean Lord’s Punishment",
+            "Taunt"
+          ],
+          "notes": [
+            "Control burst around boss vulnerability and mechanics. This is the comparison preset, not a benchmark winner.",
+            "Use Doom Shield deliberately to open a Judgment opportunity; keep Punishment charged by hand."
+          ],
+          "minCharacterLevel": 45,
+          "minSkillTier": 16,
+          "evidence": {
+            "communitySupported": true,
+            "mechanicallyVerified": false,
+            "logTested": false,
+            "benchmarkValidated": false
+          },
+          "copyEnabled": true,
+          "sources": [
+            "https://aion2-guides.info/en/templar/",
+            "https://solashur.com/builds/templar-macro-guide.html"
+          ],
+          "steps": [
+            "Q",
+            "E"
+          ]
+        },
+        {
+          "id": "solo",
+          "label": "Solo farming",
+          "lines": [
+            {
+              "key": "Q",
+              "name": "Q skill line",
+              "priority": [
+                "Judgment",
+                "Shield Smite",
+                "Warding Strike",
+                "Doom Shield"
+              ]
+            },
+            {
+              "key": "E",
+              "name": "E skill line",
+              "priority": [
+                "Annihilate",
+                "Debilitating Smash",
+                "Pummel"
+              ]
+            }
+          ],
+          "manual": [
+            "Punishment charge",
+            "Taunt",
+            "Block, Defiance and defensive cooldowns"
+          ],
+          "stigmas": [
+            "Doom Shield",
+            "Battlefield Banner",
+            "Empyrean Lord’s Punishment",
+            "Taunt"
+          ],
+          "notes": [
+            "Use sustainable resource choices before damage-only specialties; retain escape and recovery. Pull size and control immunity alter the rotation.",
+            "Unlock prerequisites still apply. At level 45, skill level 16 is not automatic."
+          ],
+          "minCharacterLevel": 45,
+          "minSkillTier": 16,
+          "evidence": {
+            "communitySupported": true,
+            "mechanicallyVerified": false,
+            "logTested": false,
+            "benchmarkValidated": false
+          },
+          "copyEnabled": true,
+          "sources": [
+            "https://aion2-guides.info/en/templar/",
+            "https://solashur.com/builds/templar-macro-guide.html"
+          ],
+          "steps": [
+            "Q",
+            "E"
+          ]
+        },
+        {
+          "id": "group",
+          "label": "Dungeon / raid",
+          "lines": [
+            {
+              "key": "Q",
+              "name": "Shield / Judgment",
+              "priority": [
+                "Judgment",
+                "Shield Smite",
+                "Warding Strike"
+              ]
+            },
+            {
+              "key": "E",
+              "name": "Melee filler",
+              "priority": [
+                "Annihilate",
+                "Debilitating Smash",
+                "Pummel"
+              ]
+            }
+          ],
+          "manual": [
+            "Doom Shield",
+            "Punishment charge",
+            "Taunt",
+            "Block and defensives"
+          ],
+          "stigmas": [
+            "Doom Shield",
+            "Battlefield Banner",
+            "Empyrean Lord’s Punishment",
+            "Taunt"
+          ],
+          "notes": [
+            "Use the manual-burst preset. Reserve defensive and group utility buttons for mechanics; do not evaluate only the opener."
+          ],
+          "minCharacterLevel": 45,
+          "minSkillTier": 16,
+          "evidence": {
+            "communitySupported": true,
+            "mechanicallyVerified": false,
+            "logTested": false,
+            "benchmarkValidated": false
+          },
+          "copyEnabled": true,
+          "sources": [
+            "https://aion2-guides.info/en/templar/",
+            "https://solashur.com/builds/templar-macro-guide.html"
+          ],
+          "steps": [
+            "Q",
+            "E"
+          ]
+        },
+        {
+          "id": "pvp",
+          "label": "PvP · control and burst",
+          "lines": [
+            {
+              "key": "Q",
+              "name": "Q skill line",
+              "priority": [
+                "Judgment",
+                "Shield Smite",
+                "Warding Strike"
+              ]
+            },
+            {
+              "key": "E",
+              "name": "E skill line",
+              "priority": [
+                "Annihilate",
+                "Debilitating Smash",
+                "Pummel"
+              ]
+            }
+          ],
+          "manual": [
+            "Executing Blade",
+            "Doom Shield",
+            "Shield Rush",
+            "Punishment charge",
+            "Defiance and defensive cooldowns"
+          ],
+          "stigmas": [
+            "Executing Blade",
+            "Empyrean Lord’s Punishment",
+            "Doom Shield",
+            "Nezekan’s Shield"
+          ],
+          "notes": [
+            "Damage-only macro candidate. Engage, crowd control, interrupts, cleansing and defensive reactions remain manual.",
+            "No claim that a PvE loop is optimal in PvP. Test against actual opponents with matching gear."
+          ],
+          "minCharacterLevel": 45,
+          "minSkillTier": 8,
+          "evidence": {
+            "communitySupported": true,
+            "mechanicallyVerified": false,
+            "logTested": false,
+            "benchmarkValidated": false
+          },
+          "copyEnabled": true,
+          "sources": [
+            "https://aion2-guides.info/en/templar/",
+            "https://solashur.com/builds/templar-macro-guide.html"
+          ],
+          "steps": [
+            "Q",
+            "E"
+          ]
+        },
+        {
+          "id": "leveling",
+          "label": "Leveling / fresh level 45",
+          "lines": [
+            {
+              "key": "Q",
+              "name": "Q skill line",
+              "priority": [
+                "Pummel"
+              ]
+            }
+          ],
+          "manual": [
+            "Punishment (charge)",
+            "Doom Shield (charge variant)",
+            "Taunt",
+            "Block, Defiance and survival cooldowns",
+            "Locked skills must remain off the bar"
+          ],
+          "stigmas": [
+            "Doom Shield",
+            "Battlefield Banner",
+            "Empyrean Lord’s Punishment",
+            "Taunt"
+          ],
+          "notes": [
+            "Progression worksheet, not an exact skill-point allocation. Invest in unlocked core attacks and resource sustain.",
+            "At fresh level 45, use actual equipped skill levels (often 8–10), not the later 16–20 target. Bonus levels from gear/boards are separate.",
+            "Exact unlock levels and point budgets have not been verified against a captured Global client. Copy is disabled rather than presenting an invented allocation."
+          ],
+          "minCharacterLevel": 1,
+          "minSkillTier": 8,
+          "evidence": {
+            "communitySupported": true,
+            "mechanicallyVerified": false,
+            "logTested": false,
+            "benchmarkValidated": false
+          },
+          "copyEnabled": false,
+          "sources": [
+            "https://aion2-guides.info/en/templar/",
+            "https://solashur.com/builds/templar-macro-guide.html"
+          ],
+          "steps": [
+            "Q"
+          ]
+        }
+      ],
+      "levelNotes": {
+        "8": "Fresh-cap / early skills: choose resource sustain; later chain and cooldown-removal claims do not apply.",
+        "12": "Mid progression: verify the second specialty in the actual client; charge variants change automation suitability.",
+        "16": "Later setup: explicitly equip required specialties. Skill 20 and extra slots still require the appropriate gear and board investment."
+      }
+    },
+    {
+      "id": "gladiator",
+      "name": "Gladiator",
+      "role": "Melee damage · bruiser",
+      "color": "#ee666f",
+      "intro": "Keep the Overhead engine moving, use Ruinous Blow for its damage window, and time buffs rather than spending them on every target.",
+      "core": [
+        [
+          "Overhead Slam",
+          "20",
+          "Main damage investment; skill-level specialties alter availability."
+        ],
+        [
+          "Rending Blow",
+          "20",
+          "Reliable filler; mobile variant helps during movement."
+        ],
+        [
+          "Ruinous Blow",
+          "16",
+          "Sets up the offensive window."
+        ]
+      ],
+      "stigmas": [
+        "Lunge Stance",
+        "Focused Block",
+        "Rage Burst",
+        "Zikel’s Blessing"
+      ],
+      "passives": [
+        "Attack Preparation",
+        "Experienced Counterstrike",
+        "Murderous Burst",
+        "Impact Hit"
+      ],
+      "lines": [
+        {
+          "key": "Q",
+          "name": "Overhead engine",
+          "priority": [
+            "Rage Burst",
+            "Overhead Slam"
+          ]
+        },
+        {
+          "key": "E",
+          "name": "Ruinous / filler",
+          "priority": [
+            "Ruinous Blow",
+            "Sword Aura Rampage",
+            "Rending Blow"
+          ]
+        }
+      ],
+      "steps": [
+        "Q line",
+        "E line"
+      ],
+      "manual": [
+        "Lunge Stance",
+        "Zikel’s Blessing",
+        "Focused Block",
+        "Gap closers and crowd control"
+      ],
+      "opener": [
+        "Activate your offensive buffs for the boss window.",
+        "Enter range without spending the escape needed for the next mechanic.",
+        "Apply Ruinous Blow, then run the two damage lines.",
+        "Take available short follow-ups; move or block when mechanics require it."
+      ],
+      "progression": [
+        "Before Rage Burst is equipped, use Overhead Slam with Rending Blow as a simpler line.",
+        "Recheck the layout when Overhead Slam reaches its level-16 specialty.",
+        "Add conditional attacks only when their actual activation rules are understood."
+      ],
+      "gear": "Core-skill levels and weapon damage come first. Consider combat speed, damage boost and useful cooldown reduction; check accuracy against the content you run.",
+      "variant": "A PvP loadout needs survival and control substitutions; this PvE macro is not a ready-made arena build.",
+      "lab": "The Lab uses Ruinous Blow’s 45s base cooldown and 20s observed buff window. Rage Burst stays loadout-gated; cooldown reductions and unobserved specialization effects are not assumed.",
+      "pitfall": "A macro does not guarantee every displayed follow-up is valid; never sacrifice a short activated chain just to follow a fixed opener.",
+      "guide": "https://aion2-guides.info/en/gladiator/",
+      "guideUpdated": "Oct 16, 2026",
+      "credits": [
+        {
+          "label": "Global class guide and comparisons",
+          "url": "https://aion2-guides.info/en/gladiator/"
+        },
+        {
+          "label": "Macro/build comparison notes",
+          "url": "https://daevaguides.com/en/gladiator/"
+        }
+      ],
+      "videos": [
+        {
+          "title": "Grobs — The Only Gladiator PVE Guide You Need",
+          "url": "https://www.youtube.com/watch?v=xRPr30JetyY",
+          "review": "Referenced by the written guide; video transcript not independently available."
+        },
+        {
+          "title": "Arthars Gaming — The ULTIMATE AION 2 Gladiator Starter Guide",
+          "url": "https://www.youtube.com/watch?v=tYTZ8VucMXw",
+          "review": "Referenced by the written guide; video transcript not independently available."
+        },
+        {
+          "title": "Grobs — AION 2 Macro Guide",
+          "url": "https://www.youtube.com/watch?v=HMod6Z4GrE0",
+          "review": "Referenced by the written guide; video transcript not independently available."
+        }
+      ],
+      "labSource": "https://github.com/BradyTheGoat94/GoatMeter-Rotation-Lab/blob/e97db9e/docs/rotation-evidence.md",
+      "specializations": [
+        "Overhead Slam 16: compare the cooldown-removal specialty with your current client tooltip.",
+        "Rending Blow: assess resource sustain and movement specialization separately from damage.",
+        "Ruinous Blow: compare speed versus critical-hit options; maintain its observed buff window without assuming a perfect uptime."
+      ],
+      "compatibility": {
+        "region": "Global",
+        "season": "Season 1",
+        "reviewed": "2026-10-17",
+        "clientBuild": "Not captured; exact client compatibility pending",
+        "skillCapAssumption": 20,
+        "stigmaSlotsAssumption": 4
+      },
+      "modes": [
+        {
+          "id": "one-button",
+          "label": "One-button PvE candidate",
+          "lines": [
+            {
+              "key": "Q",
+              "name": "Overhead engine",
+              "priority": [
+                "Overhead Slam"
+              ]
+            },
+            {
+              "key": "E",
+              "name": "Ruinous / filler",
+              "priority": [
+                "Ruinous Blow",
+                "Sword Aura Rampage",
+                "Rending Blow"
+              ]
+            }
+          ],
+          "manual": [
+            "Lunge Stance",
+            "Zikel’s Blessing",
+            "Focused Block",
+            "Gap closers and crowd control",
+            "Rage Burst"
+          ],
+          "stigmas": [
+            "Lunge Stance",
+            "Focused Block",
+            "Rage Burst",
+            "Zikel’s Blessing"
+          ],
+          "notes": [
+            "One held native macro cycles the shown lines. This does not prove automatic basic-attack weaving or maximum DPS.",
+            "Charges, defensives, interrupts and encounter-critical burst remain manual.",
+            "Compare Q/E sustained loops with Ruinous Blow timed before a fixed damage window; record Rending Blow frequency and resource failures."
+          ],
+          "minCharacterLevel": 45,
+          "minSkillTier": 8,
+          "evidence": {
+            "communitySupported": true,
+            "mechanicallyVerified": false,
+            "logTested": false,
+            "benchmarkValidated": false
+          },
+          "copyEnabled": true,
+          "sources": [
+            "https://aion2-guides.info/en/gladiator/",
+            "https://daevaguides.com/en/gladiator/"
+          ],
+          "steps": [
+            "Q",
+            "E"
+          ]
+        },
+        {
+          "id": "boss-manual",
+          "label": "Boss PvE · manual burst",
+          "lines": [
+            {
+              "key": "Q",
+              "name": "Q skill line",
+              "priority": [
+                "Overhead Slam"
+              ]
+            },
+            {
+              "key": "E",
+              "name": "E skill line",
+              "priority": [
+                "Sword Aura Rampage",
+                "Rending Blow"
+              ]
+            }
+          ],
+          "manual": [
+            "Lunge Stance",
+            "Zikel’s Blessing",
+            "Focused Block",
+            "Gap closers and crowd control",
+            "Rage Burst",
+            "Ruinous Blow"
+          ],
+          "stigmas": [
+            "Lunge Stance",
+            "Focused Block",
+            "Rage Burst",
+            "Zikel’s Blessing"
+          ],
+          "notes": [
+            "Control burst around boss vulnerability and mechanics. This is the comparison preset, not a benchmark winner.",
+            "Compare Q/E sustained loops with Ruinous Blow timed before a fixed damage window; record Rending Blow frequency and resource failures."
+          ],
+          "minCharacterLevel": 45,
+          "minSkillTier": 8,
+          "evidence": {
+            "communitySupported": true,
+            "mechanicallyVerified": false,
+            "logTested": false,
+            "benchmarkValidated": false
+          },
+          "copyEnabled": true,
+          "sources": [
+            "https://aion2-guides.info/en/gladiator/",
+            "https://daevaguides.com/en/gladiator/"
+          ],
+          "steps": [
+            "Q",
+            "E"
+          ]
+        },
+        {
+          "id": "solo",
+          "label": "Solo farming",
+          "lines": [
+            {
+              "key": "Q",
+              "name": "Overhead engine",
+              "priority": [
+                "Overhead Slam"
+              ]
+            },
+            {
+              "key": "E",
+              "name": "Ruinous / filler",
+              "priority": [
+                "Ruinous Blow",
+                "Sword Aura Rampage",
+                "Rending Blow"
+              ]
+            }
+          ],
+          "manual": [
+            "Lunge Stance",
+            "Zikel’s Blessing",
+            "Focused Block",
+            "Gap closers and crowd control",
+            "Rage Burst"
+          ],
+          "stigmas": [
+            "Lunge Stance",
+            "Focused Block",
+            "Rage Burst",
+            "Zikel’s Blessing"
+          ],
+          "notes": [
+            "Use sustainable resource choices before damage-only specialties; retain escape and recovery. Pull size and control immunity alter the rotation.",
+            "Unlock prerequisites still apply. At level 45, skill level 16 is not automatic."
+          ],
+          "minCharacterLevel": 45,
+          "minSkillTier": 8,
+          "evidence": {
+            "communitySupported": true,
+            "mechanicallyVerified": false,
+            "logTested": false,
+            "benchmarkValidated": false
+          },
+          "copyEnabled": true,
+          "sources": [
+            "https://aion2-guides.info/en/gladiator/",
+            "https://daevaguides.com/en/gladiator/"
+          ],
+          "steps": [
+            "Q",
+            "E"
+          ]
+        },
+        {
+          "id": "group",
+          "label": "Dungeon / raid",
+          "lines": [
+            {
+              "key": "Q",
+              "name": "Q skill line",
+              "priority": [
+                "Overhead Slam"
+              ]
+            },
+            {
+              "key": "E",
+              "name": "E skill line",
+              "priority": [
+                "Sword Aura Rampage",
+                "Rending Blow"
+              ]
+            }
+          ],
+          "manual": [
+            "Lunge Stance",
+            "Zikel’s Blessing",
+            "Focused Block",
+            "Gap closers and crowd control",
+            "Rage Burst",
+            "Ruinous Blow"
+          ],
+          "stigmas": [
+            "Lunge Stance",
+            "Focused Block",
+            "Rage Burst",
+            "Zikel’s Blessing"
+          ],
+          "notes": [
+            "Use the manual-burst preset. Reserve defensive and group utility buttons for mechanics; do not evaluate only the opener."
+          ],
+          "minCharacterLevel": 45,
+          "minSkillTier": 8,
+          "evidence": {
+            "communitySupported": true,
+            "mechanicallyVerified": false,
+            "logTested": false,
+            "benchmarkValidated": false
+          },
+          "copyEnabled": true,
+          "sources": [
+            "https://aion2-guides.info/en/gladiator/",
+            "https://daevaguides.com/en/gladiator/"
+          ],
+          "steps": [
+            "Q",
+            "E"
+          ]
+        },
+        {
+          "id": "pvp",
+          "label": "PvP · control and burst",
+          "lines": [
+            {
+              "key": "Q",
+              "name": "Q skill line",
+              "priority": [
+                "Overhead Slam",
+                "Rending Blow"
+              ]
+            }
+          ],
+          "manual": [
+            "Mocking Blade",
+            "Aerial Snare",
+            "Defiance",
+            "Blade Toss",
+            "Lunge Stance and burst buffs"
+          ],
+          "stigmas": [
+            "Lunge Stance",
+            "Armor of Balance",
+            "Tenaciousness",
+            "Blade Toss"
+          ],
+          "notes": [
+            "Damage-only macro candidate. Engage, crowd control, interrupts, cleansing and defensive reactions remain manual.",
+            "No claim that a PvE loop is optimal in PvP. Test against actual opponents with matching gear."
+          ],
+          "minCharacterLevel": 45,
+          "minSkillTier": 8,
+          "evidence": {
+            "communitySupported": true,
+            "mechanicallyVerified": false,
+            "logTested": false,
+            "benchmarkValidated": false
+          },
+          "copyEnabled": true,
+          "sources": [
+            "https://aion2-guides.info/en/gladiator/",
+            "https://daevaguides.com/en/gladiator/"
+          ],
+          "steps": [
+            "Q"
+          ]
+        },
+        {
+          "id": "leveling",
+          "label": "Leveling / fresh level 45",
+          "lines": [
+            {
+              "key": "Q",
+              "name": "Q skill line",
+              "priority": [
+                "Rending Blow"
+              ]
+            }
+          ],
+          "manual": [
+            "Lunge Stance",
+            "Zikel’s Blessing",
+            "Focused Block",
+            "Gap closers and crowd control",
+            "Locked skills must remain off the bar"
+          ],
+          "stigmas": [
+            "Lunge Stance",
+            "Focused Block",
+            "Rage Burst",
+            "Zikel’s Blessing"
+          ],
+          "notes": [
+            "Progression worksheet, not an exact skill-point allocation. Invest in unlocked core attacks and resource sustain.",
+            "At fresh level 45, use actual equipped skill levels (often 8–10), not the later 16–20 target. Bonus levels from gear/boards are separate.",
+            "Exact unlock levels and point budgets have not been verified against a captured Global client. Copy is disabled rather than presenting an invented allocation."
+          ],
+          "minCharacterLevel": 1,
+          "minSkillTier": 8,
+          "evidence": {
+            "communitySupported": true,
+            "mechanicallyVerified": false,
+            "logTested": false,
+            "benchmarkValidated": false
+          },
+          "copyEnabled": false,
+          "sources": [
+            "https://aion2-guides.info/en/gladiator/",
+            "https://daevaguides.com/en/gladiator/"
+          ],
+          "steps": [
+            "Q"
+          ]
+        }
+      ],
+      "levelNotes": {
+        "8": "Fresh-cap / early skills: choose resource sustain; later chain and cooldown-removal claims do not apply.",
+        "12": "Mid progression: verify the second specialty in the actual client; charge variants change automation suitability.",
+        "16": "Later setup: explicitly equip required specialties. Skill 20 and extra slots still require the appropriate gear and board investment."
+      }
+    },
+    {
+      "id": "assassin",
+      "name": "Assassin",
+      "role": "Melee burst · rear positioning",
+      "color": "#bd91ff",
+      "intro": "Position first, establish burst, then sustain the Insignia and Heart Gore engine. A clean back-side window matters more than a long macro.",
+      "core": [
+        [
+          "Heart Gore",
+          "16 → 20",
+          "Reset behavior depends on criticals and your selected specialty."
+        ],
+        [
+          "Insignia Explosion",
+          "16 → 20",
+          "Spend according to the real target stack state."
+        ],
+        [
+          "Quick Slice",
+          "16 → 20",
+          "Basic attack and sustain."
+        ],
+        [
+          "Ambush / Storm Rampage",
+          "16",
+          "Follow the core investment."
+        ]
+      ],
+      "stigmas": [
+        "Illusive Clone",
+        "Swift Contract",
+        "Savage Fang",
+        "Triniel’s Dagger"
+      ],
+      "passives": [
+        "Rear Smite",
+        "Exploit Weakness",
+        "Assault Stance",
+        "Determination"
+      ],
+      "lines": [
+        {
+          "key": "Q",
+          "name": "Damage line",
+          "priority": [
+            "Insignia Explosion",
+            "Heart Gore",
+            "Ambush",
+            "Savage Roar"
+          ]
+        }
+      ],
+      "steps": [
+        "Q line"
+      ],
+      "manual": [
+        "Quick Slice on LMB",
+        "Illusive Clone / Swift Contract",
+        "Savage Fang",
+        "Triniel’s Dagger",
+        "Repositioning and Defiance"
+      ],
+      "opener": [
+        "Move behind the target.",
+        "Use the paired offensive buffs for a safe burst window.",
+        "Set up Savage Fang and use the cooldown tool deliberately.",
+        "Hold the damage-line macro with Quick Slice; watch real Insignia readiness."
+      ],
+      "progression": [
+        "Start with Heart Gore and Savage Roar; add Insignia Explosion when unlocked.",
+        "Reach core skill-level milestones before buying convenience upgrades.",
+        "Use only the stigmas actually equipped; the four-slot list is a developed loadout."
+      ],
+      "gear": "Invest in Heart Gore, Insignia Explosion and Quick Slice levels. Prioritize usable offensive stats and rear uptime; validate accuracy and survival on bosses, not only a stationary dummy.",
+      "variant": "A solo-clearing variant can replace Savage Fang with Throw Shadowblade. Keep the boss preset separate.",
+      "lab": "The Lab supports observed Quick Slice and Savage Roar chain continuations, but cannot reliably read all 1–5 Insignia stacks. It therefore does not claim an optimal Explosion cue. Manual readiness checks remain necessary.",
+      "pitfall": "Do not interpret a ready macro line as proof that Insignia Explosion has ideal stacks.",
+      "guide": "https://aion2-guides.info/en/assassin/",
+      "guideUpdated": "Oct 16, 2026",
+      "credits": [
+        {
+          "label": "Global class guide and comparisons",
+          "url": "https://aion2-guides.info/en/assassin/"
+        },
+        {
+          "label": "Macro/build comparison notes",
+          "url": "https://daevaguides.com/en/assassin/"
+        }
+      ],
+      "videos": [
+        {
+          "title": "XifanGG — The ULTIMATE AION 2 Assassin PvE Guide (Skills, Macros, Build & More)",
+          "url": "https://www.youtube.com/watch?v=OuL0b9RPJuY",
+          "review": "Referenced by the written guide; video transcript not independently available."
+        },
+        {
+          "title": "Arthars Gaming — The Brutal Truth About Assassin in Aion 2 Global Launch",
+          "url": "https://www.youtube.com/watch?v=UpvUVK1vnt8",
+          "review": "Referenced by the written guide; video transcript not independently available."
+        },
+        {
+          "title": "Grobs — AION 2 Macro Guide",
+          "url": "https://www.youtube.com/watch?v=HMod6Z4GrE0",
+          "review": "Referenced by the written guide; video transcript not independently available."
+        }
+      ],
+      "labSource": "https://github.com/BradyTheGoat94/GoatMeter-Rotation-Lab/blob/e97db9e/docs/rotation-evidence.md",
+      "specializations": [
+        "Insignia Explosion: verify the retain-two-insignias option at skill 12.",
+        "Heart Gore: record critical-trigger availability and the Clone window separately.",
+        "Quick Slice: retain the mana option until sustained resources are measured."
+      ],
+      "compatibility": {
+        "region": "Global",
+        "season": "Season 1",
+        "reviewed": "2026-10-17",
+        "clientBuild": "Not captured; exact client compatibility pending",
+        "skillCapAssumption": 20,
+        "stigmaSlotsAssumption": 4
+      },
+      "modes": [
+        {
+          "id": "one-button",
+          "label": "One-button PvE candidate",
+          "lines": [
+            {
+              "key": "Q",
+              "name": "Damage line",
+              "priority": [
+                "Insignia Explosion",
+                "Heart Gore",
+                "Ambush",
+                "Savage Roar"
+              ]
+            }
+          ],
+          "manual": [
+            "Quick Slice on LMB",
+            "Illusive Clone / Swift Contract",
+            "Savage Fang",
+            "Triniel’s Dagger",
+            "Repositioning and Defiance"
+          ],
+          "stigmas": [
+            "Illusive Clone",
+            "Swift Contract",
+            "Savage Fang",
+            "Triniel’s Dagger"
+          ],
+          "notes": [
+            "One held native macro cycles the shown lines. This does not prove automatic basic-attack weaving or maximum DPS.",
+            "Charges, defensives, interrupts and encounter-critical burst remain manual.",
+            "Compare Insignia-first versus Heart-Gore-first with identical buff timing, rear uptime and insignia state; hits are not cast counts."
+          ],
+          "minCharacterLevel": 45,
+          "minSkillTier": 8,
+          "evidence": {
+            "communitySupported": true,
+            "mechanicallyVerified": false,
+            "logTested": false,
+            "benchmarkValidated": false
+          },
+          "copyEnabled": true,
+          "sources": [
+            "https://aion2-guides.info/en/assassin/",
+            "https://daevaguides.com/en/assassin/"
+          ],
+          "steps": [
+            "Q"
+          ]
+        },
+        {
+          "id": "boss-manual",
+          "label": "Boss PvE · manual burst",
+          "lines": [
+            {
+              "key": "Q",
+              "name": "Damage line",
+              "priority": [
+                "Insignia Explosion",
+                "Heart Gore",
+                "Ambush",
+                "Savage Roar"
+              ]
+            }
+          ],
+          "manual": [
+            "Quick Slice on LMB",
+            "Illusive Clone / Swift Contract",
+            "Savage Fang",
+            "Triniel’s Dagger",
+            "Repositioning and Defiance",
+            "Illusive Clone",
+            "Swift Contract"
+          ],
+          "stigmas": [
+            "Illusive Clone",
+            "Swift Contract",
+            "Savage Fang",
+            "Triniel’s Dagger"
+          ],
+          "notes": [
+            "Control burst around boss vulnerability and mechanics. This is the comparison preset, not a benchmark winner.",
+            "Compare Insignia-first versus Heart-Gore-first with identical buff timing, rear uptime and insignia state; hits are not cast counts."
+          ],
+          "minCharacterLevel": 45,
+          "minSkillTier": 8,
+          "evidence": {
+            "communitySupported": true,
+            "mechanicallyVerified": false,
+            "logTested": false,
+            "benchmarkValidated": false
+          },
+          "copyEnabled": true,
+          "sources": [
+            "https://aion2-guides.info/en/assassin/",
+            "https://daevaguides.com/en/assassin/"
+          ],
+          "steps": [
+            "Q"
+          ]
+        },
+        {
+          "id": "solo",
+          "label": "Solo farming",
+          "lines": [
+            {
+              "key": "Q",
+              "name": "Damage line",
+              "priority": [
+                "Insignia Explosion",
+                "Heart Gore",
+                "Ambush",
+                "Savage Roar"
+              ]
+            }
+          ],
+          "manual": [
+            "Quick Slice on LMB",
+            "Illusive Clone / Swift Contract",
+            "Savage Fang",
+            "Triniel’s Dagger",
+            "Repositioning and Defiance"
+          ],
+          "stigmas": [
+            "Illusive Clone",
+            "Swift Contract",
+            "Savage Fang",
+            "Triniel’s Dagger"
+          ],
+          "notes": [
+            "Use sustainable resource choices before damage-only specialties; retain escape and recovery. Pull size and control immunity alter the rotation.",
+            "Unlock prerequisites still apply. At level 45, skill level 16 is not automatic."
+          ],
+          "minCharacterLevel": 45,
+          "minSkillTier": 8,
+          "evidence": {
+            "communitySupported": true,
+            "mechanicallyVerified": false,
+            "logTested": false,
+            "benchmarkValidated": false
+          },
+          "copyEnabled": true,
+          "sources": [
+            "https://aion2-guides.info/en/assassin/",
+            "https://daevaguides.com/en/assassin/"
+          ],
+          "steps": [
+            "Q"
+          ]
+        },
+        {
+          "id": "group",
+          "label": "Dungeon / raid",
+          "lines": [
+            {
+              "key": "Q",
+              "name": "Damage line",
+              "priority": [
+                "Insignia Explosion",
+                "Heart Gore",
+                "Ambush",
+                "Savage Roar"
+              ]
+            }
+          ],
+          "manual": [
+            "Quick Slice on LMB",
+            "Illusive Clone / Swift Contract",
+            "Savage Fang",
+            "Triniel’s Dagger",
+            "Repositioning and Defiance",
+            "Illusive Clone",
+            "Swift Contract"
+          ],
+          "stigmas": [
+            "Illusive Clone",
+            "Swift Contract",
+            "Savage Fang",
+            "Triniel’s Dagger"
+          ],
+          "notes": [
+            "Use the manual-burst preset. Reserve defensive and group utility buttons for mechanics; do not evaluate only the opener."
+          ],
+          "minCharacterLevel": 45,
+          "minSkillTier": 8,
+          "evidence": {
+            "communitySupported": true,
+            "mechanicallyVerified": false,
+            "logTested": false,
+            "benchmarkValidated": false
+          },
+          "copyEnabled": true,
+          "sources": [
+            "https://aion2-guides.info/en/assassin/",
+            "https://daevaguides.com/en/assassin/"
+          ],
+          "steps": [
+            "Q"
+          ]
+        },
+        {
+          "id": "pvp",
+          "label": "PvP · control and burst",
+          "lines": [
+            {
+              "key": "Q",
+              "name": "Q skill line",
+              "priority": [
+                "Insignia Explosion",
+                "Heart Gore",
+                "Savage Roar"
+              ]
+            }
+          ],
+          "manual": [
+            "Ambush engage",
+            "All stigma burst buffs",
+            "Stealth and escape",
+            "Interrupts and control"
+          ],
+          "stigmas": [
+            "Illusive Clone",
+            "Swift Contract",
+            "Savage Fang",
+            "Triniel’s Dagger"
+          ],
+          "notes": [
+            "Damage-only macro candidate. Engage, crowd control, interrupts, cleansing and defensive reactions remain manual.",
+            "No claim that a PvE loop is optimal in PvP. Test against actual opponents with matching gear.",
+            "The reviewed Global guide has no complete PvP build. These proposed slots and reused stigma baseline require independent Global PvP validation; copy is disabled."
+          ],
+          "minCharacterLevel": 45,
+          "minSkillTier": 8,
+          "evidence": {
+            "communitySupported": false,
+            "mechanicallyVerified": false,
+            "logTested": false,
+            "benchmarkValidated": false
+          },
+          "copyEnabled": false,
+          "sources": [
+            "https://aion2-guides.info/en/assassin/",
+            "https://daevaguides.com/en/assassin/"
+          ],
+          "steps": [
+            "Q"
+          ]
+        },
+        {
+          "id": "leveling",
+          "label": "Leveling / fresh level 45",
+          "lines": [
+            {
+              "key": "Q",
+              "name": "Q skill line",
+              "priority": [
+                "Quick Slice"
+              ]
+            }
+          ],
+          "manual": [
+            "Quick Slice on LMB",
+            "Illusive Clone / Swift Contract",
+            "Savage Fang",
+            "Triniel’s Dagger",
+            "Repositioning and Defiance",
+            "Locked skills must remain off the bar"
+          ],
+          "stigmas": [
+            "Illusive Clone",
+            "Swift Contract",
+            "Savage Fang",
+            "Triniel’s Dagger"
+          ],
+          "notes": [
+            "Progression worksheet, not an exact skill-point allocation. Invest in unlocked core attacks and resource sustain.",
+            "At fresh level 45, use actual equipped skill levels (often 8–10), not the later 16–20 target. Bonus levels from gear/boards are separate.",
+            "Exact unlock levels and point budgets have not been verified against a captured Global client. Copy is disabled rather than presenting an invented allocation."
+          ],
+          "minCharacterLevel": 1,
+          "minSkillTier": 8,
+          "evidence": {
+            "communitySupported": true,
+            "mechanicallyVerified": false,
+            "logTested": false,
+            "benchmarkValidated": false
+          },
+          "copyEnabled": false,
+          "sources": [
+            "https://aion2-guides.info/en/assassin/",
+            "https://daevaguides.com/en/assassin/"
+          ],
+          "steps": [
+            "Q"
+          ]
+        }
+      ],
+      "levelNotes": {
+        "8": "Fresh-cap / early skills: choose resource sustain; later chain and cooldown-removal claims do not apply.",
+        "12": "Mid progression: verify the second specialty in the actual client; charge variants change automation suitability.",
+        "16": "Later setup: explicitly equip required specialties. Skill 20 and extra slots still require the appropriate gear and board investment."
+      }
+    },
+    {
+      "id": "ranger",
+      "name": "Ranger",
+      "role": "Ranged damage · controlled burst",
+      "color": "#7bd485",
+      "intro": "Maintain the sustained bow lines while reserving charged shots and buffs for windows where you can finish them.",
+      "core": [
+        [
+          "Deadshot",
+          "20",
+          "Charged burst, kept off the repeating macro."
+        ],
+        [
+          "Gale Arrow",
+          "20",
+          "Core sustained damage."
+        ],
+        [
+          "Drill Dart / Snipe / Tempest Shot",
+          "16",
+          "Build the sustained and basic-attack chains."
+        ]
+      ],
+      "stigmas": [
+        "Vaizel’s Authority",
+        "Bow of Blessing",
+        "Supporting Fire",
+        "Griffon Arrow"
+      ],
+      "passives": [
+        "Focused Eye",
+        "Hunter’s Resolve",
+        "Hunter’s Soul",
+        "Concentrated Fire"
+      ],
+      "lines": [
+        {
+          "key": "Q",
+          "name": "Griffon / control",
+          "priority": [
+            "Griffon Arrow",
+            "Snare Shot",
+            "Burst Arrow"
+          ]
+        },
+        {
+          "key": "E",
+          "name": "Gale engine",
+          "priority": [
+            "Gale Arrow",
+            "Drill Dart",
+            "Tempest Shot"
+          ]
+        }
+      ],
+      "steps": [
+        "Q line",
+        "E line"
+      ],
+      "manual": [
+        "Snipe / basic attack on LMB",
+        "Deadshot (charge)",
+        "Marking Shot",
+        "Bow of Blessing / Vaizel’s Authority"
+      ],
+      "opener": [
+        "Choose a safe firing position.",
+        "Apply Marking Shot and the offensive buffs for the target window.",
+        "Charge Deadshot only when you can finish it safely.",
+        "Resume the two sustained lines while weaving your basic attack."
+      ],
+      "progression": [
+        "A four-stigma baseline does not have a spare fifth slot for Explosive Arrow.",
+        "Keep Deadshot separate even if the rest of your bar is stacked.",
+        "Recheck charge and reset specialties when you change gear."
+      ],
+      "gear": "Target Deadshot and Gale Arrow skill levels, combat speed and weapon damage boost. If bosses parry or evade your hits, correct accuracy before adding more theoretical damage.",
+      "variant": "Explosive Arrow is a swap, not a free extra stigma. Do not add it on top of the four-slot baseline.",
+      "lab": "The Lab observes both sustained and Snipe-chain vocabulary. Precision, target Slow/Root and charge quality are conditional signals, not facts inferred from a skill merely appearing in a log.",
+      "pitfall": "Burst Arrow’s target-control requirement and Deadshot’s charge cannot be solved by blindly repeating a line.",
+      "guide": "https://aion2-guides.info/en/ranger/",
+      "guideUpdated": "Oct 16, 2026",
+      "credits": [
+        {
+          "label": "Global class guide and comparisons",
+          "url": "https://aion2-guides.info/en/ranger/"
+        },
+        {
+          "label": "Macro/build comparison notes",
+          "url": "https://daevaguides.com/en/ranger/"
+        }
+      ],
+      "videos": [
+        {
+          "title": "Whelps",
+          "url": "https://www.youtube.com/watch?v=wKOm6yKuu_I",
+          "review": "Referenced by the written guide; video transcript not independently available."
+        },
+        {
+          "title": "Whelps — AION 2 Ranger guide",
+          "url": "https://www.youtube.com/watch?v=wKOm6yKuu_I",
+          "review": "Referenced by the written guide; video transcript not independently available."
+        },
+        {
+          "title": "Grobs — AION 2 Macro Guide",
+          "url": "https://www.youtube.com/watch?v=HMod6Z4GrE0",
+          "review": "Referenced by the written guide; video transcript not independently available."
+        }
+      ],
+      "labSource": "https://github.com/BradyTheGoat94/GoatMeter-Rotation-Lab/blob/e97db9e/docs/rotation-evidence.md",
+      "specializations": [
+        "Marking Shot: verify Precision uptime before evaluating Deadshot damage.",
+        "Gale Arrow, Drill Dart and Tempest Shot: compare their actual specialty unlocks and mana use.",
+        "Suppressing Arrow is a control candidate; keep its stun manually timed rather than inserting it into the boss loop."
+      ],
+      "compatibility": {
+        "region": "Global",
+        "season": "Season 1",
+        "reviewed": "2026-10-17",
+        "clientBuild": "Not captured; exact client compatibility pending",
+        "skillCapAssumption": 20,
+        "stigmaSlotsAssumption": 4
+      },
+      "modes": [
+        {
+          "id": "one-button",
+          "label": "One-button PvE candidate",
+          "lines": [
+            {
+              "key": "Q",
+              "name": "Griffon / control",
+              "priority": [
+                "Griffon Arrow",
+                "Snare Shot",
+                "Burst Arrow"
+              ]
+            },
+            {
+              "key": "E",
+              "name": "Gale engine",
+              "priority": [
+                "Gale Arrow",
+                "Drill Dart",
+                "Tempest Shot"
+              ]
+            }
+          ],
+          "manual": [
+            "Snipe / basic attack on LMB",
+            "Deadshot (charge)",
+            "Marking Shot",
+            "Bow of Blessing / Vaizel’s Authority"
+          ],
+          "stigmas": [
+            "Vaizel’s Authority",
+            "Bow of Blessing",
+            "Supporting Fire",
+            "Griffon Arrow"
+          ],
+          "notes": [
+            "One held native macro cycles the shown lines. This does not prove automatic basic-attack weaving or maximum DPS.",
+            "Charges, defensives, interrupts and encounter-critical burst remain manual.",
+            "Measure Marking Shot uptime and Deadshot charge completion separately; avoid replacing a useful control button with automatic casts."
+          ],
+          "minCharacterLevel": 45,
+          "minSkillTier": 8,
+          "evidence": {
+            "communitySupported": true,
+            "mechanicallyVerified": false,
+            "logTested": false,
+            "benchmarkValidated": false
+          },
+          "copyEnabled": true,
+          "sources": [
+            "https://aion2-guides.info/en/ranger/",
+            "https://daevaguides.com/en/ranger/"
+          ],
+          "steps": [
+            "Q",
+            "E"
+          ]
+        },
+        {
+          "id": "boss-manual",
+          "label": "Boss PvE · manual burst",
+          "lines": [
+            {
+              "key": "Q",
+              "name": "Griffon / control",
+              "priority": [
+                "Griffon Arrow",
+                "Snare Shot",
+                "Burst Arrow"
+              ]
+            },
+            {
+              "key": "E",
+              "name": "Gale engine",
+              "priority": [
+                "Gale Arrow",
+                "Drill Dart",
+                "Tempest Shot"
+              ]
+            }
+          ],
+          "manual": [
+            "Snipe / basic attack on LMB",
+            "Deadshot (charge)",
+            "Marking Shot",
+            "Bow of Blessing / Vaizel’s Authority",
+            "Suppressing Arrow",
+            "Deadshot charge",
+            "Vaizel’s Authority",
+            "Bow of Blessing"
+          ],
+          "stigmas": [
+            "Vaizel’s Authority",
+            "Bow of Blessing",
+            "Supporting Fire",
+            "Griffon Arrow"
+          ],
+          "notes": [
+            "Control burst around boss vulnerability and mechanics. This is the comparison preset, not a benchmark winner.",
+            "Measure Marking Shot uptime and Deadshot charge completion separately; avoid replacing a useful control button with automatic casts."
+          ],
+          "minCharacterLevel": 45,
+          "minSkillTier": 8,
+          "evidence": {
+            "communitySupported": true,
+            "mechanicallyVerified": false,
+            "logTested": false,
+            "benchmarkValidated": false
+          },
+          "copyEnabled": true,
+          "sources": [
+            "https://aion2-guides.info/en/ranger/",
+            "https://daevaguides.com/en/ranger/"
+          ],
+          "steps": [
+            "Q",
+            "E"
+          ]
+        },
+        {
+          "id": "solo",
+          "label": "Solo farming",
+          "lines": [
+            {
+              "key": "Q",
+              "name": "Griffon / control",
+              "priority": [
+                "Griffon Arrow",
+                "Snare Shot",
+                "Burst Arrow"
+              ]
+            },
+            {
+              "key": "E",
+              "name": "Gale engine",
+              "priority": [
+                "Gale Arrow",
+                "Drill Dart",
+                "Tempest Shot"
+              ]
+            }
+          ],
+          "manual": [
+            "Snipe / basic attack on LMB",
+            "Deadshot (charge)",
+            "Marking Shot",
+            "Bow of Blessing / Vaizel’s Authority"
+          ],
+          "stigmas": [
+            "Vaizel’s Authority",
+            "Bow of Blessing",
+            "Supporting Fire",
+            "Griffon Arrow"
+          ],
+          "notes": [
+            "Use sustainable resource choices before damage-only specialties; retain escape and recovery. Pull size and control immunity alter the rotation.",
+            "Unlock prerequisites still apply. At level 45, skill level 16 is not automatic."
+          ],
+          "minCharacterLevel": 45,
+          "minSkillTier": 8,
+          "evidence": {
+            "communitySupported": true,
+            "mechanicallyVerified": false,
+            "logTested": false,
+            "benchmarkValidated": false
+          },
+          "copyEnabled": true,
+          "sources": [
+            "https://aion2-guides.info/en/ranger/",
+            "https://daevaguides.com/en/ranger/"
+          ],
+          "steps": [
+            "Q",
+            "E"
+          ]
+        },
+        {
+          "id": "group",
+          "label": "Dungeon / raid",
+          "lines": [
+            {
+              "key": "Q",
+              "name": "Griffon / control",
+              "priority": [
+                "Griffon Arrow",
+                "Snare Shot",
+                "Burst Arrow"
+              ]
+            },
+            {
+              "key": "E",
+              "name": "Gale engine",
+              "priority": [
+                "Gale Arrow",
+                "Drill Dart",
+                "Tempest Shot"
+              ]
+            }
+          ],
+          "manual": [
+            "Snipe / basic attack on LMB",
+            "Deadshot (charge)",
+            "Marking Shot",
+            "Bow of Blessing / Vaizel’s Authority",
+            "Suppressing Arrow",
+            "Deadshot charge",
+            "Vaizel’s Authority",
+            "Bow of Blessing"
+          ],
+          "stigmas": [
+            "Vaizel’s Authority",
+            "Bow of Blessing",
+            "Supporting Fire",
+            "Griffon Arrow"
+          ],
+          "notes": [
+            "Use the manual-burst preset. Reserve defensive and group utility buttons for mechanics; do not evaluate only the opener."
+          ],
+          "minCharacterLevel": 45,
+          "minSkillTier": 8,
+          "evidence": {
+            "communitySupported": true,
+            "mechanicallyVerified": false,
+            "logTested": false,
+            "benchmarkValidated": false
+          },
+          "copyEnabled": true,
+          "sources": [
+            "https://aion2-guides.info/en/ranger/",
+            "https://daevaguides.com/en/ranger/"
+          ],
+          "steps": [
+            "Q",
+            "E"
+          ]
+        },
+        {
+          "id": "pvp",
+          "label": "PvP · control and burst",
+          "lines": [
+            {
+              "key": "Q",
+              "name": "Q skill line",
+              "priority": [
+                "Gale Arrow",
+                "Drill Dart",
+                "Tempest Shot"
+              ]
+            }
+          ],
+          "manual": [
+            "Marking Shot",
+            "Suppressing Arrow",
+            "Snare Shot",
+            "Deadshot charge",
+            "Defiance and escape"
+          ],
+          "stigmas": [
+            "Vaizel’s Authority",
+            "Bow of Blessing",
+            "Supporting Fire",
+            "Griffon Arrow"
+          ],
+          "notes": [
+            "Damage-only macro candidate. Engage, crowd control, interrupts, cleansing and defensive reactions remain manual.",
+            "No claim that a PvE loop is optimal in PvP. Test against actual opponents with matching gear.",
+            "The reviewed Global guide has no complete PvP build. These proposed slots and reused stigma baseline require independent Global PvP validation; copy is disabled."
+          ],
+          "minCharacterLevel": 45,
+          "minSkillTier": 8,
+          "evidence": {
+            "communitySupported": false,
+            "mechanicallyVerified": false,
+            "logTested": false,
+            "benchmarkValidated": false
+          },
+          "copyEnabled": false,
+          "sources": [
+            "https://aion2-guides.info/en/ranger/",
+            "https://daevaguides.com/en/ranger/"
+          ],
+          "steps": [
+            "Q"
+          ]
+        },
+        {
+          "id": "leveling",
+          "label": "Leveling / fresh level 45",
+          "lines": [
+            {
+              "key": "Q",
+              "name": "Q skill line",
+              "priority": [
+                "Snipe"
+              ]
+            }
+          ],
+          "manual": [
+            "Snipe / basic attack on LMB",
+            "Deadshot (charge)",
+            "Marking Shot",
+            "Bow of Blessing / Vaizel’s Authority",
+            "Locked skills must remain off the bar"
+          ],
+          "stigmas": [
+            "Vaizel’s Authority",
+            "Bow of Blessing",
+            "Supporting Fire",
+            "Griffon Arrow"
+          ],
+          "notes": [
+            "Progression worksheet, not an exact skill-point allocation. Invest in unlocked core attacks and resource sustain.",
+            "At fresh level 45, use actual equipped skill levels (often 8–10), not the later 16–20 target. Bonus levels from gear/boards are separate.",
+            "Exact unlock levels and point budgets have not been verified against a captured Global client. Copy is disabled rather than presenting an invented allocation."
+          ],
+          "minCharacterLevel": 1,
+          "minSkillTier": 8,
+          "evidence": {
+            "communitySupported": true,
+            "mechanicallyVerified": false,
+            "logTested": false,
+            "benchmarkValidated": false
+          },
+          "copyEnabled": false,
+          "sources": [
+            "https://aion2-guides.info/en/ranger/",
+            "https://daevaguides.com/en/ranger/"
+          ],
+          "steps": [
+            "Q"
+          ]
+        }
+      ],
+      "levelNotes": {
+        "8": "Fresh-cap / early skills: choose resource sustain; later chain and cooldown-removal claims do not apply.",
+        "12": "Mid progression: verify the second specialty in the actual client; charge variants change automation suitability.",
+        "16": "Later setup: explicitly equip required specialties. Skill 20 and extra slots still require the appropriate gear and board investment."
+      }
+    },
+    {
+      "id": "sorcerer",
+      "name": "Sorcerer",
+      "role": "Magic burst · sustained casting",
+      "color": "#79c9fa",
+      "intro": "Separate sustained casting from setup and charged burst. Preserve mana and cast safely instead of putting your entire bar into one loop.",
+      "core": [
+        [
+          "Hellfire",
+          "16",
+          "High-value charged hit, used manually."
+        ],
+        [
+          "Firestorm / Bittercold Wind / Blaze",
+          "16",
+          "Sustained core."
+        ],
+        [
+          "Wish of Concentration",
+          "16",
+          "Cooldown-management milestone."
+        ]
+      ],
+      "stigmas": [
+        "Element Enhancement",
+        "Delayed Explosion",
+        "Fire Wall",
+        "Cold Storm"
+      ],
+      "passives": [
+        "Robe of Flame",
+        "Fire Mark",
+        "Robe of Earth",
+        "Grace of Enhancement"
+      ],
+      "lines": [
+        {
+          "key": "Q",
+          "name": "Sustained core",
+          "priority": [
+            "Bittercold Wind",
+            "Blaze",
+            "Firestorm",
+            "Wish of Concentration"
+          ]
+        }
+      ],
+      "steps": [
+        "Q line"
+      ],
+      "manual": [
+        "Flame Arrow / basic attack",
+        "Hellfire (charge)",
+        "Element Enhancement",
+        "Delayed Explosion / Winter’s Shackles",
+        "Ground effects and movement"
+      ],
+      "opener": [
+        "Check mana and establish a safe cast position.",
+        "Use Element Enhancement and the setup skills for the boss window.",
+        "Fully charge Hellfire when the mechanic permits it.",
+        "Resume the core line and basic attack; place ground effects deliberately."
+      ],
+      "progression": [
+        "Use the early frost chain while leveling; do not treat it as the final damage bar.",
+        "Rebuild when Wish of Concentration’s level-16 specialty is selected.",
+        "Compare a manually pressed core line with the native macro on the same target."
+      ],
+      "gear": "Invest in core spell levels and usable combat speed/cooldown reduction. Watch MP regeneration and sustained mana; a stronger opener is not an upgrade if the rest of the fight runs dry.",
+      "variant": "Manual stacked-line play and a one-line macro are both viable guide approaches. Test the actual encounter rather than assuming the larger macro wins.",
+      "lab": "The Lab preserves observed Fire Mark and Ice Chain → Cold Wave evidence. It only recommends loadout-dependent stigmas after observation and does not invent charge state or specialty reductions.",
+      "pitfall": "A repeating macro taps Hellfire instead of completing its charge. Keep it on a separate key.",
+      "guide": "https://aion2-guides.info/en/sorcerer/",
+      "guideUpdated": "Oct 16, 2026",
+      "credits": [
+        {
+          "label": "Global class guide and comparisons",
+          "url": "https://aion2-guides.info/en/sorcerer/"
+        },
+        {
+          "label": "Macro/build comparison notes",
+          "url": "https://daevaguides.com/en/sorcerer/"
+        }
+      ],
+      "videos": [
+        {
+          "title": "aLuckyRO — AION 2 Sorcerer Guide For Skills & Stigmas | Macros & Daevanion Setup",
+          "url": "https://www.youtube.com/watch?v=s-pYR_fmMDk",
+          "review": "Referenced by the written guide; video transcript not independently available."
+        },
+        {
+          "title": "EUTOPIA — AION 2 Sorcerer Build UPDATE - Best PvE Skills, Stigmas, Macro & Rotation",
+          "url": "https://www.youtube.com/watch?v=Qr9NvMvI1-M",
+          "review": "Referenced by the written guide; video transcript not independently available."
+        },
+        {
+          "title": "EUTOPIA — AION 2 Sorcerer Build Guide - Best PvE Skills, Macro & Rotation",
+          "url": "https://www.youtube.com/watch?v=fsS86mITLsk",
+          "review": "Referenced by the written guide; video transcript not independently available."
+        }
+      ],
+      "labSource": "https://github.com/BradyTheGoat94/GoatMeter-Rotation-Lab/blob/e97db9e/docs/rotation-evidence.md",
+      "specializations": [
+        "Hellfire: compare speed at 8, the 12–15 hit option, and cooldown reduction at 16; charge manually.",
+        "Firestorm: compare mana/speed early, then its Hellfire cooldown interaction at 12 and damage option at 16.",
+        "Winter’s Shackles: verify the landed debuff and burst window; the published sequence cannot guarantee Hellfire fits."
+      ],
+      "compatibility": {
+        "region": "Global",
+        "season": "Season 1",
+        "reviewed": "2026-10-17",
+        "clientBuild": "Not captured; exact client compatibility pending",
+        "skillCapAssumption": 20,
+        "stigmaSlotsAssumption": 4
+      },
+      "modes": [
+        {
+          "id": "one-button",
+          "label": "One-button PvE candidate",
+          "lines": [
+            {
+              "key": "Q",
+              "name": "Q skill line",
+              "priority": [
+                "Bittercold Wind",
+                "Blaze",
+                "Firestorm"
+              ]
+            }
+          ],
+          "manual": [
+            "Element Enhancement",
+            "Delayed Explosion",
+            "Winter’s Shackles",
+            "Hellfire charge",
+            "Defensives and interrupts",
+            "Wish of Concentration"
+          ],
+          "stigmas": [
+            "Element Enhancement",
+            "Delayed Explosion",
+            "Fire Wall",
+            "Cold Storm"
+          ],
+          "notes": [
+            "One held native macro cycles the shown lines. This does not prove automatic basic-attack weaving or maximum DPS.",
+            "Charges, defensives, interrupts and encounter-critical burst remain manual.",
+            "Compare the controlled burst opener to the published eight-step candidate; charge completion and buff alignment matter more than ordering text."
+          ],
+          "minCharacterLevel": 45,
+          "minSkillTier": 8,
+          "evidence": {
+            "communitySupported": true,
+            "mechanicallyVerified": false,
+            "logTested": false,
+            "benchmarkValidated": false
+          },
+          "copyEnabled": true,
+          "sources": [
+            "https://aion2-guides.info/en/sorcerer/",
+            "https://daevaguides.com/en/sorcerer/"
+          ],
+          "steps": [
+            "Q"
+          ]
+        },
+        {
+          "id": "boss-manual",
+          "label": "Boss PvE · manual burst",
+          "lines": [
+            {
+              "key": "Q",
+              "name": "Q skill line",
+              "priority": [
+                "Bittercold Wind",
+                "Blaze",
+                "Firestorm"
+              ]
+            }
+          ],
+          "manual": [
+            "Element Enhancement",
+            "Delayed Explosion",
+            "Winter’s Shackles",
+            "Hellfire charge",
+            "Defensives and interrupts",
+            "Wish of Concentration"
+          ],
+          "stigmas": [
+            "Element Enhancement",
+            "Delayed Explosion",
+            "Fire Wall",
+            "Cold Storm"
+          ],
+          "notes": [
+            "Control burst around boss vulnerability and mechanics. This is the comparison preset, not a benchmark winner.",
+            "Compare the controlled burst opener to the published eight-step candidate; charge completion and buff alignment matter more than ordering text."
+          ],
+          "minCharacterLevel": 45,
+          "minSkillTier": 8,
+          "evidence": {
+            "communitySupported": true,
+            "mechanicallyVerified": false,
+            "logTested": false,
+            "benchmarkValidated": false
+          },
+          "copyEnabled": true,
+          "sources": [
+            "https://aion2-guides.info/en/sorcerer/",
+            "https://daevaguides.com/en/sorcerer/"
+          ],
+          "steps": [
+            "Q"
+          ]
+        },
+        {
+          "id": "solo",
+          "label": "Solo farming",
+          "lines": [
+            {
+              "key": "Q",
+              "name": "Q skill line",
+              "priority": [
+                "Bittercold Wind",
+                "Blaze",
+                "Firestorm"
+              ]
+            }
+          ],
+          "manual": [
+            "Element Enhancement",
+            "Delayed Explosion",
+            "Winter’s Shackles",
+            "Hellfire charge",
+            "Defensives and interrupts",
+            "Wish of Concentration"
+          ],
+          "stigmas": [
+            "Element Enhancement",
+            "Delayed Explosion",
+            "Fire Wall",
+            "Cold Storm"
+          ],
+          "notes": [
+            "Use sustainable resource choices before damage-only specialties; retain escape and recovery. Pull size and control immunity alter the rotation.",
+            "Unlock prerequisites still apply. At level 45, skill level 16 is not automatic."
+          ],
+          "minCharacterLevel": 45,
+          "minSkillTier": 8,
+          "evidence": {
+            "communitySupported": true,
+            "mechanicallyVerified": false,
+            "logTested": false,
+            "benchmarkValidated": false
+          },
+          "copyEnabled": true,
+          "sources": [
+            "https://aion2-guides.info/en/sorcerer/",
+            "https://daevaguides.com/en/sorcerer/"
+          ],
+          "steps": [
+            "Q"
+          ]
+        },
+        {
+          "id": "group",
+          "label": "Dungeon / raid",
+          "lines": [
+            {
+              "key": "Q",
+              "name": "Q skill line",
+              "priority": [
+                "Bittercold Wind",
+                "Blaze",
+                "Firestorm"
+              ]
+            }
+          ],
+          "manual": [
+            "Element Enhancement",
+            "Delayed Explosion",
+            "Winter’s Shackles",
+            "Hellfire charge",
+            "Defensives and interrupts",
+            "Wish of Concentration"
+          ],
+          "stigmas": [
+            "Element Enhancement",
+            "Delayed Explosion",
+            "Fire Wall",
+            "Cold Storm"
+          ],
+          "notes": [
+            "Use the manual-burst preset. Reserve defensive and group utility buttons for mechanics; do not evaluate only the opener."
+          ],
+          "minCharacterLevel": 45,
+          "minSkillTier": 8,
+          "evidence": {
+            "communitySupported": true,
+            "mechanicallyVerified": false,
+            "logTested": false,
+            "benchmarkValidated": false
+          },
+          "copyEnabled": true,
+          "sources": [
+            "https://aion2-guides.info/en/sorcerer/",
+            "https://daevaguides.com/en/sorcerer/"
+          ],
+          "steps": [
+            "Q"
+          ]
+        },
+        {
+          "id": "pvp",
+          "label": "PvP · control and burst",
+          "lines": [
+            {
+              "key": "Q",
+              "name": "Q skill line",
+              "priority": [
+                "Bittercold Wind",
+                "Firestorm",
+                "Flame Arrow"
+              ]
+            }
+          ],
+          "manual": [
+            "Winter’s Shackles",
+            "Element Enhancement",
+            "Delayed Explosion",
+            "Hellfire charge",
+            "Roots, escape and defensive cooldowns"
+          ],
+          "stigmas": [
+            "Element Enhancement",
+            "Delayed Explosion",
+            "Fire Wall",
+            "Cold Storm"
+          ],
+          "notes": [
+            "Damage-only macro candidate. Engage, crowd control, interrupts, cleansing and defensive reactions remain manual.",
+            "No claim that a PvE loop is optimal in PvP. Test against actual opponents with matching gear.",
+            "The reviewed Global guide has no complete PvP build. These proposed slots and reused stigma baseline require independent Global PvP validation; copy is disabled."
+          ],
+          "minCharacterLevel": 45,
+          "minSkillTier": 8,
+          "evidence": {
+            "communitySupported": false,
+            "mechanicallyVerified": false,
+            "logTested": false,
+            "benchmarkValidated": false
+          },
+          "copyEnabled": false,
+          "sources": [
+            "https://aion2-guides.info/en/sorcerer/",
+            "https://daevaguides.com/en/sorcerer/"
+          ],
+          "steps": [
+            "Q"
+          ]
+        },
+        {
+          "id": "published-sequence",
+          "label": "Published eight-step research candidate",
+          "lines": [
+            {
+              "key": "1",
+              "name": "1 skill line",
+              "priority": [
+                "Element Enhancement"
+              ]
+            },
+            {
+              "key": "2",
+              "name": "2 skill line",
+              "priority": [
+                "Delayed Explosion"
+              ]
+            },
+            {
+              "key": "3",
+              "name": "3 skill line",
+              "priority": [
+                "Winter’s Shackles"
+              ]
+            },
+            {
+              "key": "4",
+              "name": "4 skill line",
+              "priority": [
+                "Fire Wall"
+              ]
+            },
+            {
+              "key": "5",
+              "name": "5 skill line",
+              "priority": [
+                "Cold Storm"
+              ]
+            },
+            {
+              "key": "6",
+              "name": "6 skill line",
+              "priority": [
+                "Bittercold Wind"
+              ]
+            },
+            {
+              "key": "7",
+              "name": "7 skill line",
+              "priority": [
+                "Firestorm"
+              ]
+            },
+            {
+              "key": "8",
+              "name": "8 skill line",
+              "priority": [
+                "Flame Arrow"
+              ]
+            }
+          ],
+          "manual": [
+            "Hellfire charge",
+            "Defensives and interrupts"
+          ],
+          "stigmas": [
+            "Element Enhancement",
+            "Delayed Explosion",
+            "Fire Wall",
+            "Cold Storm"
+          ],
+          "notes": [
+            "This is the requested sequence for comparison, not a proven executable Global macro. Each skill is on a separate single-skill slot; eight skills are not stacked into one four-row line.",
+            "Automatic burst buffs conflict with controlled boss timing. Copy is disabled until the native client’s execution, queue and buff interactions are tested."
+          ],
+          "minCharacterLevel": 45,
+          "minSkillTier": 8,
+          "evidence": {
+            "communitySupported": true,
+            "mechanicallyVerified": false,
+            "logTested": false,
+            "benchmarkValidated": false
+          },
+          "copyEnabled": false,
+          "sources": [
+            "https://aion2-guides.info/en/sorcerer/",
+            "https://daevaguides.com/en/sorcerer/"
+          ],
+          "steps": [
+            "1",
+            "2",
+            "3",
+            "4",
+            "5",
+            "6",
+            "7",
+            "8"
+          ]
+        },
+        {
+          "id": "leveling",
+          "label": "Leveling / fresh level 45",
+          "lines": [
+            {
+              "key": "Q",
+              "name": "Q skill line",
+              "priority": [
+                "Flame Arrow"
+              ]
+            }
+          ],
+          "manual": [
+            "Flame Arrow / basic attack",
+            "Hellfire (charge)",
+            "Element Enhancement",
+            "Delayed Explosion / Winter’s Shackles",
+            "Ground effects and movement",
+            "Locked skills must remain off the bar"
+          ],
+          "stigmas": [
+            "Element Enhancement",
+            "Delayed Explosion",
+            "Fire Wall",
+            "Cold Storm"
+          ],
+          "notes": [
+            "Progression worksheet, not an exact skill-point allocation. Invest in unlocked core attacks and resource sustain.",
+            "At fresh level 45, use actual equipped skill levels (often 8–10), not the later 16–20 target. Bonus levels from gear/boards are separate.",
+            "Exact unlock levels and point budgets have not been verified against a captured Global client. Copy is disabled rather than presenting an invented allocation."
+          ],
+          "minCharacterLevel": 1,
+          "minSkillTier": 8,
+          "evidence": {
+            "communitySupported": true,
+            "mechanicallyVerified": false,
+            "logTested": false,
+            "benchmarkValidated": false
+          },
+          "copyEnabled": false,
+          "sources": [
+            "https://aion2-guides.info/en/sorcerer/",
+            "https://daevaguides.com/en/sorcerer/"
+          ],
+          "steps": [
+            "Q"
+          ]
+        }
+      ],
+      "levelNotes": {
+        "8": "Fresh-cap / early skills: choose resource sustain; later chain and cooldown-removal claims do not apply.",
+        "12": "Mid progression: verify the second specialty in the actual client; charge variants change automation suitability.",
+        "16": "Later setup: explicitly equip required specialties. Skill 20 and extra slots still require the appropriate gear and board investment."
+      }
+    },
+    {
+      "id": "spiritmaster",
+      "name": "Spiritmaster",
+      "role": "Summoner · sustained magic",
+      "color": "#cf9bff",
+      "intro": "Maintain spirits, deliberate summon setup and target debuffs. This baseline uses uncharged Fusion; charged variants require a different manual layout.",
+      "core": [
+        [
+          "Elemental Fusion",
+          "20",
+          "Uncharged macro variant."
+        ],
+        [
+          "Combustion / Fire Spirit",
+          "20",
+          "Sustained damage investment."
+        ],
+        [
+          "Cold Shock / Water Spirit",
+          "16",
+          "Basic attack support and spirit cycle."
+        ]
+      ],
+      "stigmas": [
+        "Summon: Ancient Spirit",
+        "Enhance: Spirit’s Benediction",
+        "Flame Blessing",
+        "Jointstrike: Corrode"
+      ],
+      "passives": [
+        "Mental Focus",
+        "Spirit Strike",
+        "Element Unification",
+        "Spirit Revitalization"
+      ],
+      "lines": [
+        {
+          "key": "Q",
+          "name": "Spirit cycle",
+          "priority": [
+            "Elemental Fusion",
+            "Summon: Water Spirit",
+            "Summon: Earth Spirit",
+            "Summon: Fire Spirit"
+          ]
+        },
+        {
+          "key": "E",
+          "name": "Jointstrike damage",
+          "priority": [
+            "Jointstrike: Corrode",
+            "Jointstrike: Curse",
+            "Dimensional Control",
+            "Combustion"
+          ]
+        }
+      ],
+      "steps": [
+        "E line",
+        "Q line"
+      ],
+      "manual": [
+        "Cold Shock on LMB",
+        "Flame Blessing / Spirit’s Benediction",
+        "Ancient Spirit",
+        "Destructive Attack if equipped (charge)",
+        "Dispel and movement"
+      ],
+      "opener": [
+        "Build the relevant basic-attack setup.",
+        "Apply Flame Blessing and Spirit’s Benediction before Ancient Spirit.",
+        "Summon Ancient Spirit, then use available Fusion and Jointstrike windows.",
+        "Continue the two lines with Cold Shock; maintain debuffs without wasting resets."
+      ],
+      "progression": [
+        "If Fusion has the charge specialty selected, remove it from this repeating setup and use it manually.",
+        "Do not assume a sixth-stigma regional guide fits Global’s four-slot baseline.",
+        "Destructive Attack is a deliberate loadout swap, not an additional fifth slot."
+      ],
+      "gear": "Prioritize core spell/spirit levels and sustainable offensive stats. Keep enough mana to sustain Cold Shock and the spirit cycle through movement-heavy fights.",
+      "variant": "Charged Fusion trades a different cast commitment against more frequent uncharged casts. Treat it as an alternative to test, not a universally superior upgrade.",
+      "lab": "Corrode uses a 20s base effect and 45s base cooldown in the Lab. The 30s duration requires its extension specialty. Summon/buff state and cooldown-reset specialties remain evidence-gated.",
+      "pitfall": "Do not refresh Corrode just because 20s passed if its actual cooldown is not ready; do not interrupt a charged skill with the macro.",
+      "guide": "https://aion2-guides.info/en/elementalist/",
+      "guideUpdated": "Oct 16, 2026",
+      "credits": [
+        {
+          "label": "Global class guide and comparisons",
+          "url": "https://aion2-guides.info/en/elementalist/"
+        },
+        {
+          "label": "Macro/build comparison notes",
+          "url": "https://daevaguides.com/en/elementalist/"
+        }
+      ],
+      "videos": [
+        {
+          "title": "Grobs — AION 2 Macro Guide",
+          "url": "https://www.youtube.com/watch?v=HMod6Z4GrE0",
+          "review": "Referenced by the written guide; video transcript not independently available."
+        },
+        {
+          "title": "DankRNG — How to MASTER the SPIRITS | Elementalist Guide & Build",
+          "url": "https://www.youtube.com/watch?v=KlmstIyukX8",
+          "review": "Referenced by the written guide; video transcript not independently available."
+        },
+        {
+          "title": "aLuckyRO — AION 2 Latest Spiritmaster PVE Build for Global",
+          "url": "https://www.youtube.com/watch?v=v9MYphrcvic",
+          "review": "Referenced by the written guide; video transcript not independently available."
+        }
+      ],
+      "labSource": "https://github.com/BradyTheGoat94/GoatMeter-Rotation-Lab/blob/e97db9e/docs/rotation-evidence.md",
+      "specializations": [
+        "Elemental Fusion: select charged or uncharged explicitly; never let the macro interrupt a charge.",
+        "Four Elements is a resource condition, not proof that four distinct spirit types must be summoned.",
+        "Corrode: use the base duration unless the duration specialty is actually equipped."
+      ],
+      "compatibility": {
+        "region": "Global",
+        "season": "Season 1",
+        "reviewed": "2026-10-17",
+        "clientBuild": "Not captured; exact client compatibility pending",
+        "skillCapAssumption": 20,
+        "stigmaSlotsAssumption": 4
+      },
+      "modes": [
+        {
+          "id": "one-button",
+          "label": "One-button PvE candidate",
+          "lines": [
+            {
+              "key": "Q",
+              "name": "Spirit cycle",
+              "priority": [
+                "Elemental Fusion",
+                "Summon: Water Spirit",
+                "Summon: Earth Spirit",
+                "Summon: Fire Spirit"
+              ]
+            },
+            {
+              "key": "E",
+              "name": "Jointstrike damage",
+              "priority": [
+                "Jointstrike: Corrode",
+                "Jointstrike: Curse",
+                "Dimensional Control",
+                "Combustion"
+              ]
+            }
+          ],
+          "manual": [
+            "Cold Shock on LMB",
+            "Flame Blessing / Spirit’s Benediction",
+            "Ancient Spirit",
+            "Destructive Attack if equipped (charge)",
+            "Dispel and movement"
+          ],
+          "stigmas": [
+            "Summon: Ancient Spirit",
+            "Enhance: Spirit’s Benediction",
+            "Flame Blessing",
+            "Jointstrike: Corrode"
+          ],
+          "notes": [
+            "One held native macro cycles the shown lines. This does not prove automatic basic-attack weaving or maximum DPS.",
+            "Charges, defensives, interrupts and encounter-critical burst remain manual.",
+            "Record resource gains per spirit activation, including repeat activations of the same spirit. Do not assume one distinct type per element.",
+            "Uncharged Fusion is the displayed default. Choose the charged-Fusion option to move it off the automatic line.",
+            "Ancient Spirit stays manual. Test snapshot behavior rather than assuming a buff applied after summoning changes the spirit."
+          ],
+          "minCharacterLevel": 45,
+          "minSkillTier": 8,
+          "evidence": {
+            "communitySupported": true,
+            "mechanicallyVerified": false,
+            "logTested": false,
+            "benchmarkValidated": false
+          },
+          "copyEnabled": true,
+          "sources": [
+            "https://aion2-guides.info/en/elementalist/",
+            "https://daevaguides.com/en/elementalist/"
+          ],
+          "steps": [
+            "Q",
+            "E"
+          ]
+        },
+        {
+          "id": "boss-manual",
+          "label": "Boss PvE · manual burst",
+          "lines": [
+            {
+              "key": "Q",
+              "name": "Spirit cycle",
+              "priority": [
+                "Elemental Fusion",
+                "Summon: Water Spirit",
+                "Summon: Earth Spirit",
+                "Summon: Fire Spirit"
+              ]
+            },
+            {
+              "key": "E",
+              "name": "Jointstrike damage",
+              "priority": [
+                "Jointstrike: Corrode",
+                "Jointstrike: Curse",
+                "Dimensional Control",
+                "Combustion"
+              ]
+            }
+          ],
+          "manual": [
+            "Cold Shock on LMB",
+            "Flame Blessing / Spirit’s Benediction",
+            "Ancient Spirit",
+            "Destructive Attack if equipped (charge)",
+            "Dispel and movement",
+            "Enhance: Spirit’s Benediction",
+            "Flame Blessing",
+            "Summon: Ancient Spirit"
+          ],
+          "stigmas": [
+            "Summon: Ancient Spirit",
+            "Enhance: Spirit’s Benediction",
+            "Flame Blessing",
+            "Jointstrike: Corrode"
+          ],
+          "notes": [
+            "Control burst around boss vulnerability and mechanics. This is the comparison preset, not a benchmark winner.",
+            "Record resource gains per spirit activation, including repeat activations of the same spirit. Do not assume one distinct type per element.",
+            "Uncharged Fusion is the displayed default. Choose the charged-Fusion option to move it off the automatic line.",
+            "Ancient Spirit stays manual. Test snapshot behavior rather than assuming a buff applied after summoning changes the spirit."
+          ],
+          "minCharacterLevel": 45,
+          "minSkillTier": 8,
+          "evidence": {
+            "communitySupported": true,
+            "mechanicallyVerified": false,
+            "logTested": false,
+            "benchmarkValidated": false
+          },
+          "copyEnabled": true,
+          "sources": [
+            "https://aion2-guides.info/en/elementalist/",
+            "https://daevaguides.com/en/elementalist/"
+          ],
+          "steps": [
+            "Q",
+            "E"
+          ]
+        },
+        {
+          "id": "solo",
+          "label": "Solo farming",
+          "lines": [
+            {
+              "key": "Q",
+              "name": "Spirit cycle",
+              "priority": [
+                "Elemental Fusion",
+                "Summon: Water Spirit",
+                "Summon: Earth Spirit",
+                "Summon: Fire Spirit"
+              ]
+            },
+            {
+              "key": "E",
+              "name": "Jointstrike damage",
+              "priority": [
+                "Jointstrike: Corrode",
+                "Jointstrike: Curse",
+                "Dimensional Control",
+                "Combustion"
+              ]
+            }
+          ],
+          "manual": [
+            "Cold Shock on LMB",
+            "Flame Blessing / Spirit’s Benediction",
+            "Ancient Spirit",
+            "Destructive Attack if equipped (charge)",
+            "Dispel and movement"
+          ],
+          "stigmas": [
+            "Summon: Ancient Spirit",
+            "Enhance: Spirit’s Benediction",
+            "Flame Blessing",
+            "Jointstrike: Corrode"
+          ],
+          "notes": [
+            "Use sustainable resource choices before damage-only specialties; retain escape and recovery. Pull size and control immunity alter the rotation.",
+            "Unlock prerequisites still apply. At level 45, skill level 16 is not automatic."
+          ],
+          "minCharacterLevel": 45,
+          "minSkillTier": 8,
+          "evidence": {
+            "communitySupported": true,
+            "mechanicallyVerified": false,
+            "logTested": false,
+            "benchmarkValidated": false
+          },
+          "copyEnabled": true,
+          "sources": [
+            "https://aion2-guides.info/en/elementalist/",
+            "https://daevaguides.com/en/elementalist/"
+          ],
+          "steps": [
+            "Q",
+            "E"
+          ]
+        },
+        {
+          "id": "group",
+          "label": "Dungeon / raid",
+          "lines": [
+            {
+              "key": "Q",
+              "name": "Spirit cycle",
+              "priority": [
+                "Elemental Fusion",
+                "Summon: Water Spirit",
+                "Summon: Earth Spirit",
+                "Summon: Fire Spirit"
+              ]
+            },
+            {
+              "key": "E",
+              "name": "Jointstrike damage",
+              "priority": [
+                "Jointstrike: Corrode",
+                "Jointstrike: Curse",
+                "Dimensional Control",
+                "Combustion"
+              ]
+            }
+          ],
+          "manual": [
+            "Cold Shock on LMB",
+            "Flame Blessing / Spirit’s Benediction",
+            "Ancient Spirit",
+            "Destructive Attack if equipped (charge)",
+            "Dispel and movement",
+            "Enhance: Spirit’s Benediction",
+            "Flame Blessing",
+            "Summon: Ancient Spirit"
+          ],
+          "stigmas": [
+            "Summon: Ancient Spirit",
+            "Enhance: Spirit’s Benediction",
+            "Flame Blessing",
+            "Jointstrike: Corrode"
+          ],
+          "notes": [
+            "Use the manual-burst preset. Reserve defensive and group utility buttons for mechanics; do not evaluate only the opener."
+          ],
+          "minCharacterLevel": 45,
+          "minSkillTier": 8,
+          "evidence": {
+            "communitySupported": true,
+            "mechanicallyVerified": false,
+            "logTested": false,
+            "benchmarkValidated": false
+          },
+          "copyEnabled": true,
+          "sources": [
+            "https://aion2-guides.info/en/elementalist/",
+            "https://daevaguides.com/en/elementalist/"
+          ],
+          "steps": [
+            "Q",
+            "E"
+          ]
+        },
+        {
+          "id": "pvp",
+          "label": "PvP · control and burst",
+          "lines": [
+            {
+              "key": "Q",
+              "name": "Q skill line",
+              "priority": [
+                "Jointstrike: Curse",
+                "Combustion"
+              ]
+            }
+          ],
+          "manual": [
+            "Ancient Spirit",
+            "Command: Proxy",
+            "Seize Magic",
+            "Fear and escape",
+            "Charged Elemental Fusion"
+          ],
+          "stigmas": [
+            "Summon: Ancient Spirit",
+            "Enhance: Spirit’s Benediction",
+            "Command: Proxy",
+            "Seize Magic"
+          ],
+          "notes": [
+            "Damage-only macro candidate. Engage, crowd control, interrupts, cleansing and defensive reactions remain manual.",
+            "No claim that a PvE loop is optimal in PvP. Test against actual opponents with matching gear."
+          ],
+          "minCharacterLevel": 45,
+          "minSkillTier": 8,
+          "evidence": {
+            "communitySupported": true,
+            "mechanicallyVerified": false,
+            "logTested": false,
+            "benchmarkValidated": false
+          },
+          "copyEnabled": true,
+          "sources": [
+            "https://aion2-guides.info/en/elementalist/",
+            "https://daevaguides.com/en/elementalist/"
+          ],
+          "steps": [
+            "Q"
+          ]
+        },
+        {
+          "id": "leveling",
+          "label": "Leveling / fresh level 45",
+          "lines": [
+            {
+              "key": "Q",
+              "name": "Q skill line",
+              "priority": [
+                "Cold Shock"
+              ]
+            }
+          ],
+          "manual": [
+            "Cold Shock on LMB",
+            "Flame Blessing / Spirit’s Benediction",
+            "Ancient Spirit",
+            "Destructive Attack if equipped (charge)",
+            "Dispel and movement",
+            "Locked skills must remain off the bar"
+          ],
+          "stigmas": [
+            "Summon: Ancient Spirit",
+            "Enhance: Spirit’s Benediction",
+            "Flame Blessing",
+            "Jointstrike: Corrode"
+          ],
+          "notes": [
+            "Progression worksheet, not an exact skill-point allocation. Invest in unlocked core attacks and resource sustain.",
+            "At fresh level 45, use actual equipped skill levels (often 8–10), not the later 16–20 target. Bonus levels from gear/boards are separate.",
+            "Exact unlock levels and point budgets have not been verified against a captured Global client. Copy is disabled rather than presenting an invented allocation."
+          ],
+          "minCharacterLevel": 1,
+          "minSkillTier": 8,
+          "evidence": {
+            "communitySupported": true,
+            "mechanicallyVerified": false,
+            "logTested": false,
+            "benchmarkValidated": false
+          },
+          "copyEnabled": false,
+          "sources": [
+            "https://aion2-guides.info/en/elementalist/",
+            "https://daevaguides.com/en/elementalist/"
+          ],
+          "steps": [
+            "Q"
+          ]
+        }
+      ],
+      "levelNotes": {
+        "8": "Fresh-cap / early skills: choose resource sustain; later chain and cooldown-removal claims do not apply.",
+        "12": "Mid progression: verify the second specialty in the actual client; charge variants change automation suitability.",
+        "16": "Later setup: explicitly equip required specialties. Skill 20 and extra slots still require the appropriate gear and board investment."
+      }
+    },
+    {
+      "id": "cleric",
+      "name": "Cleric",
+      "role": "Healer · damage between mechanics",
+      "color": "#f0cd7b",
+      "intro": "Build a usable damage loop, but keep healing, protection and charge decisions manual. Group survival takes precedence over a dummy rotation.",
+      "core": [
+        [
+          "Condemnation / Divine Aura / Bolt",
+          "16 → 20",
+          "Main damage investments as the build develops."
+        ],
+        [
+          "Judgment Thunder / Lightning Strike Scattershot",
+          "16",
+          "Sustained support."
+        ],
+        [
+          "Healing skills",
+          "As required",
+          "Keep the group alive before adding optional damage."
+        ]
+      ],
+      "stigmas": [
+        "Earth Punishment",
+        "Light of Protection",
+        "Prayer of Amplification",
+        "Noble Aura"
+      ],
+      "passives": [
+        "Empyrean Lord’s Grace",
+        "Earth’s Grace",
+        "Healing Enhancement",
+        "Radiant Benediction"
+      ],
+      "lines": [
+        {
+          "key": "Q",
+          "name": "Prayer / earth",
+          "priority": [
+            "Prayer of Amplification",
+            "Earth Punishment",
+            "Chain of Torment",
+            "Condemnation"
+          ]
+        },
+        {
+          "key": "E",
+          "name": "Aura / filler",
+          "priority": [
+            "Lightning Strike Scattershot",
+            "Divine Aura",
+            "Light of Regeneration",
+            "Judgment Thunder"
+          ]
+        }
+      ],
+      "steps": [
+        "Q line",
+        "E line"
+      ],
+      "manual": [
+        "Earth’s Retribution on LMB",
+        "Healing and Radiant Recovery",
+        "Debilitating Mark",
+        "Bolt (charge)",
+        "Light of Protection (toggle) / Noble Aura"
+      ],
+      "opener": [
+        "Prepare the required protection toggle and safe positioning.",
+        "Apply your target setup deliberately.",
+        "Use Earth Punishment and the available damage line while the party is stable.",
+        "Interrupt the damage loop immediately for healing, cleanse or mechanics."
+      ],
+      "progression": [
+        "Do not assume reset-dependent Condemnation behavior before its required specialty.",
+        "The damage preset is not a complete raid-healing prescription.",
+        "Level healing and recovery for the encounters you actually heal."
+      ],
+      "gear": "Balance core skill levels with mana sustainability and healing needs. Compare a damage-only gear choice against the healing and survival it costs your party.",
+      "variant": "For more group utility, replace an optional damage stigma with the needed support choice. Count the equipped four slots after every swap.",
+      "lab": "The Lab’s Cleric damage logic uses observed target/debuff windows; it does not read dependable party-health state. It therefore cannot decide when your group needs a heal or guarantee a reset chain.",
+      "pitfall": "Protection toggles can be switched off by a repeated macro press. Keep them outside the loop.",
+      "guide": "https://aion2-guides.info/en/cleric/",
+      "guideUpdated": "Oct 14, 2026",
+      "credits": [
+        {
+          "label": "Global class guide and comparisons",
+          "url": "https://aion2-guides.info/en/cleric/"
+        },
+        {
+          "label": "Macro/build comparison notes",
+          "url": "https://daevaguides.com/en/cleric/"
+        }
+      ],
+      "videos": [
+        {
+          "title": "Kaeria — Cleric PvE guide (in Russian)",
+          "url": "https://www.youtube.com/watch?v=7LjTwlZ4v_s",
+          "review": "Referenced by the written guide; video transcript not independently available."
+        },
+        {
+          "title": "Grobs — AION 2 Macro Guide",
+          "url": "https://www.youtube.com/watch?v=HMod6Z4GrE0",
+          "review": "Referenced by the written guide; video transcript not independently available."
+        },
+        {
+          "title": "aLuckyRO — AION 2 Latest Cleric PVE Build for Global",
+          "url": "https://www.youtube.com/watch?v=A3pZDSt4ceU",
+          "review": "Referenced by the written guide; video transcript not independently available."
+        }
+      ],
+      "labSource": "https://github.com/BradyTheGoat94/GoatMeter-Rotation-Lab/blob/e97db9e/docs/rotation-evidence.md",
+      "specializations": [
+        "Earth Punishment 5: check the Condemnation critical-hit interaction on an afflicted target.",
+        "Condemnation: verify its critical-trigger cooldown behavior; misses and expired debuffs invalidate the loop.",
+        "Judgment Thunder: compare actual unlocked specialties; keep healing priorities independent of damage availability."
+      ],
+      "compatibility": {
+        "region": "Global",
+        "season": "Season 1",
+        "reviewed": "2026-10-17",
+        "clientBuild": "Not captured; exact client compatibility pending",
+        "skillCapAssumption": 20,
+        "stigmaSlotsAssumption": 4
+      },
+      "modes": [
+        {
+          "id": "one-button",
+          "label": "One-button PvE candidate",
+          "lines": [
+            {
+              "key": "Q",
+              "name": "Q skill line",
+              "priority": [
+                "Earth Punishment",
+                "Chain of Torment",
+                "Condemnation"
+              ]
+            },
+            {
+              "key": "E",
+              "name": "E skill line",
+              "priority": [
+                "Lightning Strike Scattershot",
+                "Judgment Thunder"
+              ]
+            }
+          ],
+          "manual": [
+            "Prayer of Amplification",
+            "All healing and cleanse",
+            "Bolt charge",
+            "Light of Protection toggle",
+            "Divine Aura and Light of Regeneration"
+          ],
+          "stigmas": [
+            "Earth Punishment",
+            "Light of Protection",
+            "Prayer of Amplification",
+            "Noble Aura"
+          ],
+          "notes": [
+            "One held native macro cycles the shown lines. This does not prove automatic basic-attack weaving or maximum DPS.",
+            "Charges, defensives, interrupts and encounter-critical burst remain manual.",
+            "Measure outgoing damage and actual healing demands separately; a DPS result cannot validate healing safety."
+          ],
+          "minCharacterLevel": 45,
+          "minSkillTier": 8,
+          "evidence": {
+            "communitySupported": true,
+            "mechanicallyVerified": false,
+            "logTested": false,
+            "benchmarkValidated": false
+          },
+          "copyEnabled": true,
+          "sources": [
+            "https://aion2-guides.info/en/cleric/",
+            "https://daevaguides.com/en/cleric/"
+          ],
+          "steps": [
+            "Q",
+            "E"
+          ]
+        },
+        {
+          "id": "boss-manual",
+          "label": "Boss PvE · manual burst",
+          "lines": [
+            {
+              "key": "Q",
+              "name": "Q skill line",
+              "priority": [
+                "Earth Punishment",
+                "Chain of Torment",
+                "Condemnation"
+              ]
+            },
+            {
+              "key": "E",
+              "name": "E skill line",
+              "priority": [
+                "Lightning Strike Scattershot",
+                "Judgment Thunder"
+              ]
+            }
+          ],
+          "manual": [
+            "Prayer of Amplification",
+            "All healing and cleanse",
+            "Bolt charge",
+            "Light of Protection toggle",
+            "Divine Aura and Light of Regeneration"
+          ],
+          "stigmas": [
+            "Earth Punishment",
+            "Light of Protection",
+            "Prayer of Amplification",
+            "Noble Aura"
+          ],
+          "notes": [
+            "Control burst around boss vulnerability and mechanics. This is the comparison preset, not a benchmark winner.",
+            "Measure outgoing damage and actual healing demands separately; a DPS result cannot validate healing safety."
+          ],
+          "minCharacterLevel": 45,
+          "minSkillTier": 8,
+          "evidence": {
+            "communitySupported": true,
+            "mechanicallyVerified": false,
+            "logTested": false,
+            "benchmarkValidated": false
+          },
+          "copyEnabled": true,
+          "sources": [
+            "https://aion2-guides.info/en/cleric/",
+            "https://daevaguides.com/en/cleric/"
+          ],
+          "steps": [
+            "Q",
+            "E"
+          ]
+        },
+        {
+          "id": "solo",
+          "label": "Solo DPS / farming",
+          "lines": [
+            {
+              "key": "Q",
+              "name": "Q skill line",
+              "priority": [
+                "Earth Punishment",
+                "Chain of Torment",
+                "Condemnation"
+              ]
+            },
+            {
+              "key": "E",
+              "name": "E skill line",
+              "priority": [
+                "Lightning Strike Scattershot",
+                "Judgment Thunder"
+              ]
+            }
+          ],
+          "manual": [
+            "Prayer of Amplification",
+            "All healing and cleanse",
+            "Bolt charge",
+            "Light of Protection toggle",
+            "Divine Aura and Light of Regeneration"
+          ],
+          "stigmas": [
+            "Earth Punishment",
+            "Light of Protection",
+            "Prayer of Amplification",
+            "Noble Aura"
+          ],
+          "notes": [
+            "Use sustainable resource choices before damage-only specialties; retain escape and recovery. Pull size and control immunity alter the rotation.",
+            "Unlock prerequisites still apply. At level 45, skill level 16 is not automatic."
+          ],
+          "minCharacterLevel": 45,
+          "minSkillTier": 8,
+          "evidence": {
+            "communitySupported": true,
+            "mechanicallyVerified": false,
+            "logTested": false,
+            "benchmarkValidated": false
+          },
+          "copyEnabled": true,
+          "sources": [
+            "https://aion2-guides.info/en/cleric/",
+            "https://daevaguides.com/en/cleric/"
+          ],
+          "steps": [
+            "Q",
+            "E"
+          ]
+        },
+        {
+          "id": "group",
+          "label": "Dungeon / raid",
+          "lines": [
+            {
+              "key": "Q",
+              "name": "Q skill line",
+              "priority": [
+                "Earth Punishment",
+                "Chain of Torment",
+                "Condemnation"
+              ]
+            },
+            {
+              "key": "E",
+              "name": "E skill line",
+              "priority": [
+                "Lightning Strike Scattershot",
+                "Judgment Thunder"
+              ]
+            }
+          ],
+          "manual": [
+            "Prayer of Amplification",
+            "All healing and cleanse",
+            "Bolt charge",
+            "Light of Protection toggle",
+            "Divine Aura and Light of Regeneration"
+          ],
+          "stigmas": [
+            "Earth Punishment",
+            "Light of Protection",
+            "Prayer of Amplification",
+            "Noble Aura"
+          ],
+          "notes": [
+            "Use the manual-burst preset. Reserve defensive and group utility buttons for mechanics; do not evaluate only the opener."
+          ],
+          "minCharacterLevel": 45,
+          "minSkillTier": 8,
+          "evidence": {
+            "communitySupported": true,
+            "mechanicallyVerified": false,
+            "logTested": false,
+            "benchmarkValidated": false
+          },
+          "copyEnabled": true,
+          "sources": [
+            "https://aion2-guides.info/en/cleric/",
+            "https://daevaguides.com/en/cleric/"
+          ],
+          "steps": [
+            "Q",
+            "E"
+          ]
+        },
+        {
+          "id": "pvp",
+          "label": "PvP · control and burst",
+          "lines": [
+            {
+              "key": "Q",
+              "name": "Q skill line",
+              "priority": [
+                "Condemnation",
+                "Judgment Thunder"
+              ]
+            }
+          ],
+          "manual": [
+            "Yustiel’s Power",
+            "Voice of Doom",
+            "Healing and cleanse",
+            "Bolt charge",
+            "Defiance"
+          ],
+          "stigmas": [
+            "Prayer of Amplification",
+            "Light of Protection",
+            "Yustiel’s Power",
+            "Voice of Doom"
+          ],
+          "notes": [
+            "Damage-only macro candidate. Engage, crowd control, interrupts, cleansing and defensive reactions remain manual.",
+            "No claim that a PvE loop is optimal in PvP. Test against actual opponents with matching gear."
+          ],
+          "minCharacterLevel": 45,
+          "minSkillTier": 8,
+          "evidence": {
+            "communitySupported": true,
+            "mechanicallyVerified": false,
+            "logTested": false,
+            "benchmarkValidated": false
+          },
+          "copyEnabled": true,
+          "sources": [
+            "https://aion2-guides.info/en/cleric/",
+            "https://daevaguides.com/en/cleric/"
+          ],
+          "steps": [
+            "Q"
+          ]
+        },
+        {
+          "id": "healing",
+          "label": "Dungeon healing",
+          "lines": [
+            {
+              "key": "Q",
+              "name": "Q skill line",
+              "priority": [
+                "Condemnation",
+                "Judgment Thunder"
+              ]
+            }
+          ],
+          "manual": [
+            "Radiant Recovery",
+            "Healing, cleanse and emergency defensives",
+            "Prayer of Amplification",
+            "Earth Punishment",
+            "Bolt charge"
+          ],
+          "stigmas": [
+            "Earth Punishment",
+            "Light of Protection",
+            "Prayer of Amplification",
+            "Noble Aura"
+          ],
+          "notes": [
+            "Damage filler only when healing permits. No target-health decision is delegated to a damage macro.",
+            "Healing throughput, range, mana and emergency response need an in-game group test. No healing safety has been benchmarked."
+          ],
+          "minCharacterLevel": 45,
+          "minSkillTier": 8,
+          "evidence": {
+            "communitySupported": true,
+            "mechanicallyVerified": false,
+            "logTested": false,
+            "benchmarkValidated": false
+          },
+          "copyEnabled": true,
+          "sources": [
+            "https://aion2-guides.info/en/cleric/",
+            "https://daevaguides.com/en/cleric/"
+          ],
+          "steps": [
+            "Q"
+          ]
+        },
+        {
+          "id": "chanter-present",
+          "label": "Party DPS · Chanter present",
+          "lines": [
+            {
+              "key": "Q",
+              "name": "Q skill line",
+              "priority": [
+                "Earth Punishment",
+                "Chain of Torment",
+                "Condemnation"
+              ]
+            },
+            {
+              "key": "E",
+              "name": "E skill line",
+              "priority": [
+                "Lightning Strike Scattershot",
+                "Judgment Thunder"
+              ]
+            }
+          ],
+          "manual": [
+            "Prayer of Amplification",
+            "All healing and cleanse",
+            "Bolt charge",
+            "Light of Protection toggle",
+            "Divine Aura and Light of Regeneration"
+          ],
+          "stigmas": [
+            "Earth Punishment",
+            "Prayer of Amplification",
+            "Noble Aura",
+            "Unresolved utility slot — confirm party need"
+          ],
+          "notes": [
+            "Community guides report overlapping mantra effects and advise removing Light of Protection when the Chanter covers it.",
+            "Exact overlap and the replacement stigma depend on the party and encounter. Confirm buff tooltips and choose a replacement with the party; no automatic swap is asserted."
+          ],
+          "minCharacterLevel": 45,
+          "minSkillTier": 8,
+          "evidence": {
+            "communitySupported": true,
+            "mechanicallyVerified": false,
+            "logTested": false,
+            "benchmarkValidated": false
+          },
+          "copyEnabled": false,
+          "sources": [
+            "https://aion2-guides.info/en/cleric/",
+            "https://daevaguides.com/en/cleric/"
+          ],
+          "steps": [
+            "Q",
+            "E"
+          ]
+        },
+        {
+          "id": "leveling",
+          "label": "Leveling / fresh level 45",
+          "lines": [
+            {
+              "key": "Q",
+              "name": "Q skill line",
+              "priority": [
+                "Earth Retribution"
+              ]
+            }
+          ],
+          "manual": [
+            "Earth’s Retribution on LMB",
+            "Healing and Radiant Recovery",
+            "Debilitating Mark",
+            "Bolt (charge)",
+            "Light of Protection (toggle) / Noble Aura",
+            "Locked skills must remain off the bar"
+          ],
+          "stigmas": [
+            "Earth Punishment",
+            "Light of Protection",
+            "Prayer of Amplification",
+            "Noble Aura"
+          ],
+          "notes": [
+            "Progression worksheet, not an exact skill-point allocation. Invest in unlocked core attacks and resource sustain.",
+            "At fresh level 45, use actual equipped skill levels (often 8–10), not the later 16–20 target. Bonus levels from gear/boards are separate.",
+            "Exact unlock levels and point budgets have not been verified against a captured Global client. Copy is disabled rather than presenting an invented allocation."
+          ],
+          "minCharacterLevel": 1,
+          "minSkillTier": 8,
+          "evidence": {
+            "communitySupported": true,
+            "mechanicallyVerified": false,
+            "logTested": false,
+            "benchmarkValidated": false
+          },
+          "copyEnabled": false,
+          "sources": [
+            "https://aion2-guides.info/en/cleric/",
+            "https://daevaguides.com/en/cleric/"
+          ],
+          "steps": [
+            "Q"
+          ]
+        }
+      ],
+      "levelNotes": {
+        "8": "Fresh-cap / early skills: choose resource sustain; later chain and cooldown-removal claims do not apply.",
+        "12": "Mid progression: verify the second specialty in the actual client; charge variants change automation suitability.",
+        "16": "Later setup: explicitly equip required specialties. Skill 20 and extra slots still require the appropriate gear and board investment."
+      }
+    },
+    {
+      "id": "chanter",
+      "name": "Chanter",
+      "role": "Melee support · reactive damage",
+      "color": "#f0a66a",
+      "intro": "React to Dark Crush opportunities while sustaining melee pressure. Keep mantras, healing and crowd-control responses outside the repeating loop.",
+      "core": [
+        [
+          "Dark Crush / Onslaught / Spinning Strike",
+          "16 → 20",
+          "Damage core and its activation opportunities."
+        ],
+        [
+          "Incandescent Blow",
+          "16",
+          "Sustained filler."
+        ],
+        [
+          "Recuperation",
+          "12",
+          "Useful group recovery milestone."
+        ]
+      ],
+      "stigmas": [
+        "Undefeated Mantra",
+        "Power of the Storm",
+        "Marchutan’s Wrath",
+        "Focused Defense"
+      ],
+      "passives": [
+        "Attack Preparation",
+        "Inspiring Spell",
+        "Wind’s Promise",
+        "Impact Hit"
+      ],
+      "lines": [
+        {
+          "key": "Q",
+          "name": "Crush engine",
+          "priority": [
+            "Dark Crush",
+            "Spinning Strike",
+            "Incandescent Blow"
+          ]
+        },
+        {
+          "key": "E",
+          "name": "Basic attack",
+          "priority": [
+            "Onslaught"
+          ]
+        }
+      ],
+      "steps": [
+        "Q line",
+        "E line"
+      ],
+      "manual": [
+        "Mantras (toggle once)",
+        "Impactful Crush / Marchutan’s Wrath",
+        "Wave Blow on valid Stun",
+        "Recuperation / Power of the Storm",
+        "Defiance and movement"
+      ],
+      "opener": [
+        "Enable the chosen mantras once.",
+        "Create a valid Dark Crush opportunity with an available trigger.",
+        "Take Dark Crush promptly; resume the sustained lines.",
+        "Use Wave Blow when Stun is available, and stop for group recovery or mechanics."
+      ],
+      "progression": [
+        "Do not assume Dark Crush has no cooldown until its actual specialty is selected.",
+        "Keep openers manual while learning their trigger windows.",
+        "Treat the Onslaught weave as a sustained pattern, not proof of a mandatory chain."
+      ],
+      "gear": "Invest in the damage core and support uptime. Useful combat speed and cooldown reduction compete with recovery and survival needs; evaluate the whole encounter.",
+      "variant": "A control-focused PvP preset needs different stigmas and timing. This baseline keeps group utilities manual rather than folding them into a damage-only macro.",
+      "lab": "Current Lab evidence gives Dark Crush a 2s opportunity after Impactful Crush or Spinning Strike, with a 5s base cooldown. Wave Blow reacts to observed Stun and applies Knockdown; it is not queued after Knockdown already exists.",
+      "pitfall": "A mantra in a repeating macro can toggle itself off. A visible stagger break is an opportunity to check state, not permission to assume every control skill is valid.",
+      "guide": "https://aion2-guides.info/en/chanter/",
+      "guideUpdated": "Oct 16, 2026",
+      "credits": [
+        {
+          "label": "Global class guide and comparisons",
+          "url": "https://aion2-guides.info/en/chanter/"
+        },
+        {
+          "label": "Macro/build comparison notes",
+          "url": "https://daevaguides.com/en/chanter/"
+        }
+      ],
+      "videos": [
+        {
+          "title": "Arthars Gaming — The ULTIMATE AION 2 Chanter Starter Guide! (Global Launch)",
+          "url": "https://www.youtube.com/watch?v=7qMgsnSsmIU",
+          "review": "Referenced by the written guide; video transcript not independently available."
+        },
+        {
+          "title": "Grobs — AION 2 Macro Guide",
+          "url": "https://www.youtube.com/watch?v=HMod6Z4GrE0",
+          "review": "Referenced by the written guide; video transcript not independently available."
+        },
+        {
+          "title": "notXeon — The ONLY Chanter Skill Guide You'll Ever Need",
+          "url": "https://www.youtube.com/watch?v=aqv5kWXqtIw",
+          "review": "Referenced by the written guide; video transcript not independently available."
+        }
+      ],
+      "labSource": "https://github.com/BradyTheGoat94/GoatMeter-Rotation-Lab/blob/e97db9e/docs/rotation-evidence.md",
+      "specializations": [
+        "Dark Crush: test the short follow-up window after Spinning Strike/Impactful Crush.",
+        "Wave Blow: reserve it for the actual Stun opportunity; do not assume an existing Knockdown enables it.",
+        "Power of the Storm: verify cooldown and party-buff specialties at your equipped level."
+      ],
+      "compatibility": {
+        "region": "Global",
+        "season": "Season 1",
+        "reviewed": "2026-10-17",
+        "clientBuild": "Not captured; exact client compatibility pending",
+        "skillCapAssumption": 20,
+        "stigmaSlotsAssumption": 4
+      },
+      "modes": [
+        {
+          "id": "one-button",
+          "label": "One-button PvE candidate",
+          "lines": [
+            {
+              "key": "Q",
+              "name": "Crush engine",
+              "priority": [
+                "Dark Crush",
+                "Spinning Strike",
+                "Incandescent Blow"
+              ]
+            },
+            {
+              "key": "E",
+              "name": "Basic attack",
+              "priority": [
+                "Onslaught"
+              ]
+            }
+          ],
+          "manual": [
+            "Mantras (toggle once)",
+            "Impactful Crush / Marchutan’s Wrath",
+            "Wave Blow on valid Stun",
+            "Recuperation / Power of the Storm",
+            "Defiance and movement"
+          ],
+          "stigmas": [
+            "Undefeated Mantra",
+            "Power of the Storm",
+            "Marchutan’s Wrath",
+            "Focused Defense"
+          ],
+          "notes": [
+            "One held native macro cycles the shown lines. This does not prove automatic basic-attack weaving or maximum DPS.",
+            "Charges, defensives, interrupts and encounter-critical burst remain manual.",
+            "Compare group buff coverage and support interruptions as well as personal damage; no combined score is invented."
+          ],
+          "minCharacterLevel": 45,
+          "minSkillTier": 8,
+          "evidence": {
+            "communitySupported": true,
+            "mechanicallyVerified": false,
+            "logTested": false,
+            "benchmarkValidated": false
+          },
+          "copyEnabled": true,
+          "sources": [
+            "https://aion2-guides.info/en/chanter/",
+            "https://daevaguides.com/en/chanter/"
+          ],
+          "steps": [
+            "Q",
+            "E"
+          ]
+        },
+        {
+          "id": "boss-manual",
+          "label": "Boss PvE · manual burst",
+          "lines": [
+            {
+              "key": "Q",
+              "name": "Crush engine",
+              "priority": [
+                "Dark Crush",
+                "Spinning Strike",
+                "Incandescent Blow"
+              ]
+            },
+            {
+              "key": "E",
+              "name": "Basic attack",
+              "priority": [
+                "Onslaught"
+              ]
+            }
+          ],
+          "manual": [
+            "Mantras (toggle once)",
+            "Impactful Crush / Marchutan’s Wrath",
+            "Wave Blow on valid Stun",
+            "Recuperation / Power of the Storm",
+            "Defiance and movement",
+            "Power of the Storm",
+            "Marchutan’s Wrath",
+            "Mantras",
+            "Wave Blow",
+            "Healing and cleanse"
+          ],
+          "stigmas": [
+            "Undefeated Mantra",
+            "Power of the Storm",
+            "Marchutan’s Wrath",
+            "Focused Defense"
+          ],
+          "notes": [
+            "Control burst around boss vulnerability and mechanics. This is the comparison preset, not a benchmark winner.",
+            "Compare group buff coverage and support interruptions as well as personal damage; no combined score is invented."
+          ],
+          "minCharacterLevel": 45,
+          "minSkillTier": 8,
+          "evidence": {
+            "communitySupported": true,
+            "mechanicallyVerified": false,
+            "logTested": false,
+            "benchmarkValidated": false
+          },
+          "copyEnabled": true,
+          "sources": [
+            "https://aion2-guides.info/en/chanter/",
+            "https://daevaguides.com/en/chanter/"
+          ],
+          "steps": [
+            "Q",
+            "E"
+          ]
+        },
+        {
+          "id": "solo",
+          "label": "Solo farming",
+          "lines": [
+            {
+              "key": "Q",
+              "name": "Crush engine",
+              "priority": [
+                "Dark Crush",
+                "Spinning Strike",
+                "Incandescent Blow"
+              ]
+            },
+            {
+              "key": "E",
+              "name": "Basic attack",
+              "priority": [
+                "Onslaught"
+              ]
+            }
+          ],
+          "manual": [
+            "Mantras (toggle once)",
+            "Impactful Crush / Marchutan’s Wrath",
+            "Wave Blow on valid Stun",
+            "Recuperation / Power of the Storm",
+            "Defiance and movement"
+          ],
+          "stigmas": [
+            "Undefeated Mantra",
+            "Power of the Storm",
+            "Marchutan’s Wrath",
+            "Focused Defense"
+          ],
+          "notes": [
+            "Use sustainable resource choices before damage-only specialties; retain escape and recovery. Pull size and control immunity alter the rotation.",
+            "Unlock prerequisites still apply. At level 45, skill level 16 is not automatic."
+          ],
+          "minCharacterLevel": 45,
+          "minSkillTier": 8,
+          "evidence": {
+            "communitySupported": true,
+            "mechanicallyVerified": false,
+            "logTested": false,
+            "benchmarkValidated": false
+          },
+          "copyEnabled": true,
+          "sources": [
+            "https://aion2-guides.info/en/chanter/",
+            "https://daevaguides.com/en/chanter/"
+          ],
+          "steps": [
+            "Q",
+            "E"
+          ]
+        },
+        {
+          "id": "group",
+          "label": "Group support / raid",
+          "lines": [
+            {
+              "key": "Q",
+              "name": "Crush engine",
+              "priority": [
+                "Dark Crush",
+                "Spinning Strike",
+                "Incandescent Blow"
+              ]
+            },
+            {
+              "key": "E",
+              "name": "Basic attack",
+              "priority": [
+                "Onslaught"
+              ]
+            }
+          ],
+          "manual": [
+            "Mantras (toggle once)",
+            "Impactful Crush / Marchutan’s Wrath",
+            "Wave Blow on valid Stun",
+            "Recuperation / Power of the Storm",
+            "Defiance and movement",
+            "Power of the Storm",
+            "Marchutan’s Wrath",
+            "Mantras",
+            "Wave Blow",
+            "Healing and cleanse"
+          ],
+          "stigmas": [
+            "Undefeated Mantra",
+            "Power of the Storm",
+            "Marchutan’s Wrath",
+            "Focused Defense"
+          ],
+          "notes": [
+            "Use the manual-burst preset. Reserve defensive and group utility buttons for mechanics; do not evaluate only the opener."
+          ],
+          "minCharacterLevel": 45,
+          "minSkillTier": 8,
+          "evidence": {
+            "communitySupported": true,
+            "mechanicallyVerified": false,
+            "logTested": false,
+            "benchmarkValidated": false
+          },
+          "copyEnabled": true,
+          "sources": [
+            "https://aion2-guides.info/en/chanter/",
+            "https://daevaguides.com/en/chanter/"
+          ],
+          "steps": [
+            "Q",
+            "E"
+          ]
+        },
+        {
+          "id": "pvp",
+          "label": "PvP · control and burst",
+          "lines": [
+            {
+              "key": "Q",
+              "name": "Q skill line",
+              "priority": [
+                "Dark Crush",
+                "Spinning Strike",
+                "Incandescent Blow"
+              ]
+            }
+          ],
+          "manual": [
+            "Wave Blow",
+            "Fracturing Blow",
+            "Marchutan’s Wrath",
+            "Guardian Blessing",
+            "Healing and cleanse"
+          ],
+          "stigmas": [
+            "Undefeated Mantra",
+            "Marchutan’s Wrath",
+            "Fracturing Blow",
+            "Guardian Blessing"
+          ],
+          "notes": [
+            "Damage-only macro candidate. Engage, crowd control, interrupts, cleansing and defensive reactions remain manual.",
+            "No claim that a PvE loop is optimal in PvP. Test against actual opponents with matching gear."
+          ],
+          "minCharacterLevel": 45,
+          "minSkillTier": 8,
+          "evidence": {
+            "communitySupported": true,
+            "mechanicallyVerified": false,
+            "logTested": false,
+            "benchmarkValidated": false
+          },
+          "copyEnabled": true,
+          "sources": [
+            "https://aion2-guides.info/en/chanter/",
+            "https://daevaguides.com/en/chanter/"
+          ],
+          "steps": [
+            "Q"
+          ]
+        },
+        {
+          "id": "leveling",
+          "label": "Leveling / fresh level 45",
+          "lines": [
+            {
+              "key": "Q",
+              "name": "Q skill line",
+              "priority": [
+                "Impactful Crush"
+              ]
+            }
+          ],
+          "manual": [
+            "Mantras (toggle once)",
+            "Impactful Crush / Marchutan’s Wrath",
+            "Wave Blow on valid Stun",
+            "Recuperation / Power of the Storm",
+            "Defiance and movement",
+            "Locked skills must remain off the bar"
+          ],
+          "stigmas": [
+            "Undefeated Mantra",
+            "Power of the Storm",
+            "Marchutan’s Wrath",
+            "Focused Defense"
+          ],
+          "notes": [
+            "Progression worksheet, not an exact skill-point allocation. Invest in unlocked core attacks and resource sustain.",
+            "At fresh level 45, use actual equipped skill levels (often 8–10), not the later 16–20 target. Bonus levels from gear/boards are separate.",
+            "Exact unlock levels and point budgets have not been verified against a captured Global client. Copy is disabled rather than presenting an invented allocation."
+          ],
+          "minCharacterLevel": 1,
+          "minSkillTier": 8,
+          "evidence": {
+            "communitySupported": true,
+            "mechanicallyVerified": false,
+            "logTested": false,
+            "benchmarkValidated": false
+          },
+          "copyEnabled": false,
+          "sources": [
+            "https://aion2-guides.info/en/chanter/",
+            "https://daevaguides.com/en/chanter/"
+          ],
+          "steps": [
+            "Q"
+          ]
+        }
+      ],
+      "levelNotes": {
+        "8": "Fresh-cap / early skills: choose resource sustain; later chain and cooldown-removal claims do not apply.",
+        "12": "Mid progression: verify the second specialty in the actual client; charge variants change automation suitability.",
+        "16": "Later setup: explicitly equip required specialties. Skill 20 and extra slots still require the appropriate gear and board investment."
+      }
+    }
+  ]
+}
