@@ -80,3 +80,7 @@ test('Gladiator split setup prioritizes its enabler and requires actual equipped
  const early=effectivePreset(b,'community-single-line');assert.ok(early.manual.includes('Ruinous Blow'));assert.equal(early.basicAttack.skill,'Keen Strike');
  const boss=effectivePreset(b,'boss-manual');assert.ok(boss.manual.includes('Rage Burst'));assert.ok(boss.manual.includes('Ruinous Blow'));
 });
+test('Templar separate-Pummel candidate copies three stack inputs instead of individual skill steps',()=>{
+ const b=build('templar'),m=effectivePreset(b,'separate-pummel');assert.deepEqual(m.steps,['Q','E','R']);assert.deepEqual(m.lines[1].priority,['Annihilate','Debilitating Smash']);assert.deepEqual(m.lines[2].priority,['Pummel']);assert.equal(m.lines[0].priority[3],'Doom Shield');assert.ok(m.manual.includes('Punishment charge'));assert.match(copyPlan(b,m),/Macro steps: Q → E → R/);assert.equal(m.evidence.communitySupported,false);
+ assert.deepEqual(effectivePreset(b,'one-button').steps,['Q','E']);
+});

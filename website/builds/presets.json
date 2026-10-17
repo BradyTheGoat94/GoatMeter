@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "version": "0.2.6-test",
+  "version": "0.2.7-test",
   "reviewed": "2026-10-17",
   "classes": [
     {
@@ -476,6 +476,71 @@
           ],
           "steps": [
             "Q"
+          ]
+        },
+        {
+          "id": "separate-pummel",
+          "label": "One-button comparison · separate Pummel",
+          "lines": [
+            {
+              "key": "Q",
+              "name": "Judgment stack",
+              "priority": [
+                "Judgment",
+                "Shield Smite",
+                "Warding Strike",
+                "Doom Shield"
+              ]
+            },
+            {
+              "key": "E",
+              "name": "Annihilate stack",
+              "priority": [
+                "Annihilate",
+                "Debilitating Smash"
+              ]
+            },
+            {
+              "key": "R",
+              "name": "Pummel alone",
+              "priority": [
+                "Pummel"
+              ]
+            }
+          ],
+          "manual": [
+            "Punishment charge",
+            "Taunt",
+            "Block, Defiance and defensive cooldowns"
+          ],
+          "stigmas": [
+            "Doom Shield",
+            "Battlefield Banner",
+            "Empyrean Lord’s Punishment",
+            "Taunt"
+          ],
+          "notes": [
+            "Requested three-slot comparison: the native macro presses the Judgment stack, then the Annihilate stack, then Pummel. It does not list every skill as a separate macro step.",
+            "One held macro button cycles Q → E → R. Charged Punishment, Taunt and defensive decisions remain manual.",
+            "This is a user-proposed comparison, not an independently verified creator setup or a measured improvement over the two-step candidate. Doom Shield charge behavior and stack execution still require Global-client checks."
+          ],
+          "minCharacterLevel": 45,
+          "minSkillTier": 16,
+          "evidence": {
+            "communitySupported": false,
+            "mechanicallyVerified": false,
+            "logTested": false,
+            "benchmarkValidated": false
+          },
+          "copyEnabled": true,
+          "sources": [
+            "https://aion2-guides.info/en/templar/",
+            "https://solashur.com/builds/templar-macro-guide.html"
+          ],
+          "steps": [
+            "Q",
+            "E",
+            "R"
           ]
         }
       ],

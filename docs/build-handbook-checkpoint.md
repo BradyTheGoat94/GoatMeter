@@ -27,3 +27,7 @@ The handbook now explicitly distinguishes one held macro key from the multiple h
 ## Gladiator focused review
 
 Corrected the automatic-enabler candidate to put Rage Burst before Overhead Slam. The deliberate boss variant still keeps Rage Burst and Ruinous Blow manual, with an explicit enabling-window requirement. The older single-line comparison now explicitly lists manual Ruinous Blow. The later split-line candidate requires actual equipped Overhead Slam and Rending Blow levels, rather than treating a generic skill-tier selector or character level 45 as sufficient. Keen Strike guidance remains a source/progression comparison, not a measured winner. New class-mechanics notes explain immunity, stagger, trigger starvation and manual defensive decisions. No client execution or benchmark label was upgraded.
+
+## Templar three-slot comparison
+
+Added the user-confirmed comparison: Judgment stack / Annihilate plus Debilitating Smash stack / Pummel alone, cycled as three hotbar inputs by one held native macro key. Punishment stays manual. The original two-step candidate remains available. This is a user-proposed comparison, not a mechanically verified or benchmark-supported improvement, and does not earn the Community-supported label by inheritance.
