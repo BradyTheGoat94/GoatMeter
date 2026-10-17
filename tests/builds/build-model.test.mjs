@@ -58,3 +58,7 @@ test('source-comparison variants retain basic attacks and keep manual/automatic 
  const sorc=effectivePreset(build('sorcerer'),'community-wish-line');assert.equal(sorc.lines[0].priority[3],'Wish of Concentration');assert.ok(!sorc.manual.includes('Wish of Concentration'));assert.ok(sorc.manual.includes('Hellfire charge'));
  for(const b of catalog.classes)assert.ok(b.researchComparison);
 });
+test('Sorcerer creator correction keeps Flame Arrow separate and gates the Wish specialty',()=>{
+ const b=build('sorcerer'),m=effectivePreset(b,'boss-manual');assert.equal(m.basicAttack.binding,'LMB');assert.equal(m.basicAttack.skill,'Flame Arrow');assert.match(copyPlan(b,m),/Basic attack: Flame Arrow on LMB/);assert.ok(m.lines.every(l=>!l.priority.includes('Flame Arrow')));
+ const wish=effectivePreset(b,'community-wish-line');assert.ok(eligibility(wish,{characterLevel:45,skillTier:12}));assert.equal(eligibility(wish,{characterLevel:45,skillTier:16}),'');
+});

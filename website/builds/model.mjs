@@ -32,6 +32,7 @@ export function copyPlan(build,mode,options={}){
  'Native macro: bind one held key; add the following hotbar lines in order. Row 0 = bottom / highest priority.',
  ...mode.lines.map(l=>`${l.key}: ${l.priority.map((s,i)=>`Row ${i}: ${s}`).join('; ')}`),
  `Macro steps: ${mode.steps.join(' → ')}; delay ${delay} ms.`,
+ ...(mode.basicAttack?[`Basic attack: ${mode.basicAttack.skill} on ${mode.basicAttack.binding}. ${mode.basicAttack.usage}`]:[]),
  `Keep manual: ${mode.manual.join(' · ')}`,
  ...mode.notes,
  'Skill Queue ON and OFF both require in-game testing. This plan is not an import file or proven best-DPS macro.'

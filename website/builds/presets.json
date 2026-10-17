@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "version": "0.2.1-test",
+  "version": "0.2.2-test",
   "reviewed": "2026-10-17",
   "classes": [
     {
@@ -1996,6 +1996,10 @@
         {
           "label": "Daeva Sorcerer: sustained Wish line and manual burst",
           "url": "https://daevaguides.com/en/sorcerer/index.html"
+        },
+        {
+          "label": "EUTOPIA — pinned Sorcerer macro correction (read directly)",
+          "url": "https://www.youtube.com/watch?v=Qr9NvMvI1-M&lc=UgydeJPAbkhSME9om454AaABAg"
         }
       ],
       "videos": [
@@ -2007,7 +2011,7 @@
         {
           "title": "EUTOPIA — AION 2 Sorcerer Build UPDATE - Best PvE Skills, Stigmas, Macro & Rotation",
           "url": "https://www.youtube.com/watch?v=Qr9NvMvI1-M",
-          "review": "Referenced by the written guide; video transcript not independently available."
+          "review": "Creator description and pinned correction read directly on 17 October 2026. Playback stalled and transcript did not load; footage not reviewed."
         },
         {
           "title": "EUTOPIA — AION 2 Sorcerer Build Guide - Best PvE Skills, Macro & Rotation",
@@ -2062,7 +2066,8 @@
             "One held native macro cycles the shown lines. This does not prove automatic basic-attack weaving or maximum DPS.",
             "Charges, defensives, interrupts and encounter-critical burst remain manual.",
             "Compare the controlled burst opener to the published eight-step candidate; charge completion and buff alignment matter more than ordering text.",
-            "Sources place Wish of Concentration last in the sustained line, whereas the controlled preset keeps it manual. Compare cooldown benefit against burst timing and resource needs."
+            "Sources place Wish of Concentration last in the sustained line, whereas the controlled preset keeps it manual. Compare cooldown benefit against burst timing and resource needs.",
+            "EUTOPIA’s pinned correction distinguishes the simpler all-in-one macro from separately holding Flame Arrow on LMB alongside the macro for weaving. This is a creator recommendation, not our measured DPS improvement. Hellfire remains manually charged."
           ],
           "minCharacterLevel": 45,
           "minSkillTier": 8,
@@ -2079,7 +2084,13 @@
           ],
           "steps": [
             "Q"
-          ]
+          ],
+          "basicAttack": {
+            "skill": "Flame Arrow",
+            "binding": "LMB",
+            "usage": "Hold separately alongside the native macro; do not insert it into the damage-line cycle.",
+            "source": "https://www.youtube.com/watch?v=Qr9NvMvI1-M&lc=UgydeJPAbkhSME9om454AaABAg"
+          }
         },
         {
           "id": "boss-manual",
@@ -2112,7 +2123,8 @@
           "notes": [
             "Control burst around boss vulnerability and mechanics. This is the comparison preset, not a benchmark winner.",
             "Compare the controlled burst opener to the published eight-step candidate; charge completion and buff alignment matter more than ordering text.",
-            "Sources place Wish of Concentration last in the sustained line, whereas the controlled preset keeps it manual. Compare cooldown benefit against burst timing and resource needs."
+            "Sources place Wish of Concentration last in the sustained line, whereas the controlled preset keeps it manual. Compare cooldown benefit against burst timing and resource needs.",
+            "EUTOPIA’s pinned correction distinguishes the simpler all-in-one macro from separately holding Flame Arrow on LMB alongside the macro for weaving. This is a creator recommendation, not our measured DPS improvement. Hellfire remains manually charged."
           ],
           "minCharacterLevel": 45,
           "minSkillTier": 8,
@@ -2129,7 +2141,13 @@
           ],
           "steps": [
             "Q"
-          ]
+          ],
+          "basicAttack": {
+            "skill": "Flame Arrow",
+            "binding": "LMB",
+            "usage": "Hold separately alongside the native macro; do not insert it into the damage-line cycle.",
+            "source": "https://www.youtube.com/watch?v=Qr9NvMvI1-M&lc=UgydeJPAbkhSME9om454AaABAg"
+          }
         },
         {
           "id": "solo",
@@ -2162,7 +2180,8 @@
           "notes": [
             "Use sustainable resource choices before damage-only specialties; retain escape and recovery. Pull size and control immunity alter the rotation.",
             "Unlock prerequisites still apply. At level 45, skill level 16 is not automatic.",
-            "Sources place Wish of Concentration last in the sustained line, whereas the controlled preset keeps it manual. Compare cooldown benefit against burst timing and resource needs."
+            "Sources place Wish of Concentration last in the sustained line, whereas the controlled preset keeps it manual. Compare cooldown benefit against burst timing and resource needs.",
+            "EUTOPIA’s pinned correction distinguishes the simpler all-in-one macro from separately holding Flame Arrow on LMB alongside the macro for weaving. This is a creator recommendation, not our measured DPS improvement. Hellfire remains manually charged."
           ],
           "minCharacterLevel": 45,
           "minSkillTier": 8,
@@ -2179,7 +2198,13 @@
           ],
           "steps": [
             "Q"
-          ]
+          ],
+          "basicAttack": {
+            "skill": "Flame Arrow",
+            "binding": "LMB",
+            "usage": "Hold separately alongside the native macro; do not insert it into the damage-line cycle.",
+            "source": "https://www.youtube.com/watch?v=Qr9NvMvI1-M&lc=UgydeJPAbkhSME9om454AaABAg"
+          }
         },
         {
           "id": "group",
@@ -2211,7 +2236,8 @@
           ],
           "notes": [
             "Use the manual-burst preset. Reserve defensive and group utility buttons for mechanics; do not evaluate only the opener.",
-            "Sources place Wish of Concentration last in the sustained line, whereas the controlled preset keeps it manual. Compare cooldown benefit against burst timing and resource needs."
+            "Sources place Wish of Concentration last in the sustained line, whereas the controlled preset keeps it manual. Compare cooldown benefit against burst timing and resource needs.",
+            "EUTOPIA’s pinned correction distinguishes the simpler all-in-one macro from separately holding Flame Arrow on LMB alongside the macro for weaving. This is a creator recommendation, not our measured DPS improvement. Hellfire remains manually charged."
           ],
           "minCharacterLevel": 45,
           "minSkillTier": 8,
@@ -2228,7 +2254,13 @@
           ],
           "steps": [
             "Q"
-          ]
+          ],
+          "basicAttack": {
+            "skill": "Flame Arrow",
+            "binding": "LMB",
+            "usage": "Hold separately alongside the native macro; do not insert it into the damage-line cycle.",
+            "source": "https://www.youtube.com/watch?v=Qr9NvMvI1-M&lc=UgydeJPAbkhSME9om454AaABAg"
+          }
         },
         {
           "id": "pvp",
@@ -2261,7 +2293,8 @@
             "Damage-only macro candidate. Engage, crowd control, interrupts, cleansing and defensive reactions remain manual.",
             "No claim that a PvE loop is optimal in PvP. Test against actual opponents with matching gear.",
             "The reviewed Global guide has no complete PvP build. These proposed slots and reused stigma baseline require independent Global PvP validation; copy is disabled.",
-            "Sources place Wish of Concentration last in the sustained line, whereas the controlled preset keeps it manual. Compare cooldown benefit against burst timing and resource needs."
+            "Sources place Wish of Concentration last in the sustained line, whereas the controlled preset keeps it manual. Compare cooldown benefit against burst timing and resource needs.",
+            "EUTOPIA’s pinned correction distinguishes the simpler all-in-one macro from separately holding Flame Arrow on LMB alongside the macro for weaving. This is a creator recommendation, not our measured DPS improvement. Hellfire remains manually charged."
           ],
           "minCharacterLevel": 45,
           "minSkillTier": 8,
@@ -2278,7 +2311,13 @@
           ],
           "steps": [
             "Q"
-          ]
+          ],
+          "basicAttack": {
+            "skill": "Flame Arrow",
+            "binding": "LMB",
+            "usage": "Hold separately alongside the native macro; do not insert it into the damage-line cycle.",
+            "source": "https://www.youtube.com/watch?v=Qr9NvMvI1-M&lc=UgydeJPAbkhSME9om454AaABAg"
+          }
         },
         {
           "id": "published-sequence",
@@ -2354,7 +2393,8 @@
           "notes": [
             "This is the requested sequence for comparison, not a proven executable Global macro. Each skill is on a separate single-skill slot; eight skills are not stacked into one four-row line.",
             "Automatic burst buffs conflict with controlled boss timing. Copy is disabled until the native client’s execution, queue and buff interactions are tested.",
-            "Sources place Wish of Concentration last in the sustained line, whereas the controlled preset keeps it manual. Compare cooldown benefit against burst timing and resource needs."
+            "Sources place Wish of Concentration last in the sustained line, whereas the controlled preset keeps it manual. Compare cooldown benefit against burst timing and resource needs.",
+            "EUTOPIA’s pinned correction distinguishes the simpler all-in-one macro from separately holding Flame Arrow on LMB alongside the macro for weaving. This is a creator recommendation, not our measured DPS improvement. Hellfire remains manually charged."
           ],
           "minCharacterLevel": 45,
           "minSkillTier": 8,
@@ -2410,7 +2450,8 @@
             "Progression worksheet, not an exact skill-point allocation. Invest in unlocked core attacks and resource sustain.",
             "At fresh level 45, use actual equipped skill levels (often 8–10), not the later 16–20 target. Bonus levels from gear/boards are separate.",
             "Exact unlock levels and point budgets have not been verified against a captured Global client. Copy is disabled rather than presenting an invented allocation.",
-            "Sources place Wish of Concentration last in the sustained line, whereas the controlled preset keeps it manual. Compare cooldown benefit against burst timing and resource needs."
+            "Sources place Wish of Concentration last in the sustained line, whereas the controlled preset keeps it manual. Compare cooldown benefit against burst timing and resource needs.",
+            "EUTOPIA’s pinned correction distinguishes the simpler all-in-one macro from separately holding Flame Arrow on LMB alongside the macro for weaving. This is a creator recommendation, not our measured DPS improvement. Hellfire remains manually charged."
           ],
           "minCharacterLevel": 1,
           "minSkillTier": 8,
@@ -2461,10 +2502,12 @@
             "Control burst around boss vulnerability and mechanics. This is the comparison preset, not a benchmark winner.",
             "Compare the controlled burst opener to the published eight-step candidate; charge completion and buff alignment matter more than ordering text.",
             "Sources place Wish of Concentration last in the sustained line, whereas the controlled preset keeps it manual. Compare cooldown benefit against burst timing and resource needs.",
-            "Wish is row 3 (lowest priority), not an opener. Element Enhancement, Delayed Explosion, Winter’s Shackles and Hellfire remain manual."
+            "Wish is row 3 (lowest priority), not an opener. Element Enhancement, Delayed Explosion, Winter’s Shackles and Hellfire remain manual.",
+            "EUTOPIA’s pinned correction distinguishes the simpler all-in-one macro from separately holding Flame Arrow on LMB alongside the macro for weaving. This is a creator recommendation, not our measured DPS improvement. Hellfire remains manually charged.",
+            "The cooldown-reduction interaction depends on Wish of Concentration’s selected level-16 specialty. A level-45 character alone does not satisfy this requirement."
           ],
           "minCharacterLevel": 45,
-          "minSkillTier": 8,
+          "minSkillTier": 16,
           "evidence": {
             "communitySupported": true,
             "mechanicallyVerified": false,
@@ -2478,7 +2521,13 @@
           ],
           "steps": [
             "Q"
-          ]
+          ],
+          "basicAttack": {
+            "skill": "Flame Arrow",
+            "binding": "LMB",
+            "usage": "Hold separately alongside the native macro; do not insert it into the damage-line cycle.",
+            "source": "https://www.youtube.com/watch?v=Qr9NvMvI1-M&lc=UgydeJPAbkhSME9om454AaABAg"
+          }
         }
       ],
       "levelNotes": {
