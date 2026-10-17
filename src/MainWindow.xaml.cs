@@ -89,7 +89,11 @@ public partial class MainWindow : Window
         capture.PacketCaptured += ()=>Interlocked.Increment(ref packets);
         capture.DuplicateSuppressed += ()=>Interlocked.Increment(ref duplicates);
         capture.FlowLocked += s=> {lock(diagnosticsGate)activeFlow=s;};
-        capture.ConnectionReset += ()=>engine.Apply(new(DateTime.UtcNow,CombatKind.Zone));
+        capture.ConnectionReset += ()=>
+        {
+            lock(diagnosticsGate) verifiedLocalActorId=null;
+            engine.Apply(new(DateTime.UtcNow,CombatKind.Zone));
+        };
         capture.StatusChanged += s=> {lock(diagnosticsGate)captureStatus=s;};
         capture.EventReceived += e=>
         {
