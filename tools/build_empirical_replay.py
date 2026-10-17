@@ -28,8 +28,17 @@ def build_bundle(lines,class_name='Templar',minimum_training=5):
     timeline=[{'atMs':round((h['time']-first)*1000),'modelId':lookup[signature(h)]} for h in held if signature(h) in lookup]
     if not timeline:raise ValueError('No supported held-out hits')
     covered=[h for h in held if signature(h) in lookup]
+    means={m['id']:m['meanObservedHit'] for m in models}
+    excluded=collections.defaultdict(list)
+    for h in held:
+        if signature(h) not in lookup:
+            reason='unseen-signature' if not buckets.get(signature(h)) else 'insufficient-training'
+            excluded[(h['skill'],reason)].append(h['amount'])
+    absolute_error=sum(abs(means[lookup[signature(h)]]-h['amount']) for h in covered)
+    covered_damage=sum(h['amount'] for h in covered)
     return {'schemaVersion':1,'kind':'capture-conditioned-replay','contextId':str(uuid.uuid4()),'className':class_name,'durationMs':duration,'models':models,'timeline':timeline,
       'observed':{'coveredDamage':sum(h['amount'] for h in covered),'coveredHits':len(covered),'totalHits':len(held),'totalDamage':sum(h['amount'] for h in held)},
+      'diagnostics':{'trainingHits':len(train),'heldOutHits':len(held),'sumAbsoluteHitError':absolute_error,'coveredHitWeightedAbsoluteErrorPercent':absolute_error/covered_damage*100 if covered_damage else None,'excluded':[{'skill':skill,'reason':reason,'hits':len(amounts),'damage':sum(amounts)} for (skill,reason),amounts in sorted(excluded.items())]},
       'restrictions':{'allowGearScaling':False,'allowNewRotation':False,'targetKind':'unknown','clientPatch':'unknown','independentValidation':False},
       'note':'Earlier hits train per-signature means; later observed hit times/types are supplied. This estimates damage conditional on a known hit schedule, not new macro/APL DPS. Buffs, gear and target state remain confounded.'}
 if __name__=='__main__':

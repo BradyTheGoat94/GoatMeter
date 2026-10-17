@@ -60,6 +60,8 @@ A skill may specify `chargeMs`, `manualOnly`, or `requiresBuff` (a modeled windo
 
 ## Private empirical capture replay (first data-connected mode)
 
+Replay diagnostics report both aggregate covered-total error and hit-weighted absolute error (sum of absolute hit residuals divided by covered observed damage). Aggregate errors can cancel; neither metric validates a transferable game formula. Exclusions list unseen signatures versus insufficient training, without silently pooling different hit flags. Older bundles without diagnostics show hit error as unavailable, never zero. Regenerate locally to obtain diagnostics.
+
 Generate a PRIVATE bundle with `python tools/build_empirical_replay.py /authorized/capture.log --class-name Templar --output /private/new-file.json`, then load it using the test UI's Local capture replay input. Python uses standard-library modules only. The output is local and exclusive-create: it will not overwrite an existing file. The generated bundle/report must never be committed or placed in public assets/artifacts.
 
 This mode selects the largest confirmed single-actor/target/scope partition of the chosen class, uses earlier70% hits to estimate per-signature mean hit damage, then evaluates those means against later observed hits. Signatures preserve event kind, primary type and complete flags where available. A signature needs at least5 training hits; unseen/underpopulated types are excluded. Whole timestamp groups stay on one side of the split.

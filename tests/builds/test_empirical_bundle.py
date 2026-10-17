@@ -12,3 +12,7 @@ class BundleTest(unittest.TestCase):
   for private in ['privateActor','privateTarget','PrivateScope','PrivateName']:self.assertNotIn(private,json.dumps(b))
  def test_insufficient_or_wrong_class_fails(self):
   self.assertRaises(ValueError,build_bundle,[]);self.assertRaises(ValueError,build_bundle,self.fixture(),'Assassin')
+ def test_absolute_error_does_not_cancel(self):
+  rows=self.fixture()
+  for i in range(35,49):rows[2*i]=rows[2*i].replace('amount=100',f'amount={0 if i%2 else 200}')
+  b=build_bundle(rows);self.assertEqual(b['observed']['coveredDamage'],1500);self.assertEqual(b['diagnostics']['sumAbsoluteHitError'],1400);self.assertAlmostEqual(b['diagnostics']['coveredHitWeightedAbsoluteErrorPercent'],100*1400/1500)
