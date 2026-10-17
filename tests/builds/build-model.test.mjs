@@ -95,5 +95,8 @@ test('remaining classes expose deliberate actions and named-skill prerequisites'
  const wish=effectivePreset(build('sorcerer'),'community-wish-line');assert.throws(()=>copyPlan(build('sorcerer'),wish),/equipped Wish/);
  const cleric=effectivePreset(build('cleric'),'boss-manual');assert.deepEqual(cleric.lines[1].priority,['Divine Aura','Judgment Thunder']);assert.ok(cleric.lines.every(l=>!l.priority.includes('Lightning Strike Scattershot')));
  const chanter=effectivePreset(build('chanter'),'community-trigger-line');assert.throws(()=>copyPlan(build('chanter'),chanter),/equipped Dark Crush/);
- for(const id of ['assassin','ranger','sorcerer','spiritmaster','cleric','chanter'])assert.equal(build(id).mechanics.length,3);
+ for(const id of ['assassin','ranger','sorcerer','spiritmaster','cleric','chanter'])assert.ok(build(id).mechanics.length>=3);
 });
+
+
+test("new Sorcerer source does not certify an untranscribed hybrid",()=>{const b=catalog.classes.find(b=>b.id==="sorcerer");assert.ok(b.videos.some(v=>v.url.includes("WTcOl4PdwF0")));assert.ok(b.mechanics.some(m=>m.detail.includes("creator-reported")));assert.ok(b.modes.find(m=>m.id==="community-wish-line").label.includes("not new hybrid"));});
