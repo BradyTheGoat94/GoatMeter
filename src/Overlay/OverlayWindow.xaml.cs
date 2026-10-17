@@ -4,6 +4,7 @@ using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Media;
 using Aion2DPSPro;
+using GoatMeter.GoatSim;
 
 namespace Aion2DPSPro.Overlay;
 public partial class OverlayWindow : Window
@@ -13,6 +14,11 @@ public partial class OverlayWindow : Window
     public Func<string[]>? HistoryProvider {get;set;}
     public Func<string,Task<MeterSnapshot?>>? HistoryLoader {get;set;}
     MeterSnapshot? last;
+    PlayerViewScope playerScope=PlayerViewScope.EveryoneNearby;
+    // Hosts must provide verified actor and roster IDs; no proximity inference.
+    public Func<long?>? LocalActorProvider { get; set; }
+    public Func<IReadOnlyCollection<long>?>? PartyRosterProvider { get; set; }
+    public Func<IReadOnlyCollection<long>?>? ForceRosterProvider { get; set; }
     MeterSnapshot? historicalSnapshot;
     string? historicalPath;
     bool loadingHistory;
@@ -45,6 +51,21 @@ public partial class OverlayWindow : Window
             s=SnapshotProvider?.Invoke((MeterSegment)Math.Clamp(Segment.SelectedIndex,0,2),category)??s;
         }
         selectedActor=(Rows.SelectedItem as Row)?.Stats.ActorId??selectedActor;
+        if(playerScope!=PlayerViewScope.EveryoneNearby)
+        {
+            try
+            {
+                var allowed=PlayerRosterVisibility.VisibleActors(playerScope,
+                    LocalActorProvider?.Invoke(),s.Players.Select(p=>p.ActorId),
+                    PartyRosterProvider?.Invoke(),ForceRosterProvider?.Invoke());
+                s=s with {Players=s.Players.Where(p=>allowed.Contains(p.ActorId)).ToList()};
+            }
+            catch(InvalidOperationException)
+            {
+                // Fail closed: do not show nearby players as party/force.
+                s=s with {Players=s.Players.Where(_=>false).ToList()};
+            }
+        }
         last=s; PreviewBadge.Visibility=s.PreviewMode?Visibility.Visible:Visibility.Collapsed;
         Timer.Text=TimeSpan.FromSeconds(s.FightSeconds).ToString(@"mm\:ss"); GroupDps.Text=$"GROUP {F(s.Players.Sum(p=>p.Dps))} {s.MetricLabel}";
         BossHp.Value=s.Target?.Percent??0; BossHp.Visibility=s.Target?.MaxHp>0?Visibility.Visible:Visibility.Collapsed; TargetName.Text=s.Target?.Name??"No target";
@@ -177,6 +198,18 @@ public partial class OverlayWindow : Window
         themes.SelectedItem=currentTheme;
         themes.SelectionChanged += (_,__) => { if(themes.SelectedItem is string name){ currentTheme=name; ApplyTheme(name); } };
         panel.Children.Add(themes);
+        panel.Children.Add(new System.Windows.Controls.TextBlock { Text="Player visibility (verified rosters only)", Foreground=Brush("#9DB7DE") });
+        var visibility = new System.Windows.Controls.ComboBox { Margin=new Thickness(0,5,0,14), Height=30 };
+        foreach(var scope in Enum.GetValues<PlayerViewScope>())visibility.Items.Add(scope);
+        visibility.SelectedItem=playerScope;
+        visibility.SelectionChanged += (_,__) => {
+            if(visibility.SelectedItem is PlayerViewScope scope) {
+                playerScope=scope;
+                SavePreferences();
+                if(last!=null)Render(last);
+            }
+        };
+        panel.Children.Add(visibility);
         panel.Children.Add(new System.Windows.Controls.TextBlock { Text="Overlay opacity", Foreground=Brush("#9DB7DE") });
         var opacity = new System.Windows.Controls.Slider { Minimum=.35, Maximum=1, Value=Opacity, TickFrequency=.05, IsSnapToTickEnabled=true, Margin=new Thickness(0,5,0,14) };
         opacity.ValueChanged += (_,__) => Opacity=opacity.Value;
@@ -565,7 +598,7 @@ public partial class OverlayWindow : Window
         report.Show();
     }
     static string PreferencesPath=>System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),"Aion2DPSPro","overlay-settings.json");
-    public sealed record OverlayPreferences(string Style,string Theme,double Opacity,bool Details,bool Topmost,double Width,double Height,double Left,double Top,bool PositionLocked=false,bool HideNames=false,bool ShowCharacterStats=true,double UiScale=1);
+    public sealed record OverlayPreferences(string Style,string Theme,double Opacity,bool Details,bool Topmost,double Width,double Height,double Left,double Top,bool PositionLocked=false,bool HideNames=false,bool ShowCharacterStats=true,double UiScale=1,PlayerViewScope PlayerScope=PlayerViewScope.EveryoneNearby);
     void LoadPreferences()
     {
         try {
@@ -573,6 +606,7 @@ public partial class OverlayWindow : Window
             var p=System.Text.Json.JsonSerializer.Deserialize<OverlayPreferences>(System.IO.File.ReadAllText(PreferencesPath));
             if(p==null)return;
             showDetails=p.Details;
+            playerScope=Enum.IsDefined(p.PlayerScope)?p.PlayerScope:PlayerViewScope.EveryoneNearby;
             positionLocked=p.PositionLocked;
             hideNames=p.HideNames;showCharacterStats=p.ShowCharacterStats;uiScale=double.IsFinite(p.UiScale)?Math.Clamp(p.UiScale,.7,1.25):1;
             if(ThemeNames.Contains(p.Theme))currentTheme=p.Theme;
@@ -590,7 +624,7 @@ public partial class OverlayWindow : Window
     {
         try {
             var path=PreferencesPath;System.IO.Directory.CreateDirectory(System.IO.Path.GetDirectoryName(path)!);
-            var p=new OverlayPreferences(currentStyle,currentTheme,Opacity,showDetails,Topmost,Width,Height,double.IsFinite(Left)?Left:0,double.IsFinite(Top)?Top:0,positionLocked,hideNames,showCharacterStats,uiScale);
+            var p=new OverlayPreferences(currentStyle,currentTheme,Opacity,showDetails,Topmost,Width,Height,double.IsFinite(Left)?Left:0,double.IsFinite(Top)?Top:0,positionLocked,hideNames,showCharacterStats,uiScale,playerScope);
             var temp=path+".tmp";System.IO.File.WriteAllText(temp,System.Text.Json.JsonSerializer.Serialize(p));System.IO.File.Move(temp,path,true);
         }
         catch(Exception ex) when(ex is System.IO.IOException or UnauthorizedAccessException) {StatusText.Text="Unable to save overlay settings";}
