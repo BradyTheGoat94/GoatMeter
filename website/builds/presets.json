@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "version": "0.2.0-test",
+  "version": "0.2.1-test",
   "reviewed": "2026-10-17",
   "classes": [
     {
@@ -176,7 +176,8 @@
             "One held native macro cycles the shown lines. This does not prove automatic basic-attack weaving or maximum DPS.",
             "Charges, defensives, interrupts and encounter-critical burst remain manual.",
             "Exact requested bottom-first candidate. Doom Shield shares the Judgment line. Stack legality and charge behavior are not yet verified in the Global client.",
-            "Judgment must have its level-16 cooldown-removal specialty selected. Doom Shield’s observed Judgment window does not by itself prove macro compatibility."
+            "Judgment must have its level-16 cooldown-removal specialty selected. Doom Shield’s observed Judgment window does not by itself prove macro compatibility.",
+            "Sources conflict on Doom Shield automation: SolAshur includes it in the Judgment line, while Daeva/Xia treats it as charged and manual. The requested candidate is not a universal recommendation. Use manual Doom Shield until its actual behavior is confirmed."
           ],
           "minCharacterLevel": 45,
           "minSkillTier": 16,
@@ -233,7 +234,8 @@
           ],
           "notes": [
             "Control burst around boss vulnerability and mechanics. This is the comparison preset, not a benchmark winner.",
-            "Use Doom Shield deliberately to open a Judgment opportunity; keep Punishment charged by hand."
+            "Use Doom Shield deliberately to open a Judgment opportunity; keep Punishment charged by hand.",
+            "Sources conflict on Doom Shield automation: SolAshur includes it in the Judgment line, while Daeva/Xia treats it as charged and manual. The requested candidate is not a universal recommendation. Use manual Doom Shield until its actual behavior is confirmed."
           ],
           "minCharacterLevel": 45,
           "minSkillTier": 16,
@@ -290,7 +292,8 @@
           ],
           "notes": [
             "Use sustainable resource choices before damage-only specialties; retain escape and recovery. Pull size and control immunity alter the rotation.",
-            "Unlock prerequisites still apply. At level 45, skill level 16 is not automatic."
+            "Unlock prerequisites still apply. At level 45, skill level 16 is not automatic.",
+            "Sources conflict on Doom Shield automation: SolAshur includes it in the Judgment line, while Daeva/Xia treats it as charged and manual. The requested candidate is not a universal recommendation. Use manual Doom Shield until its actual behavior is confirmed."
           ],
           "minCharacterLevel": 45,
           "minSkillTier": 16,
@@ -346,7 +349,8 @@
             "Taunt"
           ],
           "notes": [
-            "Use the manual-burst preset. Reserve defensive and group utility buttons for mechanics; do not evaluate only the opener."
+            "Use the manual-burst preset. Reserve defensive and group utility buttons for mechanics; do not evaluate only the opener.",
+            "Sources conflict on Doom Shield automation: SolAshur includes it in the Judgment line, while Daeva/Xia treats it as charged and manual. The requested candidate is not a universal recommendation. Use manual Doom Shield until its actual behavior is confirmed."
           ],
           "minCharacterLevel": 45,
           "minSkillTier": 16,
@@ -404,7 +408,8 @@
           ],
           "notes": [
             "Damage-only macro candidate. Engage, crowd control, interrupts, cleansing and defensive reactions remain manual.",
-            "No claim that a PvE loop is optimal in PvP. Test against actual opponents with matching gear."
+            "No claim that a PvE loop is optimal in PvP. Test against actual opponents with matching gear.",
+            "Sources conflict on Doom Shield automation: SolAshur includes it in the Judgment line, while Daeva/Xia treats it as charged and manual. The requested candidate is not a universal recommendation. Use manual Doom Shield until its actual behavior is confirmed."
           ],
           "minCharacterLevel": 45,
           "minSkillTier": 8,
@@ -452,7 +457,8 @@
           "notes": [
             "Progression worksheet, not an exact skill-point allocation. Invest in unlocked core attacks and resource sustain.",
             "At fresh level 45, use actual equipped skill levels (often 8–10), not the later 16–20 target. Bonus levels from gear/boards are separate.",
-            "Exact unlock levels and point budgets have not been verified against a captured Global client. Copy is disabled rather than presenting an invented allocation."
+            "Exact unlock levels and point budgets have not been verified against a captured Global client. Copy is disabled rather than presenting an invented allocation.",
+            "Sources conflict on Doom Shield automation: SolAshur includes it in the Judgment line, while Daeva/Xia treats it as charged and manual. The requested candidate is not a universal recommendation. Use manual Doom Shield until its actual behavior is confirmed."
           ],
           "minCharacterLevel": 1,
           "minSkillTier": 8,
@@ -476,7 +482,8 @@
         "8": "Fresh-cap / early skills: choose resource sustain; later chain and cooldown-removal claims do not apply.",
         "12": "Mid progression: verify the second specialty in the actual client; charge variants change automation suitability.",
         "16": "Later setup: explicitly equip required specialties. Skill 20 and extra slots still require the appropriate gear and board investment."
-      }
+      },
+      "researchComparison": "Sources conflict on Doom Shield automation: SolAshur includes it in the Judgment line, while Daeva/Xia treats it as charged and manual. The requested candidate is not a universal recommendation. Use manual Doom Shield until its actual behavior is confirmed."
     },
     {
       "id": "gladiator",
@@ -567,6 +574,10 @@
         {
           "label": "Macro/build comparison notes",
           "url": "https://daevaguides.com/en/gladiator/"
+        },
+        {
+          "label": "Daeva Gladiator: single-line vs split-line uncertainty",
+          "url": "https://daevaguides.com/en/gladiator/index.html"
         }
       ],
       "videos": [
@@ -638,7 +649,8 @@
           "notes": [
             "One held native macro cycles the shown lines. This does not prove automatic basic-attack weaving or maximum DPS.",
             "Charges, defensives, interrupts and encounter-critical burst remain manual.",
-            "Compare Q/E sustained loops with Ruinous Blow timed before a fixed damage window; record Rending Blow frequency and resource failures."
+            "Compare Q/E sustained loops with Ruinous Blow timed before a fixed damage window; record Rending Blow frequency and resource failures.",
+            "Community sources describe both a single four-skill priority line and a split Overhead line at skill 16. No controlled comparison in the reviewed source proves which wins."
           ],
           "minCharacterLevel": 45,
           "minSkillTier": 8,
@@ -694,7 +706,8 @@
           ],
           "notes": [
             "Control burst around boss vulnerability and mechanics. This is the comparison preset, not a benchmark winner.",
-            "Compare Q/E sustained loops with Ruinous Blow timed before a fixed damage window; record Rending Blow frequency and resource failures."
+            "Compare Q/E sustained loops with Ruinous Blow timed before a fixed damage window; record Rending Blow frequency and resource failures.",
+            "Community sources describe both a single four-skill priority line and a split Overhead line at skill 16. No controlled comparison in the reviewed source proves which wins."
           ],
           "minCharacterLevel": 45,
           "minSkillTier": 8,
@@ -750,7 +763,8 @@
           ],
           "notes": [
             "Use sustainable resource choices before damage-only specialties; retain escape and recovery. Pull size and control immunity alter the rotation.",
-            "Unlock prerequisites still apply. At level 45, skill level 16 is not automatic."
+            "Unlock prerequisites still apply. At level 45, skill level 16 is not automatic.",
+            "Community sources describe both a single four-skill priority line and a split Overhead line at skill 16. No controlled comparison in the reviewed source proves which wins."
           ],
           "minCharacterLevel": 45,
           "minSkillTier": 8,
@@ -805,7 +819,8 @@
             "Zikel’s Blessing"
           ],
           "notes": [
-            "Use the manual-burst preset. Reserve defensive and group utility buttons for mechanics; do not evaluate only the opener."
+            "Use the manual-burst preset. Reserve defensive and group utility buttons for mechanics; do not evaluate only the opener.",
+            "Community sources describe both a single four-skill priority line and a split Overhead line at skill 16. No controlled comparison in the reviewed source proves which wins."
           ],
           "minCharacterLevel": 45,
           "minSkillTier": 8,
@@ -853,7 +868,8 @@
           ],
           "notes": [
             "Damage-only macro candidate. Engage, crowd control, interrupts, cleansing and defensive reactions remain manual.",
-            "No claim that a PvE loop is optimal in PvP. Test against actual opponents with matching gear."
+            "No claim that a PvE loop is optimal in PvP. Test against actual opponents with matching gear.",
+            "Community sources describe both a single four-skill priority line and a split Overhead line at skill 16. No controlled comparison in the reviewed source proves which wins."
           ],
           "minCharacterLevel": 45,
           "minSkillTier": 8,
@@ -900,7 +916,8 @@
           "notes": [
             "Progression worksheet, not an exact skill-point allocation. Invest in unlocked core attacks and resource sustain.",
             "At fresh level 45, use actual equipped skill levels (often 8–10), not the later 16–20 target. Bonus levels from gear/boards are separate.",
-            "Exact unlock levels and point budgets have not been verified against a captured Global client. Copy is disabled rather than presenting an invented allocation."
+            "Exact unlock levels and point budgets have not been verified against a captured Global client. Copy is disabled rather than presenting an invented allocation.",
+            "Community sources describe both a single four-skill priority line and a split Overhead line at skill 16. No controlled comparison in the reviewed source proves which wins."
           ],
           "minCharacterLevel": 1,
           "minSkillTier": 8,
@@ -918,13 +935,66 @@
           "steps": [
             "Q"
           ]
+        },
+        {
+          "id": "community-single-line",
+          "label": "Community comparison · single damage line",
+          "lines": [
+            {
+              "key": "Q",
+              "name": "Single-line comparison",
+              "priority": [
+                "Rage Burst",
+                "Overhead Slam",
+                "Sword Aura Rampage",
+                "Rending Blow"
+              ]
+            }
+          ],
+          "manual": [
+            "Lunge Stance",
+            "Zikel’s Blessing",
+            "Focused Block",
+            "Gap closers and crowd control"
+          ],
+          "stigmas": [
+            "Lunge Stance",
+            "Focused Block",
+            "Rage Burst",
+            "Zikel’s Blessing"
+          ],
+          "notes": [
+            "One held native macro cycles the shown lines. This does not prove automatic basic-attack weaving or maximum DPS.",
+            "Charges, defensives, interrupts and encounter-critical burst remain manual.",
+            "Compare Q/E sustained loops with Ruinous Blow timed before a fixed damage window; record Rending Blow frequency and resource failures.",
+            "Community sources describe both a single four-skill priority line and a split Overhead line at skill 16. No controlled comparison in the reviewed source proves which wins.",
+            "Rage Burst is automatic in this published convenience comparison, unlike the manual-burst preset. Do not assume it aligns with a boss window.",
+            "Verify actual skill behavior and native stack compatibility before use."
+          ],
+          "minCharacterLevel": 45,
+          "minSkillTier": 8,
+          "evidence": {
+            "communitySupported": true,
+            "mechanicallyVerified": false,
+            "logTested": false,
+            "benchmarkValidated": false
+          },
+          "copyEnabled": true,
+          "sources": [
+            "https://aion2-guides.info/en/gladiator/",
+            "https://daevaguides.com/en/gladiator/"
+          ],
+          "steps": [
+            "Q"
+          ]
         }
       ],
       "levelNotes": {
         "8": "Fresh-cap / early skills: choose resource sustain; later chain and cooldown-removal claims do not apply.",
         "12": "Mid progression: verify the second specialty in the actual client; charge variants change automation suitability.",
         "16": "Later setup: explicitly equip required specialties. Skill 20 and extra slots still require the appropriate gear and board investment."
-      }
+      },
+      "researchComparison": "Community sources describe both a single four-skill priority line and a split Overhead line at skill 16. No controlled comparison in the reviewed source proves which wins."
     },
     {
       "id": "assassin",
@@ -1013,6 +1083,10 @@
         {
           "label": "Macro/build comparison notes",
           "url": "https://daevaguides.com/en/assassin/"
+        },
+        {
+          "label": "Daeva Assassin: macro and source disagreements",
+          "url": "https://daevaguides.com/en/assassin/index.html"
         }
       ],
       "videos": [
@@ -1060,6 +1134,13 @@
                 "Ambush",
                 "Savage Roar"
               ]
+            },
+            {
+              "key": "R",
+              "name": "Basic attack",
+              "priority": [
+                "Quick Slice"
+              ]
             }
           ],
           "manual": [
@@ -1078,7 +1159,9 @@
           "notes": [
             "One held native macro cycles the shown lines. This does not prove automatic basic-attack weaving or maximum DPS.",
             "Charges, defensives, interrupts and encounter-critical burst remain manual.",
-            "Compare Insignia-first versus Heart-Gore-first with identical buff timing, rear uptime and insignia state; hits are not cast counts."
+            "Compare Insignia-first versus Heart-Gore-first with identical buff timing, rear uptime and insignia state; hits are not cast counts.",
+            "The community one-button macro includes Quick Slice as a separate step. Compare that convenience setup with separately holding the basic attack; rear uptime and Clone timing must remain matched.",
+            "R is an example free hotbar binding for Quick Slice. Do not overwrite an existing manual ability."
           ],
           "minCharacterLevel": 45,
           "minSkillTier": 8,
@@ -1094,7 +1177,8 @@
             "https://daevaguides.com/en/assassin/"
           ],
           "steps": [
-            "Q"
+            "Q",
+            "R"
           ]
         },
         {
@@ -1129,7 +1213,8 @@
           ],
           "notes": [
             "Control burst around boss vulnerability and mechanics. This is the comparison preset, not a benchmark winner.",
-            "Compare Insignia-first versus Heart-Gore-first with identical buff timing, rear uptime and insignia state; hits are not cast counts."
+            "Compare Insignia-first versus Heart-Gore-first with identical buff timing, rear uptime and insignia state; hits are not cast counts.",
+            "The community one-button macro includes Quick Slice as a separate step. Compare that convenience setup with separately holding the basic attack; rear uptime and Clone timing must remain matched."
           ],
           "minCharacterLevel": 45,
           "minSkillTier": 8,
@@ -1178,7 +1263,8 @@
           ],
           "notes": [
             "Use sustainable resource choices before damage-only specialties; retain escape and recovery. Pull size and control immunity alter the rotation.",
-            "Unlock prerequisites still apply. At level 45, skill level 16 is not automatic."
+            "Unlock prerequisites still apply. At level 45, skill level 16 is not automatic.",
+            "The community one-button macro includes Quick Slice as a separate step. Compare that convenience setup with separately holding the basic attack; rear uptime and Clone timing must remain matched."
           ],
           "minCharacterLevel": 45,
           "minSkillTier": 8,
@@ -1228,7 +1314,8 @@
             "Triniel’s Dagger"
           ],
           "notes": [
-            "Use the manual-burst preset. Reserve defensive and group utility buttons for mechanics; do not evaluate only the opener."
+            "Use the manual-burst preset. Reserve defensive and group utility buttons for mechanics; do not evaluate only the opener.",
+            "The community one-button macro includes Quick Slice as a separate step. Compare that convenience setup with separately holding the basic attack; rear uptime and Clone timing must remain matched."
           ],
           "minCharacterLevel": 45,
           "minSkillTier": 8,
@@ -1276,7 +1363,8 @@
           "notes": [
             "Damage-only macro candidate. Engage, crowd control, interrupts, cleansing and defensive reactions remain manual.",
             "No claim that a PvE loop is optimal in PvP. Test against actual opponents with matching gear.",
-            "The reviewed Global guide has no complete PvP build. These proposed slots and reused stigma baseline require independent Global PvP validation; copy is disabled."
+            "The reviewed Global guide has no complete PvP build. These proposed slots and reused stigma baseline require independent Global PvP validation; copy is disabled.",
+            "The community one-button macro includes Quick Slice as a separate step. Compare that convenience setup with separately holding the basic attack; rear uptime and Clone timing must remain matched."
           ],
           "minCharacterLevel": 45,
           "minSkillTier": 8,
@@ -1324,7 +1412,8 @@
           "notes": [
             "Progression worksheet, not an exact skill-point allocation. Invest in unlocked core attacks and resource sustain.",
             "At fresh level 45, use actual equipped skill levels (often 8–10), not the later 16–20 target. Bonus levels from gear/boards are separate.",
-            "Exact unlock levels and point budgets have not been verified against a captured Global client. Copy is disabled rather than presenting an invented allocation."
+            "Exact unlock levels and point budgets have not been verified against a captured Global client. Copy is disabled rather than presenting an invented allocation.",
+            "The community one-button macro includes Quick Slice as a separate step. Compare that convenience setup with separately holding the basic attack; rear uptime and Clone timing must remain matched."
           ],
           "minCharacterLevel": 1,
           "minSkillTier": 8,
@@ -1348,7 +1437,8 @@
         "8": "Fresh-cap / early skills: choose resource sustain; later chain and cooldown-removal claims do not apply.",
         "12": "Mid progression: verify the second specialty in the actual client; charge variants change automation suitability.",
         "16": "Later setup: explicitly equip required specialties. Skill 20 and extra slots still require the appropriate gear and board investment."
-      }
+      },
+      "researchComparison": "The community one-button macro includes Quick Slice as a separate step. Compare that convenience setup with separately holding the basic attack; rear uptime and Clone timing must remain matched."
     },
     {
       "id": "ranger",
@@ -1512,7 +1602,8 @@
           "notes": [
             "One held native macro cycles the shown lines. This does not prove automatic basic-attack weaving or maximum DPS.",
             "Charges, defensives, interrupts and encounter-critical burst remain manual.",
-            "Measure Marking Shot uptime and Deadshot charge completion separately; avoid replacing a useful control button with automatic casts."
+            "Measure Marking Shot uptime and Deadshot charge completion separately; avoid replacing a useful control button with automatic casts.",
+            "Keep the two damage lines separate from Marking Shot, charged Deadshot and control. More automatic steps are not evidence of higher damage."
           ],
           "minCharacterLevel": 45,
           "minSkillTier": 8,
@@ -1573,7 +1664,8 @@
           ],
           "notes": [
             "Control burst around boss vulnerability and mechanics. This is the comparison preset, not a benchmark winner.",
-            "Measure Marking Shot uptime and Deadshot charge completion separately; avoid replacing a useful control button with automatic casts."
+            "Measure Marking Shot uptime and Deadshot charge completion separately; avoid replacing a useful control button with automatic casts.",
+            "Keep the two damage lines separate from Marking Shot, charged Deadshot and control. More automatic steps are not evidence of higher damage."
           ],
           "minCharacterLevel": 45,
           "minSkillTier": 8,
@@ -1630,7 +1722,8 @@
           ],
           "notes": [
             "Use sustainable resource choices before damage-only specialties; retain escape and recovery. Pull size and control immunity alter the rotation.",
-            "Unlock prerequisites still apply. At level 45, skill level 16 is not automatic."
+            "Unlock prerequisites still apply. At level 45, skill level 16 is not automatic.",
+            "Keep the two damage lines separate from Marking Shot, charged Deadshot and control. More automatic steps are not evidence of higher damage."
           ],
           "minCharacterLevel": 45,
           "minSkillTier": 8,
@@ -1690,7 +1783,8 @@
             "Griffon Arrow"
           ],
           "notes": [
-            "Use the manual-burst preset. Reserve defensive and group utility buttons for mechanics; do not evaluate only the opener."
+            "Use the manual-burst preset. Reserve defensive and group utility buttons for mechanics; do not evaluate only the opener.",
+            "Keep the two damage lines separate from Marking Shot, charged Deadshot and control. More automatic steps are not evidence of higher damage."
           ],
           "minCharacterLevel": 45,
           "minSkillTier": 8,
@@ -1740,7 +1834,8 @@
           "notes": [
             "Damage-only macro candidate. Engage, crowd control, interrupts, cleansing and defensive reactions remain manual.",
             "No claim that a PvE loop is optimal in PvP. Test against actual opponents with matching gear.",
-            "The reviewed Global guide has no complete PvP build. These proposed slots and reused stigma baseline require independent Global PvP validation; copy is disabled."
+            "The reviewed Global guide has no complete PvP build. These proposed slots and reused stigma baseline require independent Global PvP validation; copy is disabled.",
+            "Keep the two damage lines separate from Marking Shot, charged Deadshot and control. More automatic steps are not evidence of higher damage."
           ],
           "minCharacterLevel": 45,
           "minSkillTier": 8,
@@ -1787,7 +1882,8 @@
           "notes": [
             "Progression worksheet, not an exact skill-point allocation. Invest in unlocked core attacks and resource sustain.",
             "At fresh level 45, use actual equipped skill levels (often 8–10), not the later 16–20 target. Bonus levels from gear/boards are separate.",
-            "Exact unlock levels and point budgets have not been verified against a captured Global client. Copy is disabled rather than presenting an invented allocation."
+            "Exact unlock levels and point budgets have not been verified against a captured Global client. Copy is disabled rather than presenting an invented allocation.",
+            "Keep the two damage lines separate from Marking Shot, charged Deadshot and control. More automatic steps are not evidence of higher damage."
           ],
           "minCharacterLevel": 1,
           "minSkillTier": 8,
@@ -1811,7 +1907,8 @@
         "8": "Fresh-cap / early skills: choose resource sustain; later chain and cooldown-removal claims do not apply.",
         "12": "Mid progression: verify the second specialty in the actual client; charge variants change automation suitability.",
         "16": "Later setup: explicitly equip required specialties. Skill 20 and extra slots still require the appropriate gear and board investment."
-      }
+      },
+      "researchComparison": "Keep the two damage lines separate from Marking Shot, charged Deadshot and control. More automatic steps are not evidence of higher damage."
     },
     {
       "id": "sorcerer",
@@ -1895,6 +1992,10 @@
         {
           "label": "Macro/build comparison notes",
           "url": "https://daevaguides.com/en/sorcerer/"
+        },
+        {
+          "label": "Daeva Sorcerer: sustained Wish line and manual burst",
+          "url": "https://daevaguides.com/en/sorcerer/index.html"
         }
       ],
       "videos": [
@@ -1960,7 +2061,8 @@
           "notes": [
             "One held native macro cycles the shown lines. This does not prove automatic basic-attack weaving or maximum DPS.",
             "Charges, defensives, interrupts and encounter-critical burst remain manual.",
-            "Compare the controlled burst opener to the published eight-step candidate; charge completion and buff alignment matter more than ordering text."
+            "Compare the controlled burst opener to the published eight-step candidate; charge completion and buff alignment matter more than ordering text.",
+            "Sources place Wish of Concentration last in the sustained line, whereas the controlled preset keeps it manual. Compare cooldown benefit against burst timing and resource needs."
           ],
           "minCharacterLevel": 45,
           "minSkillTier": 8,
@@ -2009,7 +2111,8 @@
           ],
           "notes": [
             "Control burst around boss vulnerability and mechanics. This is the comparison preset, not a benchmark winner.",
-            "Compare the controlled burst opener to the published eight-step candidate; charge completion and buff alignment matter more than ordering text."
+            "Compare the controlled burst opener to the published eight-step candidate; charge completion and buff alignment matter more than ordering text.",
+            "Sources place Wish of Concentration last in the sustained line, whereas the controlled preset keeps it manual. Compare cooldown benefit against burst timing and resource needs."
           ],
           "minCharacterLevel": 45,
           "minSkillTier": 8,
@@ -2058,7 +2161,8 @@
           ],
           "notes": [
             "Use sustainable resource choices before damage-only specialties; retain escape and recovery. Pull size and control immunity alter the rotation.",
-            "Unlock prerequisites still apply. At level 45, skill level 16 is not automatic."
+            "Unlock prerequisites still apply. At level 45, skill level 16 is not automatic.",
+            "Sources place Wish of Concentration last in the sustained line, whereas the controlled preset keeps it manual. Compare cooldown benefit against burst timing and resource needs."
           ],
           "minCharacterLevel": 45,
           "minSkillTier": 8,
@@ -2106,7 +2210,8 @@
             "Cold Storm"
           ],
           "notes": [
-            "Use the manual-burst preset. Reserve defensive and group utility buttons for mechanics; do not evaluate only the opener."
+            "Use the manual-burst preset. Reserve defensive and group utility buttons for mechanics; do not evaluate only the opener.",
+            "Sources place Wish of Concentration last in the sustained line, whereas the controlled preset keeps it manual. Compare cooldown benefit against burst timing and resource needs."
           ],
           "minCharacterLevel": 45,
           "minSkillTier": 8,
@@ -2155,7 +2260,8 @@
           "notes": [
             "Damage-only macro candidate. Engage, crowd control, interrupts, cleansing and defensive reactions remain manual.",
             "No claim that a PvE loop is optimal in PvP. Test against actual opponents with matching gear.",
-            "The reviewed Global guide has no complete PvP build. These proposed slots and reused stigma baseline require independent Global PvP validation; copy is disabled."
+            "The reviewed Global guide has no complete PvP build. These proposed slots and reused stigma baseline require independent Global PvP validation; copy is disabled.",
+            "Sources place Wish of Concentration last in the sustained line, whereas the controlled preset keeps it manual. Compare cooldown benefit against burst timing and resource needs."
           ],
           "minCharacterLevel": 45,
           "minSkillTier": 8,
@@ -2247,7 +2353,8 @@
           ],
           "notes": [
             "This is the requested sequence for comparison, not a proven executable Global macro. Each skill is on a separate single-skill slot; eight skills are not stacked into one four-row line.",
-            "Automatic burst buffs conflict with controlled boss timing. Copy is disabled until the native client’s execution, queue and buff interactions are tested."
+            "Automatic burst buffs conflict with controlled boss timing. Copy is disabled until the native client’s execution, queue and buff interactions are tested.",
+            "Sources place Wish of Concentration last in the sustained line, whereas the controlled preset keeps it manual. Compare cooldown benefit against burst timing and resource needs."
           ],
           "minCharacterLevel": 45,
           "minSkillTier": 8,
@@ -2302,7 +2409,8 @@
           "notes": [
             "Progression worksheet, not an exact skill-point allocation. Invest in unlocked core attacks and resource sustain.",
             "At fresh level 45, use actual equipped skill levels (often 8–10), not the later 16–20 target. Bonus levels from gear/boards are separate.",
-            "Exact unlock levels and point budgets have not been verified against a captured Global client. Copy is disabled rather than presenting an invented allocation."
+            "Exact unlock levels and point budgets have not been verified against a captured Global client. Copy is disabled rather than presenting an invented allocation.",
+            "Sources place Wish of Concentration last in the sustained line, whereas the controlled preset keeps it manual. Compare cooldown benefit against burst timing and resource needs."
           ],
           "minCharacterLevel": 1,
           "minSkillTier": 8,
@@ -2320,13 +2428,65 @@
           "steps": [
             "Q"
           ]
+        },
+        {
+          "id": "community-wish-line",
+          "label": "Community comparison · automatic Wish",
+          "lines": [
+            {
+              "key": "Q",
+              "name": "Q skill line",
+              "priority": [
+                "Bittercold Wind",
+                "Blaze",
+                "Firestorm",
+                "Wish of Concentration"
+              ]
+            }
+          ],
+          "manual": [
+            "Element Enhancement",
+            "Delayed Explosion",
+            "Winter’s Shackles",
+            "Hellfire charge",
+            "Defensives and interrupts"
+          ],
+          "stigmas": [
+            "Element Enhancement",
+            "Delayed Explosion",
+            "Fire Wall",
+            "Cold Storm"
+          ],
+          "notes": [
+            "Control burst around boss vulnerability and mechanics. This is the comparison preset, not a benchmark winner.",
+            "Compare the controlled burst opener to the published eight-step candidate; charge completion and buff alignment matter more than ordering text.",
+            "Sources place Wish of Concentration last in the sustained line, whereas the controlled preset keeps it manual. Compare cooldown benefit against burst timing and resource needs.",
+            "Wish is row 3 (lowest priority), not an opener. Element Enhancement, Delayed Explosion, Winter’s Shackles and Hellfire remain manual."
+          ],
+          "minCharacterLevel": 45,
+          "minSkillTier": 8,
+          "evidence": {
+            "communitySupported": true,
+            "mechanicallyVerified": false,
+            "logTested": false,
+            "benchmarkValidated": false
+          },
+          "copyEnabled": true,
+          "sources": [
+            "https://aion2-guides.info/en/sorcerer/",
+            "https://daevaguides.com/en/sorcerer/"
+          ],
+          "steps": [
+            "Q"
+          ]
         }
       ],
       "levelNotes": {
         "8": "Fresh-cap / early skills: choose resource sustain; later chain and cooldown-removal claims do not apply.",
         "12": "Mid progression: verify the second specialty in the actual client; charge variants change automation suitability.",
         "16": "Later setup: explicitly equip required specialties. Skill 20 and extra slots still require the appropriate gear and board investment."
-      }
+      },
+      "researchComparison": "Sources place Wish of Concentration last in the sustained line, whereas the controlled preset keeps it manual. Compare cooldown benefit against burst timing and resource needs."
     },
     {
       "id": "spiritmaster",
@@ -2498,7 +2658,8 @@
             "Charges, defensives, interrupts and encounter-critical burst remain manual.",
             "Record resource gains per spirit activation, including repeat activations of the same spirit. Do not assume one distinct type per element.",
             "Uncharged Fusion is the displayed default. Choose the charged-Fusion option to move it off the automatic line.",
-            "Ancient Spirit stays manual. Test snapshot behavior rather than assuming a buff applied after summoning changes the spirit."
+            "Ancient Spirit stays manual. Test snapshot behavior rather than assuming a buff applied after summoning changes the spirit.",
+            "Community layouts use Fusion/Water/Earth/Fire and Corrode/Curse/Dimensional Control/Combustion. That layout is not evidence that four distinct spirits are required for Four Elements."
           ],
           "minCharacterLevel": 45,
           "minSkillTier": 8,
@@ -2563,7 +2724,8 @@
             "Control burst around boss vulnerability and mechanics. This is the comparison preset, not a benchmark winner.",
             "Record resource gains per spirit activation, including repeat activations of the same spirit. Do not assume one distinct type per element.",
             "Uncharged Fusion is the displayed default. Choose the charged-Fusion option to move it off the automatic line.",
-            "Ancient Spirit stays manual. Test snapshot behavior rather than assuming a buff applied after summoning changes the spirit."
+            "Ancient Spirit stays manual. Test snapshot behavior rather than assuming a buff applied after summoning changes the spirit.",
+            "Community layouts use Fusion/Water/Earth/Fire and Corrode/Curse/Dimensional Control/Combustion. That layout is not evidence that four distinct spirits are required for Four Elements."
           ],
           "minCharacterLevel": 45,
           "minSkillTier": 8,
@@ -2623,7 +2785,8 @@
           ],
           "notes": [
             "Use sustainable resource choices before damage-only specialties; retain escape and recovery. Pull size and control immunity alter the rotation.",
-            "Unlock prerequisites still apply. At level 45, skill level 16 is not automatic."
+            "Unlock prerequisites still apply. At level 45, skill level 16 is not automatic.",
+            "Community layouts use Fusion/Water/Earth/Fire and Corrode/Curse/Dimensional Control/Combustion. That layout is not evidence that four distinct spirits are required for Four Elements."
           ],
           "minCharacterLevel": 45,
           "minSkillTier": 8,
@@ -2685,7 +2848,8 @@
             "Jointstrike: Corrode"
           ],
           "notes": [
-            "Use the manual-burst preset. Reserve defensive and group utility buttons for mechanics; do not evaluate only the opener."
+            "Use the manual-burst preset. Reserve defensive and group utility buttons for mechanics; do not evaluate only the opener.",
+            "Community layouts use Fusion/Water/Earth/Fire and Corrode/Curse/Dimensional Control/Combustion. That layout is not evidence that four distinct spirits are required for Four Elements."
           ],
           "minCharacterLevel": 45,
           "minSkillTier": 8,
@@ -2733,7 +2897,8 @@
           ],
           "notes": [
             "Damage-only macro candidate. Engage, crowd control, interrupts, cleansing and defensive reactions remain manual.",
-            "No claim that a PvE loop is optimal in PvP. Test against actual opponents with matching gear."
+            "No claim that a PvE loop is optimal in PvP. Test against actual opponents with matching gear.",
+            "Community layouts use Fusion/Water/Earth/Fire and Corrode/Curse/Dimensional Control/Combustion. That layout is not evidence that four distinct spirits are required for Four Elements."
           ],
           "minCharacterLevel": 45,
           "minSkillTier": 8,
@@ -2781,7 +2946,8 @@
           "notes": [
             "Progression worksheet, not an exact skill-point allocation. Invest in unlocked core attacks and resource sustain.",
             "At fresh level 45, use actual equipped skill levels (often 8–10), not the later 16–20 target. Bonus levels from gear/boards are separate.",
-            "Exact unlock levels and point budgets have not been verified against a captured Global client. Copy is disabled rather than presenting an invented allocation."
+            "Exact unlock levels and point budgets have not been verified against a captured Global client. Copy is disabled rather than presenting an invented allocation.",
+            "Community layouts use Fusion/Water/Earth/Fire and Corrode/Curse/Dimensional Control/Combustion. That layout is not evidence that four distinct spirits are required for Four Elements."
           ],
           "minCharacterLevel": 1,
           "minSkillTier": 8,
@@ -2805,7 +2971,8 @@
         "8": "Fresh-cap / early skills: choose resource sustain; later chain and cooldown-removal claims do not apply.",
         "12": "Mid progression: verify the second specialty in the actual client; charge variants change automation suitability.",
         "16": "Later setup: explicitly equip required specialties. Skill 20 and extra slots still require the appropriate gear and board investment."
-      }
+      },
+      "researchComparison": "Community layouts use Fusion/Water/Earth/Fire and Corrode/Curse/Dimensional Control/Combustion. That layout is not evidence that four distinct spirits are required for Four Elements."
     },
     {
       "id": "cleric",
@@ -2972,7 +3139,8 @@
           "notes": [
             "One held native macro cycles the shown lines. This does not prove automatic basic-attack weaving or maximum DPS.",
             "Charges, defensives, interrupts and encounter-critical burst remain manual.",
-            "Measure outgoing damage and actual healing demands separately; a DPS result cannot validate healing safety."
+            "Measure outgoing damage and actual healing demands separately; a DPS result cannot validate healing safety.",
+            "Lucia-derived community layouts automate Prayer of Amplification; the controlled preset preserves it manually. Compare buff coverage and encounter timing, not only a stationary opener."
           ],
           "minCharacterLevel": 45,
           "minSkillTier": 8,
@@ -3029,7 +3197,8 @@
           ],
           "notes": [
             "Control burst around boss vulnerability and mechanics. This is the comparison preset, not a benchmark winner.",
-            "Measure outgoing damage and actual healing demands separately; a DPS result cannot validate healing safety."
+            "Measure outgoing damage and actual healing demands separately; a DPS result cannot validate healing safety.",
+            "Lucia-derived community layouts automate Prayer of Amplification; the controlled preset preserves it manually. Compare buff coverage and encounter timing, not only a stationary opener."
           ],
           "minCharacterLevel": 45,
           "minSkillTier": 8,
@@ -3086,7 +3255,8 @@
           ],
           "notes": [
             "Use sustainable resource choices before damage-only specialties; retain escape and recovery. Pull size and control immunity alter the rotation.",
-            "Unlock prerequisites still apply. At level 45, skill level 16 is not automatic."
+            "Unlock prerequisites still apply. At level 45, skill level 16 is not automatic.",
+            "Lucia-derived community layouts automate Prayer of Amplification; the controlled preset preserves it manually. Compare buff coverage and encounter timing, not only a stationary opener."
           ],
           "minCharacterLevel": 45,
           "minSkillTier": 8,
@@ -3142,7 +3312,8 @@
             "Noble Aura"
           ],
           "notes": [
-            "Use the manual-burst preset. Reserve defensive and group utility buttons for mechanics; do not evaluate only the opener."
+            "Use the manual-burst preset. Reserve defensive and group utility buttons for mechanics; do not evaluate only the opener.",
+            "Lucia-derived community layouts automate Prayer of Amplification; the controlled preset preserves it manually. Compare buff coverage and encounter timing, not only a stationary opener."
           ],
           "minCharacterLevel": 45,
           "minSkillTier": 8,
@@ -3190,7 +3361,8 @@
           ],
           "notes": [
             "Damage-only macro candidate. Engage, crowd control, interrupts, cleansing and defensive reactions remain manual.",
-            "No claim that a PvE loop is optimal in PvP. Test against actual opponents with matching gear."
+            "No claim that a PvE loop is optimal in PvP. Test against actual opponents with matching gear.",
+            "Lucia-derived community layouts automate Prayer of Amplification; the controlled preset preserves it manually. Compare buff coverage and encounter timing, not only a stationary opener."
           ],
           "minCharacterLevel": 45,
           "minSkillTier": 8,
@@ -3237,7 +3409,8 @@
           ],
           "notes": [
             "Damage filler only when healing permits. No target-health decision is delegated to a damage macro.",
-            "Healing throughput, range, mana and emergency response need an in-game group test. No healing safety has been benchmarked."
+            "Healing throughput, range, mana and emergency response need an in-game group test. No healing safety has been benchmarked.",
+            "Lucia-derived community layouts automate Prayer of Amplification; the controlled preset preserves it manually. Compare buff coverage and encounter timing, not only a stationary opener."
           ],
           "minCharacterLevel": 45,
           "minSkillTier": 8,
@@ -3293,7 +3466,8 @@
           ],
           "notes": [
             "Community guides report overlapping mantra effects and advise removing Light of Protection when the Chanter covers it.",
-            "Exact overlap and the replacement stigma depend on the party and encounter. Confirm buff tooltips and choose a replacement with the party; no automatic swap is asserted."
+            "Exact overlap and the replacement stigma depend on the party and encounter. Confirm buff tooltips and choose a replacement with the party; no automatic swap is asserted.",
+            "Lucia-derived community layouts automate Prayer of Amplification; the controlled preset preserves it manually. Compare buff coverage and encounter timing, not only a stationary opener."
           ],
           "minCharacterLevel": 45,
           "minSkillTier": 8,
@@ -3342,7 +3516,8 @@
           "notes": [
             "Progression worksheet, not an exact skill-point allocation. Invest in unlocked core attacks and resource sustain.",
             "At fresh level 45, use actual equipped skill levels (often 8–10), not the later 16–20 target. Bonus levels from gear/boards are separate.",
-            "Exact unlock levels and point budgets have not been verified against a captured Global client. Copy is disabled rather than presenting an invented allocation."
+            "Exact unlock levels and point budgets have not been verified against a captured Global client. Copy is disabled rather than presenting an invented allocation.",
+            "Lucia-derived community layouts automate Prayer of Amplification; the controlled preset preserves it manually. Compare buff coverage and encounter timing, not only a stationary opener."
           ],
           "minCharacterLevel": 1,
           "minSkillTier": 8,
@@ -3366,7 +3541,8 @@
         "8": "Fresh-cap / early skills: choose resource sustain; later chain and cooldown-removal claims do not apply.",
         "12": "Mid progression: verify the second specialty in the actual client; charge variants change automation suitability.",
         "16": "Later setup: explicitly equip required specialties. Skill 20 and extra slots still require the appropriate gear and board investment."
-      }
+      },
+      "researchComparison": "Lucia-derived community layouts automate Prayer of Amplification; the controlled preset preserves it manually. Compare buff coverage and encounter timing, not only a stationary opener."
     },
     {
       "id": "chanter",
@@ -3528,7 +3704,8 @@
           "notes": [
             "One held native macro cycles the shown lines. This does not prove automatic basic-attack weaving or maximum DPS.",
             "Charges, defensives, interrupts and encounter-critical burst remain manual.",
-            "Compare group buff coverage and support interruptions as well as personal damage; no combined score is invented."
+            "Compare group buff coverage and support interruptions as well as personal damage; no combined score is invented.",
+            "Keep Dark Crush ahead of Spinning Strike and Incandescent Blow, with Onslaught separate. Basic-attack weaving and actual proc availability still need client tests."
           ],
           "minCharacterLevel": 45,
           "minSkillTier": 8,
@@ -3589,7 +3766,8 @@
           ],
           "notes": [
             "Control burst around boss vulnerability and mechanics. This is the comparison preset, not a benchmark winner.",
-            "Compare group buff coverage and support interruptions as well as personal damage; no combined score is invented."
+            "Compare group buff coverage and support interruptions as well as personal damage; no combined score is invented.",
+            "Keep Dark Crush ahead of Spinning Strike and Incandescent Blow, with Onslaught separate. Basic-attack weaving and actual proc availability still need client tests."
           ],
           "minCharacterLevel": 45,
           "minSkillTier": 8,
@@ -3645,7 +3823,8 @@
           ],
           "notes": [
             "Use sustainable resource choices before damage-only specialties; retain escape and recovery. Pull size and control immunity alter the rotation.",
-            "Unlock prerequisites still apply. At level 45, skill level 16 is not automatic."
+            "Unlock prerequisites still apply. At level 45, skill level 16 is not automatic.",
+            "Keep Dark Crush ahead of Spinning Strike and Incandescent Blow, with Onslaught separate. Basic-attack weaving and actual proc availability still need client tests."
           ],
           "minCharacterLevel": 45,
           "minSkillTier": 8,
@@ -3705,7 +3884,8 @@
             "Focused Defense"
           ],
           "notes": [
-            "Use the manual-burst preset. Reserve defensive and group utility buttons for mechanics; do not evaluate only the opener."
+            "Use the manual-burst preset. Reserve defensive and group utility buttons for mechanics; do not evaluate only the opener.",
+            "Keep Dark Crush ahead of Spinning Strike and Incandescent Blow, with Onslaught separate. Basic-attack weaving and actual proc availability still need client tests."
           ],
           "minCharacterLevel": 45,
           "minSkillTier": 8,
@@ -3754,7 +3934,8 @@
           ],
           "notes": [
             "Damage-only macro candidate. Engage, crowd control, interrupts, cleansing and defensive reactions remain manual.",
-            "No claim that a PvE loop is optimal in PvP. Test against actual opponents with matching gear."
+            "No claim that a PvE loop is optimal in PvP. Test against actual opponents with matching gear.",
+            "Keep Dark Crush ahead of Spinning Strike and Incandescent Blow, with Onslaught separate. Basic-attack weaving and actual proc availability still need client tests."
           ],
           "minCharacterLevel": 45,
           "minSkillTier": 8,
@@ -3802,7 +3983,8 @@
           "notes": [
             "Progression worksheet, not an exact skill-point allocation. Invest in unlocked core attacks and resource sustain.",
             "At fresh level 45, use actual equipped skill levels (often 8–10), not the later 16–20 target. Bonus levels from gear/boards are separate.",
-            "Exact unlock levels and point budgets have not been verified against a captured Global client. Copy is disabled rather than presenting an invented allocation."
+            "Exact unlock levels and point budgets have not been verified against a captured Global client. Copy is disabled rather than presenting an invented allocation.",
+            "Keep Dark Crush ahead of Spinning Strike and Incandescent Blow, with Onslaught separate. Basic-attack weaving and actual proc availability still need client tests."
           ],
           "minCharacterLevel": 1,
           "minSkillTier": 8,
@@ -3826,7 +4008,8 @@
         "8": "Fresh-cap / early skills: choose resource sustain; later chain and cooldown-removal claims do not apply.",
         "12": "Mid progression: verify the second specialty in the actual client; charge variants change automation suitability.",
         "16": "Later setup: explicitly equip required specialties. Skill 20 and extra slots still require the appropriate gear and board investment."
-      }
+      },
+      "researchComparison": "Keep Dark Crush ahead of Spinning Strike and Incandescent Blow, with Onslaught separate. Basic-attack weaving and actual proc availability still need client tests."
     }
   ]
 }

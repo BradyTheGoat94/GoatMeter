@@ -2,7 +2,7 @@
 
 Test branch only. Live thegoatmeter.us and public desktop download are unchanged by this work.
 
-Implemented eight classes and 51 mode worksheets, with explicit evidence status and blocked copying for unresolved exact configurations. This is broader candidate coverage, not 51 verified recommendations. UI state and copied configuration share the same model. Skill tiers and charge variants are explicit. A dedicated CI uploads the test-only static artifact.
+Implemented eight classes and 53 mode worksheets, with explicit evidence status and blocked copying for unresolved exact configurations. This is broader candidate coverage, not 53 verified recommendations. UI state and copied configuration share the same model. Skill tiers and charge variants are explicit. A dedicated CI uploads the test-only static artifact.
 
 Research: current Global Season 1 class guides at aion2-guides.info/en/{templar,gladiator,assassin,ranger,sorcerer,elementalist,cleric,chanter}/; SolAshur's original Templar macro guide; prior Daeva guide comparisons and provisional Rotation Lab notes, cited within each class. Referenced creator videos with unavailable playback/transcripts remain labeled as unreviewed, not watched.
 

@@ -52,3 +52,9 @@ test('all copy-enabled plans agree with their selected preview rows and never au
   for(const l of m.lines)assert.ok(l.priority.every(s=>!['Punishment','Hellfire','Deadshot','Bolt'].includes(s)));
  }
 });
+test('source-comparison variants retain basic attacks and keep manual/automatic choices distinct',()=>{
+ const assassin=effectivePreset(build('assassin'),'one-button');assert.ok(assassin.lines.some(l=>l.priority.includes('Quick Slice')));assert.equal(assassin.steps.at(-1),'R');
+ const glad=effectivePreset(build('gladiator'),'community-single-line');assert.deepEqual(glad.lines[0].priority,['Rage Burst','Overhead Slam','Sword Aura Rampage','Rending Blow']);assert.ok(!glad.manual.includes('Rage Burst'));
+ const sorc=effectivePreset(build('sorcerer'),'community-wish-line');assert.equal(sorc.lines[0].priority[3],'Wish of Concentration');assert.ok(!sorc.manual.includes('Wish of Concentration'));assert.ok(sorc.manual.includes('Hellfire charge'));
+ for(const b of catalog.classes)assert.ok(b.researchComparison);
+});
