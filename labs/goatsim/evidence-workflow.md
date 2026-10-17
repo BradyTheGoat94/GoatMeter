@@ -19,3 +19,5 @@ The private rerun changed which groups meet minimum sample size. New/old cohort 
 ## First private replay checkpoint
 
 The newer authorized capture was successfully processed by the private bundle builder and JS estimator. It produced nonempty Templar training models and held-out coverage/error diagnostics. Generated data and numerical reports remain private, outside the repository; only synthetic fixtures test this path in CI. No class receives formula-validated or benchmark-validated status. Improve uncovered signatures and isolate encounter/stat/buff context before any forward Macro/APL damage claims.
+
+`audit_empirical_contexts.py` extends this to separate within-context holdouts rather than pooling actor/target/scope partitions. Largest hit gaps and spans expose possible discontinuities without declaring arbitrary gap thresholds to be encounter boundaries. Unsupported contexts are counted explicitly. This is not leave-one-context-out transfer validation; do not equate separate rows with independently matched dummy trials. The common builder rejects mixed contexts and thresholds below five training hits.

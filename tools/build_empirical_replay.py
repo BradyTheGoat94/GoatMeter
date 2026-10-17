@@ -10,7 +10,13 @@ def build_bundle(lines,class_name='Templar',minimum_training=5):
         if hit['class']==class_name:groups[hit['partition']].append(hit)
     if not groups:raise ValueError('No confirmed class samples')
     # Largest observed single-actor/single-target partition; not independently identified as boss/dummy.
-    events=max(groups.values(),key=len);events.sort(key=lambda x:x['time'])
+    return build_context(max(groups.values(),key=len),class_name,minimum_training)
+
+def build_context(events,class_name='Templar',minimum_training=5):
+    """Fit one private context only; never pool actor/target/scope partitions."""
+    if not isinstance(minimum_training,int) or minimum_training<5:raise ValueError('At least five training hits required')
+    if not events or any(h['class']!=class_name or h['partition']!=events[0]['partition'] for h in events):raise ValueError('Mixed or absent context')
+    events=sorted(events,key=lambda x:x['time'])
     cut=int(len(events)*.7)
     while 0<cut<len(events) and events[cut]['time']==events[cut-1]['time']:cut+=1
     train,held=events[:cut],events[cut:]
