@@ -187,7 +187,8 @@ public partial class OverlayWindow : Window
     {
         var w = new Window { Title="AION 2 DPS — Overlay Settings", Width=450, Height=700,
             WindowStartupLocation=WindowStartupLocation.CenterOwner, Owner=this, Background=Brush("#0A0E16"), Foreground=Brush("#F4F7FF"), ResizeMode=ResizeMode.NoResize };
-        w.Resources.MergedDictionaries.Add(Resources);
+        // Do not import overlay theme resources into this separate settings window.
+        // Theme-specific implicit styles can make labels and checkboxes unreadable.
         // Settings use a fixed high-contrast palette independent of the selected
         // overlay theme. WPF popup items must be styled explicitly as well.
         var settingsBackground=Brush("#121925");
@@ -204,6 +205,19 @@ public partial class OverlayWindow : Window
         itemStyle.Setters.Add(new Setter(System.Windows.Controls.Control.FontSizeProperty,14.0));
         comboStyle.Setters.Add(new Setter(System.Windows.Controls.ItemsControl.ItemContainerStyleProperty,itemStyle));
         w.Resources.Add(typeof(System.Windows.Controls.ComboBox),comboStyle);
+        var textStyle=new Style(typeof(System.Windows.Controls.TextBlock));
+        textStyle.Setters.Add(new Setter(System.Windows.Controls.TextBlock.ForegroundProperty,settingsForeground));
+        w.Resources.Add(typeof(System.Windows.Controls.TextBlock),textStyle);
+        var checkboxStyle=new Style(typeof(System.Windows.Controls.CheckBox));
+        checkboxStyle.Setters.Add(new Setter(System.Windows.Controls.Control.ForegroundProperty,settingsForeground));
+        checkboxStyle.Setters.Add(new Setter(System.Windows.Controls.Control.FontSizeProperty,14.0));
+        w.Resources.Add(typeof(System.Windows.Controls.CheckBox),checkboxStyle);
+        var buttonStyle=new Style(typeof(System.Windows.Controls.Button));
+        buttonStyle.Setters.Add(new Setter(System.Windows.Controls.Control.BackgroundProperty,settingsBackground));
+        buttonStyle.Setters.Add(new Setter(System.Windows.Controls.Control.ForegroundProperty,settingsForeground));
+        buttonStyle.Setters.Add(new Setter(System.Windows.Controls.Control.BorderBrushProperty,settingsBorder));
+        buttonStyle.Setters.Add(new Setter(System.Windows.Controls.Control.FontSizeProperty,14.0));
+        w.Resources.Add(typeof(System.Windows.Controls.Button),buttonStyle);
         var panel = new System.Windows.Controls.StackPanel { Margin=new Thickness(20) };
         panel.Children.Add(new System.Windows.Controls.TextBlock { Text="OVERLAY SETTINGS", FontSize=22, FontWeight=FontWeights.Bold, Margin=new Thickness(0,0,0,16) });
         panel.Children.Add(new System.Windows.Controls.TextBlock { Text="Overlay style", Foreground=Brush("#9DB7DE") });
