@@ -15,6 +15,10 @@ public partial class MainWindow : Window
     readonly OverlayWindow overlay=new();
     readonly LiveCaptureAdapter capture;
     readonly object diagnosticsGate=new();
+    // Identity is only trusted when the decoder explicitly labels a selfInfo
+    // packet. Nearby identityMap records must never promote a player to self.
+    long? verifiedLocalActorId;
+
     readonly Queue<string> inspector=new();
     long packets,decoderDiagnostics,recognized,parsedEvents,duplicates,damageEvents,healEvents,hpEvents,otherEvents,acceptedDamageEvents,snapshotId;
     string activeFlow="Waiting...",captureStatus="Starting capture...",lastDecoder="",lastEvent="",profileId="",validationPath="",historyError="";
@@ -24,6 +28,11 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
         overlay.Engine=engine;
+        overlay.LocalActorProvider=()=> { lock(diagnosticsGate) return verifiedLocalActorId; };
+        // No verified party/force membership API yet: those scopes fail closed.
+        overlay.PartyRosterProvider=()=>null;
+        overlay.ForceRosterProvider=()=>null;
+
         overlay.SnapshotProvider=(segment,category)=>engine.Snapshot(segment,category);
         overlay.HistoryProvider=()=>store.List().ToArray();
         overlay.HistoryLoader=path=>store.LoadAsync(path);
@@ -53,6 +62,18 @@ public partial class MainWindow : Window
                 catch(Exception ex) {lock(diagnosticsGate)captureStatus=$"Validation logging failed: {ex.Message}";}
             }
         }
+        decoder.ValidationRecord+=line =>
+        {
+            // Self-identity validation is emitted only for decoded selfInfo,
+            // not ordinary otherInfo or untrusted nearby combat participants.
+            if(line.Contains("|tag=selfIdentity|",StringComparison.Ordinal)
+                && !line.Contains("|status=no-name",StringComparison.Ordinal))
+            {
+                var field=line.Split('|').FirstOrDefault(part=>part.StartsWith("entity=",StringComparison.Ordinal));
+                if(field!=null && long.TryParse(field.AsSpan("entity=".Length),out var actor) && actor>0)
+                    lock(diagnosticsGate) verifiedLocalActorId=actor;
+            }
+        };
         decoder.ValidationRecord+=RecordValidation;
         decoder.Diagnostic += d => {lock(diagnosticsGate) {decoderDiagnostics++;if(d.Stage=="parse")recognized++;lastDecoder=$"[{d.Stage}] {d.Message} ({d.Bytes} bytes)";}};
         engine.EncounterCompleted += snapshot =>
