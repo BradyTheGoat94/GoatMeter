@@ -25,6 +25,7 @@ $('empirical-file').onchange=async e=>{
  const hitError=r.coveredHitWeightedAbsoluteErrorPercent;
  $('empirical-result').innerHTML+=`<p><strong>Hit-by-hit absolute error:</strong> ${hitError===null?'Unavailable — regenerate the private bundle':hitError.toFixed(2)+'%'}. Aggregate total error can hide over- and under-predictions cancelling out. This is not game-formula validation.</p>`;
  if(r.excluded?.length)$('empirical-result').innerHTML+=`<h3>Excluded evidence</h3><table><thead><tr><th>Skill</th><th>Reason</th><th>Hits</th></tr></thead><tbody>${r.excluded.map(x=>`<tr><td>${esc(x.skill)}</td><td>${esc(x.reason)}</td><td>${x.hits}</td></tr>`).join('')}</tbody></table>`;
+ if(r.skills)$('empirical-result').innerHTML+=`<h3>Skill evidence</h3><p>Known flags are decoder-consistent records, not verified game mechanics. Uncovered skills have unavailable error, not zero error.</p><table><thead><tr><th>Skill</th><th>Covered hits</th><th>Known-flag covered hits</th><th>Damage coverage</th><th>Absolute hit error</th></tr></thead><tbody>${r.skills.map(s=>`<tr><td>${esc(s.skill)}</td><td>${s.coveredHits}/${s.heldOutHits}</td><td>${s.knownFlagCoveredHits}</td><td>${pct(s.damageCoverage)}</td><td>${s.absoluteHitErrorPercent===null?'Unavailable':s.absoluteHitErrorPercent.toFixed(2)+'%'}</td></tr>`).join('')}</tbody></table>`;
  $('empirical-status').textContent='Local replay analyzed. No file or character data was uploaded.';
  }catch(error){$('empirical-status').textContent='Cannot analyze replay: '+error.message;}
 };

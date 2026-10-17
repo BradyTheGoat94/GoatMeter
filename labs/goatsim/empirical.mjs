@@ -13,5 +13,16 @@ export function estimateReplay(bundle){
  if(d&&(!finite(d.sumAbsoluteHitError)||!Array.isArray(d.excluded)||d.excluded.some(x=>typeof x.skill!=='string'||!['unseen-signature','insufficient-training'].includes(x.reason)||!Number.isSafeInteger(x.hits)||x.hits<0||!finite(x.damage))))throw new Error('Invalid replay diagnostics');
  if(d&&(d.excluded.reduce((n,x)=>n+x.hits,0)!==o.totalHits-o.coveredHits||d.excluded.reduce((n,x)=>n+x.damage,0)!==o.totalDamage-o.coveredDamage))throw new Error('Inconsistent replay exclusions');
  const diagnostics={coveredHitWeightedAbsoluteErrorPercent:d&&o.coveredDamage?d.sumAbsoluteHitError/o.coveredDamage*100:null,excluded:d?.excluded??null};
+ const near=(a,b)=>Math.abs(a-b)<=1e-7*Math.max(1,Math.abs(a),Math.abs(b));
+ if(d?.skills!==undefined){
+  if(!Array.isArray(d.skills)||d.skills.length>10000)throw new Error('Invalid skill diagnostics');
+  const seen=new Set();let hits=0,covered=0,total=0,damage=0,error=0;
+  diagnostics.skills=d.skills.map(s=>{
+   if(typeof s.skill!=='string'||seen.has(s.skill)||![s.heldOutHits,s.coveredHits,s.knownFlagCoveredHits].every(n=>Number.isSafeInteger(n)&&n>=0)||s.coveredHits>s.heldOutHits||s.knownFlagCoveredHits>s.coveredHits||![s.totalObservedDamage,s.coveredObservedDamage,s.predictedCoveredDamage,s.sumAbsoluteHitError].every(finite)||s.coveredObservedDamage>s.totalObservedDamage||!near(s.predictedCoveredDamage,bySkill.get(s.skill)??0))throw new Error('Invalid skill diagnostic totals');
+   seen.add(s.skill);hits+=s.heldOutHits;covered+=s.coveredHits;total+=s.totalObservedDamage;damage+=s.coveredObservedDamage;error+=s.sumAbsoluteHitError;
+   return {skill:s.skill,coveredHits:s.coveredHits,heldOutHits:s.heldOutHits,knownFlagCoveredHits:s.knownFlagCoveredHits,damageCoverage:s.totalObservedDamage?s.coveredObservedDamage/s.totalObservedDamage:null,absoluteHitErrorPercent:s.coveredObservedDamage?s.sumAbsoluteHitError/s.coveredObservedDamage*100:null};
+  });
+  if(hits!==o.totalHits||covered!==o.coveredHits||!near(total,o.totalDamage)||!near(damage,o.coveredDamage)||!near(error,d.sumAbsoluteHitError))throw new Error('Inconsistent skill diagnostics');
+ }
  return {...diagnostics,kind:bundle.kind,warning:'CAPTURE-CONDITIONED ESTIMATE — NOT NEW ROTATION OR GEAR DPS',contextId:bundle.contextId,className:bundle.className,observedWindowSeconds:seconds,predictedCoveredDamage:predicted,observedCoveredDamage:o.coveredDamage,predictedCoveredWindowDps:predicted/seconds,observedCoveredWindowDps:o.coveredDamage/seconds,coveredHitFraction:o.coveredHits/o.totalHits,coveredDamageFraction:o.totalDamage?o.coveredDamage/o.totalDamage:null,coveredTotalErrorPercent:o.coveredDamage?Math.abs(predicted-o.coveredDamage)/o.coveredDamage*100:null,bySkill:Object.fromEntries(bySkill),gameFormulaValidated:false,allowGearScaling:false,allowNewRotation:false,note:bundle.note};
 }

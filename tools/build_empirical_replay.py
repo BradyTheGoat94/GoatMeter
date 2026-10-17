@@ -42,9 +42,18 @@ def build_context(events,class_name='Templar',minimum_training=5):
             excluded[(h['skill'],reason)].append(h['amount'])
     absolute_error=sum(abs(means[lookup[signature(h)]]-h['amount']) for h in covered)
     covered_damage=sum(h['amount'] for h in covered)
+    skills=[]
+    for skill in sorted(set(h['skill'] for h in held)):
+        sh=[h for h in held if h['skill']==skill];sc=[h for h in sh if signature(h) in lookup]
+        actual=sum(h['amount'] for h in sc);predicted=sum(means[lookup[signature(h)]] for h in sc)
+        error=sum(abs(means[lookup[signature(h)]]-h['amount']) for h in sc)
+        skills.append({'skill':skill,'heldOutHits':len(sh),'coveredHits':len(sc),'knownFlagCoveredHits':sum(h['flags'] is not None for h in sc),
+          'totalObservedDamage':sum(h['amount'] for h in sh),'coveredObservedDamage':actual,'predictedCoveredDamage':predicted,
+          'sumAbsoluteHitError':error,'coveredTotalErrorPercent':abs(predicted-actual)/actual*100 if actual else None,
+          'coveredHitWeightedAbsoluteErrorPercent':error/actual*100 if actual else None})
     return {'schemaVersion':1,'kind':'capture-conditioned-replay','contextId':str(uuid.uuid4()),'className':class_name,'durationMs':duration,'models':models,'timeline':timeline,
       'observed':{'coveredDamage':sum(h['amount'] for h in covered),'coveredHits':len(covered),'totalHits':len(held),'totalDamage':sum(h['amount'] for h in held)},
-      'diagnostics':{'trainingHits':len(train),'heldOutHits':len(held),'sumAbsoluteHitError':absolute_error,'coveredHitWeightedAbsoluteErrorPercent':absolute_error/covered_damage*100 if covered_damage else None,'excluded':[{'skill':skill,'reason':reason,'hits':len(amounts),'damage':sum(amounts)} for (skill,reason),amounts in sorted(excluded.items())]},
+      'diagnostics':{'trainingHits':len(train),'heldOutHits':len(held),'sumAbsoluteHitError':absolute_error,'coveredHitWeightedAbsoluteErrorPercent':absolute_error/covered_damage*100 if covered_damage else None,'skills':skills,'excluded':[{'skill':skill,'reason':reason,'hits':len(amounts),'damage':sum(amounts)} for (skill,reason),amounts in sorted(excluded.items())]},
       'restrictions':{'allowGearScaling':False,'allowNewRotation':False,'targetKind':'unknown','clientPatch':'unknown','independentValidation':False},
       'note':'Earlier hits train per-signature means; later observed hit times/types are supplied. This estimates damage conditional on a known hit schedule, not new macro/APL DPS. Buffs, gear and target state remain confounded.'}
 if __name__=='__main__':

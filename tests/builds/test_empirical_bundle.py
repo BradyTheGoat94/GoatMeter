@@ -16,3 +16,8 @@ class BundleTest(unittest.TestCase):
   rows=self.fixture()
   for i in range(35,49):rows[2*i]=rows[2*i].replace('amount=100',f'amount={0 if i%2 else 200}')
   b=build_bundle(rows);self.assertEqual(b['observed']['coveredDamage'],1500);self.assertEqual(b['diagnostics']['sumAbsoluteHitError'],1400);self.assertAlmostEqual(b['diagnostics']['coveredHitWeightedAbsoluteErrorPercent'],100*1400/1500)
+  s=b['diagnostics']['skills'][0];self.assertEqual(s['coveredHits'],15);self.assertEqual(s['knownFlagCoveredHits'],0);self.assertEqual(s['sumAbsoluteHitError'],1400);self.assertEqual(s['coveredTotalErrorPercent'],0)
+ def test_excluded_skill_is_not_reported_as_zero_error(self):
+  rows=self.fixture();rows[-2]=rows[-2].replace('skill=Synthetic','skill=Unseen')
+  b=build_bundle(rows);s=next(s for s in b['diagnostics']['skills'] if s['skill']=='Unseen')
+  self.assertEqual(s['coveredHits'],0);self.assertIsNone(s['coveredTotalErrorPercent']);self.assertIsNone(s['coveredHitWeightedAbsoluteErrorPercent'])
