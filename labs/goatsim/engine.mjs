@@ -9,6 +9,10 @@ export function simulate(config) {
  if(executionMode==='macro'&&(!lines||!Array.isArray(steps)||!steps.length||steps.length>20))throw new Error('Missing macro configuration');
  if(executionMode==='apl'&&(!Array.isArray(apl)||!apl.length||apl.length>100||!integer(decisionIntervalMs,1)))throw new Error('Invalid APL configuration');
  for(const [id,s] of Object.entries(skills)) {
+  if(s.chargeMs!==undefined&&!integer(s.chargeMs))throw new Error('Invalid charge duration');
+  if(s.chargeMs&&s.buff)throw new Error('Charged buff activation semantics unsupported');
+  if(s.manualOnly!==undefined&&typeof s.manualOnly!=='boolean')throw new Error('Invalid manual-only flag');
+  if(s.requiresBuff!==undefined&&(typeof s.requiresBuff!=='string'||!s.requiresBuff))throw new Error('Invalid required window');
   if(s.impactUnits!==undefined&&(!Number.isFinite(s.impactUnits)||s.impactUnits<0||s.impactUnits>1e9))throw new Error('Invalid synthetic impact units');
   if(s.impactDelayMs!==undefined&&!integer(s.impactDelayMs))throw new Error('Invalid impact delay');
   if(s.buff&&(!s.buff.id||typeof s.buff.id!=='string'||!integer(s.buff.durationMs,1)||!Number.isFinite(s.buff.multiplier)||s.buff.multiplier<0||s.buff.multiplier>100))throw new Error('Invalid synthetic buff');
@@ -24,10 +28,10 @@ export function simulate(config) {
  const ready=Object.create(null),counts=Object.create(null),timeline=[];
  let pool=resource.initial,lockedUntil=0,step=0,buffToken=0,totalSyntheticUnits=0;
  const buffs=new Map(),impacts=[],syntheticUnitsBySkill=Object.create(null);
- const usable=(id,at)=>at>=lockedUntil&&(ready[id]??0)<=at&&pool>=(skills[id].cost??0);
- function cast(id,at,input){const s=skills[id];pool=Math.min(resource.max,pool-(s.cost??0)+(s.gain??0));ready[id]=at+s.cooldownMs;lockedUntil=at+s.lockMs;counts[id]=(counts[id]??0)+1;timeline.push({atMs:at,skill:id,input,resource:pool});
+ const usable=(id,at,input='manual')=>at>=lockedUntil&&(ready[id]??0)<=at&&pool>=(skills[id].cost??0)&&(!(skills[id].manualOnly)&&!skills[id].chargeMs||['manual','apl'].includes(input))&&(!skills[id].requiresBuff||(buffs.get(skills[id].requiresBuff)?.expiresAt??0)>at);
+ function cast(id,at,input){const s=skills[id];pool=Math.min(resource.max,pool-(s.cost??0)+(s.gain??0));ready[id]=at+s.cooldownMs;lockedUntil=at+(s.chargeMs??0)+s.lockMs;counts[id]=(counts[id]??0)+1;timeline.push({atMs:at,skill:id,input,resource:pool});
   if(s.buff){const token=++buffToken;buffs.set(s.buff.id,{...s.buff,token,expiresAt:at+s.buff.durationMs});schedule(at+s.buff.durationMs,'expire',{id:s.buff.id,token},-4);}
-  if(s.impactUnits!==undefined)schedule(at+(s.impactDelayMs??0),'impact',{skill:id,units:s.impactUnits},-3);
+  if(s.impactUnits!==undefined)schedule(at+(s.chargeMs??0)+(s.impactDelayMs??0),'impact',{skill:id,units:s.impactUnits},-3);
  }
  // Tie order is explicit model policy: manual, basic, macro. No input queue or retry for manual taps.
  const queue=new EventQueue({maxEvents});
@@ -40,10 +44,10 @@ export function simulate(config) {
   if(event.kind==='expire'){if(buffs.get(event.payload.id)?.token===event.payload.token)buffs.delete(event.payload.id);}
   else if(event.kind==='impact'){let multiplier=1;for(const b of buffs.values())if(b.expiresAt>at)multiplier*=b.multiplier;const units=event.payload.units*multiplier;if(!Number.isFinite(units)||!Number.isFinite(totalSyntheticUnits+units))throw new Error('Synthetic damage overflow');totalSyntheticUnits+=units;syntheticUnitsBySkill[event.payload.skill]=(syntheticUnitsBySkill[event.payload.skill]??0)+units;impacts.push({atMs:at,skill:event.payload.skill,syntheticUnits:units});}
   else if(event.kind==='manual'){const m=event.payload;if(usable(m.skill,at))cast(m.skill,at,'manual');else timeline.push({atMs:at,skill:m.skill,input:'manual',skipped:true});}
-  else if(event.kind==='basic'){if(usable(basic.skill,at))cast(basic.skill,at,'basic');schedule(at+basic.intervalMs,'basic',null,-1);}
+  else if(event.kind==='basic'){if(usable(basic.skill,at,'basic'))cast(basic.skill,at,'basic');schedule(at+basic.intervalMs,'basic',null,-1);}
   else {
-   if(executionMode==='macro'){const key=steps[step++%steps.length];const id=lines[key].find(id=>usable(id,at));if(id)cast(id,at,`macro:${key}`);schedule(at+delayMs,'decision',null,0);}
-   else {const rule=apl.find(r=>usable(r.skill,at)&&pool>=(r.minResource??0)&&at>=(r.notBeforeMs??0));if(rule)cast(rule.skill,at,'apl');schedule(at+decisionIntervalMs,'decision',null,0);}
+   if(executionMode==='macro'){const key=steps[step++%steps.length];const id=lines[key].find(id=>usable(id,at,'macro'));if(id)cast(id,at,`macro:${key}`);schedule(at+delayMs,'decision',null,0);}
+   else {const rule=apl.find(r=>usable(r.skill,at,'apl')&&pool>=(r.minResource??0)&&at>=(r.notBeforeMs??0));if(rule)cast(rule.skill,at,'apl');schedule(at+decisionIntervalMs,'decision',null,0);}
   }
  });
  return {executionMode,model:'synthetic-timing-v0',verifiedGameMechanics:false,durationMs,counts,timeline,resource:pool,events,impacts,totalSyntheticUnits,syntheticUnitsBySkill};
