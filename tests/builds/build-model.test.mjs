@@ -42,12 +42,12 @@ test('Sorcerer requested sequence is isolated as research; Hellfire never auto-c
  assert.equal(m.copyEnabled,false);assert.ok(m.manual.includes('Hellfire charge'));
  for(const m of b.modes)assert.ok(m.lines.every(l=>!l.priority.some(s=>/Hellfire/.test(s))));
 });
-test('Cleric has separate damage/healing/composition modes; unresolved Chanter swap cannot copy',()=>{
- const b=build('cleric');assert.ok(b.modes.find(m=>m.id==='solo'));assert.ok(b.modes.find(m=>m.id==='healing'));const m=effectivePreset(b,'chanter-present');assert.equal(m.copyEnabled,false);assert.ok(!m.stigmas.includes('Light of Protection'));
+test('Cleric composition candidate requires the equipped Absolution specialty level',()=>{
+ const b=build('cleric');assert.ok(b.modes.find(m=>m.id==='solo'));assert.ok(b.modes.find(m=>m.id==='healing'));const m=effectivePreset(b,'chanter-present');assert.equal(m.copyEnabled,true);assert.ok(!m.stigmas.includes('Light of Protection'));assert.ok(m.stigmas.includes('Absolution'));assert.throws(()=>copyPlan(b,m),/Absolution/);assert.ok(copyPlan(b,m,{stigmaLevels:{Absolution:15}}));for(const level of [14,NaN,99,15.5])assert.throws(()=>copyPlan(b,m,{stigmaLevels:{Absolution:level}}));
 });
 test('all copy-enabled plans agree with their selected preview rows and never auto-cast manual charge skills',()=>{
  for(const b of catalog.classes)for(const m of b.modes){
-  if(!m.copyEnabled)continue;const plan=copyPlan(b,m);
+  if(!m.copyEnabled)continue;const plan=copyPlan(b,m,{stigmaLevels:m.stigmaRequirements??{}});
   for(const l of m.lines)for(const [row,skill] of l.priority.entries())assert.ok(plan.includes(`Row ${row}: ${skill}`));
   for(const l of m.lines)assert.ok(l.priority.every(s=>!['Punishment','Hellfire','Deadshot','Bolt'].includes(s)));
  }
@@ -61,4 +61,9 @@ test('source-comparison variants retain basic attacks and keep manual/automatic 
 test('Sorcerer creator correction keeps Flame Arrow separate and gates the Wish specialty',()=>{
  const b=build('sorcerer'),m=effectivePreset(b,'boss-manual');assert.equal(m.basicAttack.binding,'LMB');assert.equal(m.basicAttack.skill,'Flame Arrow');assert.match(copyPlan(b,m),/Basic attack: Flame Arrow on LMB/);assert.ok(m.lines.every(l=>!l.priority.includes('Flame Arrow')));
  const wish=effectivePreset(b,'community-wish-line');assert.ok(eligibility(wish,{characterLevel:45,skillTier:12}));assert.equal(eligibility(wish,{characterLevel:45,skillTier:16}),'');
+});
+test('support-class comparisons preserve deliberate order and manual emergency buttons',()=>{
+ const spirit=effectivePreset(build('spiritmaster'),'one-button');assert.deepEqual(spirit.steps,['E','Q']);assert.equal(spirit.basicAttack.skill,'Cold Shock');assert.ok(spirit.lines.every(l=>!l.priority.some(s=>/Ancient Spirit|Benediction|Flame Blessing/.test(s))));
+ const chanter=effectivePreset(build('chanter'),'community-trigger-line');assert.equal(chanter.minSkillTier,16);assert.deepEqual(chanter.lines[0].priority,['Dark Crush','Spinning Strike','Impactful Crush','Incandescent Blow']);assert.ok(chanter.manual.includes('Marchutan’s Wrath'));assert.ok(chanter.lines.every(l=>!l.priority.some(s=>/Mantra|Recuperation|Wave Blow/.test(s))));
+ const cleric=effectivePreset(build('cleric'),'community-lucia');assert.equal(cleric.lines[0].priority[0],'Prayer of Amplification');assert.equal(cleric.lines[1].priority[0],'Divine Aura');assert.ok(cleric.manual.includes('Healing and cleanse'));
 });

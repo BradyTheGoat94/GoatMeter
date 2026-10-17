@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "version": "0.2.2-test",
+  "version": "0.2.3-test",
   "reviewed": "2026-10-17",
   "classes": [
     {
@@ -2708,7 +2708,8 @@
             "Record resource gains per spirit activation, including repeat activations of the same spirit. Do not assume one distinct type per element.",
             "Uncharged Fusion is the displayed default. Choose the charged-Fusion option to move it off the automatic line.",
             "Ancient Spirit stays manual. Test snapshot behavior rather than assuming a buff applied after summoning changes the spirit.",
-            "Community layouts use Fusion/Water/Earth/Fire and Corrode/Curse/Dimensional Control/Combustion. That layout is not evidence that four distinct spirits are required for Four Elements."
+            "Community layouts use Fusion/Water/Earth/Fire and Corrode/Curse/Dimensional Control/Combustion. That layout is not evidence that four distinct spirits are required for Four Elements.",
+            "This controlled two-line candidate cycles damage line E before spirit line Q. Sources also describe buff-in-macro variants; those are not assumed equivalent. No four-distinct-spirit requirement is imposed."
           ],
           "minCharacterLevel": 45,
           "minSkillTier": 8,
@@ -2724,9 +2725,14 @@
             "https://daevaguides.com/en/elementalist/"
           ],
           "steps": [
-            "Q",
-            "E"
-          ]
+            "E",
+            "Q"
+          ],
+          "basicAttack": {
+            "skill": "Cold Shock",
+            "binding": "LMB",
+            "usage": "Hold separately alongside the native macro; track the actual buff and resource state."
+          }
         },
         {
           "id": "boss-manual",
@@ -2774,7 +2780,8 @@
             "Record resource gains per spirit activation, including repeat activations of the same spirit. Do not assume one distinct type per element.",
             "Uncharged Fusion is the displayed default. Choose the charged-Fusion option to move it off the automatic line.",
             "Ancient Spirit stays manual. Test snapshot behavior rather than assuming a buff applied after summoning changes the spirit.",
-            "Community layouts use Fusion/Water/Earth/Fire and Corrode/Curse/Dimensional Control/Combustion. That layout is not evidence that four distinct spirits are required for Four Elements."
+            "Community layouts use Fusion/Water/Earth/Fire and Corrode/Curse/Dimensional Control/Combustion. That layout is not evidence that four distinct spirits are required for Four Elements.",
+            "This controlled two-line candidate cycles damage line E before spirit line Q. Sources also describe buff-in-macro variants; those are not assumed equivalent. No four-distinct-spirit requirement is imposed."
           ],
           "minCharacterLevel": 45,
           "minSkillTier": 8,
@@ -2790,9 +2797,14 @@
             "https://daevaguides.com/en/elementalist/"
           ],
           "steps": [
-            "Q",
-            "E"
-          ]
+            "E",
+            "Q"
+          ],
+          "basicAttack": {
+            "skill": "Cold Shock",
+            "binding": "LMB",
+            "usage": "Hold separately alongside the native macro; track the actual buff and resource state."
+          }
         },
         {
           "id": "solo",
@@ -2835,7 +2847,8 @@
           "notes": [
             "Use sustainable resource choices before damage-only specialties; retain escape and recovery. Pull size and control immunity alter the rotation.",
             "Unlock prerequisites still apply. At level 45, skill level 16 is not automatic.",
-            "Community layouts use Fusion/Water/Earth/Fire and Corrode/Curse/Dimensional Control/Combustion. That layout is not evidence that four distinct spirits are required for Four Elements."
+            "Community layouts use Fusion/Water/Earth/Fire and Corrode/Curse/Dimensional Control/Combustion. That layout is not evidence that four distinct spirits are required for Four Elements.",
+            "This controlled two-line candidate cycles damage line E before spirit line Q. Sources also describe buff-in-macro variants; those are not assumed equivalent. No four-distinct-spirit requirement is imposed."
           ],
           "minCharacterLevel": 45,
           "minSkillTier": 8,
@@ -2851,9 +2864,14 @@
             "https://daevaguides.com/en/elementalist/"
           ],
           "steps": [
-            "Q",
-            "E"
-          ]
+            "E",
+            "Q"
+          ],
+          "basicAttack": {
+            "skill": "Cold Shock",
+            "binding": "LMB",
+            "usage": "Hold separately alongside the native macro; track the actual buff and resource state."
+          }
         },
         {
           "id": "group",
@@ -2898,7 +2916,8 @@
           ],
           "notes": [
             "Use the manual-burst preset. Reserve defensive and group utility buttons for mechanics; do not evaluate only the opener.",
-            "Community layouts use Fusion/Water/Earth/Fire and Corrode/Curse/Dimensional Control/Combustion. That layout is not evidence that four distinct spirits are required for Four Elements."
+            "Community layouts use Fusion/Water/Earth/Fire and Corrode/Curse/Dimensional Control/Combustion. That layout is not evidence that four distinct spirits are required for Four Elements.",
+            "This controlled two-line candidate cycles damage line E before spirit line Q. Sources also describe buff-in-macro variants; those are not assumed equivalent. No four-distinct-spirit requirement is imposed."
           ],
           "minCharacterLevel": 45,
           "minSkillTier": 8,
@@ -2914,9 +2933,14 @@
             "https://daevaguides.com/en/elementalist/"
           ],
           "steps": [
-            "Q",
-            "E"
-          ]
+            "E",
+            "Q"
+          ],
+          "basicAttack": {
+            "skill": "Cold Shock",
+            "binding": "LMB",
+            "usage": "Hold separately alongside the native macro; track the actual buff and resource state."
+          }
         },
         {
           "id": "pvp",
@@ -3207,7 +3231,12 @@
           "steps": [
             "Q",
             "E"
-          ]
+          ],
+          "basicAttack": {
+            "skill": "Earth’s Retribution",
+            "binding": "LMB",
+            "usage": "Hold alongside the native damage macro when healing and movement permit."
+          }
         },
         {
           "id": "boss-manual",
@@ -3265,7 +3294,12 @@
           "steps": [
             "Q",
             "E"
-          ]
+          ],
+          "basicAttack": {
+            "skill": "Earth’s Retribution",
+            "binding": "LMB",
+            "usage": "Hold alongside the native damage macro when healing and movement permit."
+          }
         },
         {
           "id": "solo",
@@ -3323,7 +3357,12 @@
           "steps": [
             "Q",
             "E"
-          ]
+          ],
+          "basicAttack": {
+            "skill": "Earth’s Retribution",
+            "binding": "LMB",
+            "usage": "Hold alongside the native damage macro when healing and movement permit."
+          }
         },
         {
           "id": "group",
@@ -3380,7 +3419,12 @@
           "steps": [
             "Q",
             "E"
-          ]
+          ],
+          "basicAttack": {
+            "skill": "Earth’s Retribution",
+            "binding": "LMB",
+            "usage": "Hold alongside the native damage macro when healing and movement permit."
+          }
         },
         {
           "id": "pvp",
@@ -3428,7 +3472,12 @@
           ],
           "steps": [
             "Q"
-          ]
+          ],
+          "basicAttack": {
+            "skill": "Earth’s Retribution",
+            "binding": "LMB",
+            "usage": "Hold alongside the native damage macro when healing and movement permit."
+          }
         },
         {
           "id": "healing",
@@ -3476,7 +3525,12 @@
           ],
           "steps": [
             "Q"
-          ]
+          ],
+          "basicAttack": {
+            "skill": "Earth’s Retribution",
+            "binding": "LMB",
+            "usage": "Hold alongside the native damage macro when healing and movement permit."
+          }
         },
         {
           "id": "chanter-present",
@@ -3505,18 +3559,18 @@
             "All healing and cleanse",
             "Bolt charge",
             "Light of Protection toggle",
-            "Divine Aura and Light of Regeneration"
+            "Divine Aura and Light of Regeneration",
+            "Absolution (heal / cleanse)"
           ],
           "stigmas": [
             "Earth Punishment",
             "Prayer of Amplification",
             "Noble Aura",
-            "Unresolved utility slot — confirm party need"
+            "Absolution"
           ],
           "notes": [
-            "Community guides report overlapping mantra effects and advise removing Light of Protection when the Chanter covers it.",
-            "Exact overlap and the replacement stigma depend on the party and encounter. Confirm buff tooltips and choose a replacement with the party; no automatic swap is asserted.",
-            "Lucia-derived community layouts automate Prayer of Amplification; the controlled preset preserves it manually. Compare buff coverage and encounter timing, not only a stationary opener."
+            "Community guides identify Absolution as the Chanter-present utility alternative, with its meaningful healing specialty at stigma 15. Confirm actual overlap with the party’s active mantra.",
+            "Absolution is a manual heal/cleanse; it is not inserted into the damage macro. This does not validate healing safety or guarantee a damage gain."
           ],
           "minCharacterLevel": 45,
           "minSkillTier": 8,
@@ -3526,7 +3580,7 @@
             "logTested": false,
             "benchmarkValidated": false
           },
-          "copyEnabled": false,
+          "copyEnabled": true,
           "sources": [
             "https://aion2-guides.info/en/cleric/",
             "https://daevaguides.com/en/cleric/"
@@ -3534,7 +3588,15 @@
           "steps": [
             "Q",
             "E"
-          ]
+          ],
+          "stigmaRequirements": {
+            "Absolution": 15
+          },
+          "basicAttack": {
+            "skill": "Earth’s Retribution",
+            "binding": "LMB",
+            "usage": "Hold alongside the native damage macro when healing and movement permit."
+          }
         },
         {
           "id": "leveling",
@@ -3584,6 +3646,69 @@
           "steps": [
             "Q"
           ]
+        },
+        {
+          "id": "community-lucia",
+          "label": "Community comparison · Lucia lines",
+          "lines": [
+            {
+              "key": "Q",
+              "name": "Prayer / Condemnation",
+              "priority": [
+                "Prayer of Amplification",
+                "Earth Punishment",
+                "Chain of Torment",
+                "Condemnation"
+              ]
+            },
+            {
+              "key": "E",
+              "name": "Divine Aura / Thunder",
+              "priority": [
+                "Divine Aura",
+                "Judgment Thunder"
+              ]
+            }
+          ],
+          "manual": [
+            "Healing and cleanse",
+            "Bolt charge",
+            "Light of Protection toggle",
+            "Debilitating Mark / Lightning Strike Scattershot",
+            "Noble Aura"
+          ],
+          "stigmas": [
+            "Earth Punishment",
+            "Light of Protection",
+            "Prayer of Amplification",
+            "Noble Aura"
+          ],
+          "notes": [
+            "Community layout comparison: Prayer is automatic here, while the controlled boss preset preserves its timing. Group emergency heals remain manual.",
+            "Do not infer a winner from the number of Condemnation hits; the debuff, crit and cooldown-reset specialties must be confirmed."
+          ],
+          "minCharacterLevel": 45,
+          "minSkillTier": 8,
+          "evidence": {
+            "communitySupported": true,
+            "mechanicallyVerified": false,
+            "logTested": false,
+            "benchmarkValidated": false
+          },
+          "copyEnabled": true,
+          "sources": [
+            "https://aion2-guides.info/en/cleric/",
+            "https://daevaguides.com/en/cleric/"
+          ],
+          "steps": [
+            "Q",
+            "E"
+          ],
+          "basicAttack": {
+            "skill": "Earth’s Retribution",
+            "binding": "LMB",
+            "usage": "Hold alongside the native damage macro when healing and movement permit."
+          }
         }
       ],
       "levelNotes": {
@@ -3772,7 +3897,12 @@
           "steps": [
             "Q",
             "E"
-          ]
+          ],
+          "basicAttack": {
+            "skill": "Onslaught",
+            "binding": "LMB",
+            "usage": "Weave separately for resource sustain; compare with a macro basic-attack step rather than assuming equivalence."
+          }
         },
         {
           "id": "boss-manual",
@@ -3834,7 +3964,12 @@
           "steps": [
             "Q",
             "E"
-          ]
+          ],
+          "basicAttack": {
+            "skill": "Onslaught",
+            "binding": "LMB",
+            "usage": "Weave separately for resource sustain; compare with a macro basic-attack step rather than assuming equivalence."
+          }
         },
         {
           "id": "solo",
@@ -3891,7 +4026,12 @@
           "steps": [
             "Q",
             "E"
-          ]
+          ],
+          "basicAttack": {
+            "skill": "Onslaught",
+            "binding": "LMB",
+            "usage": "Weave separately for resource sustain; compare with a macro basic-attack step rather than assuming equivalence."
+          }
         },
         {
           "id": "group",
@@ -3952,7 +4092,12 @@
           "steps": [
             "Q",
             "E"
-          ]
+          ],
+          "basicAttack": {
+            "skill": "Onslaught",
+            "binding": "LMB",
+            "usage": "Weave separately for resource sustain; compare with a macro basic-attack step rather than assuming equivalence."
+          }
         },
         {
           "id": "pvp",
@@ -4001,7 +4146,12 @@
           ],
           "steps": [
             "Q"
-          ]
+          ],
+          "basicAttack": {
+            "skill": "Onslaught",
+            "binding": "LMB",
+            "usage": "Weave separately for resource sustain; compare with a macro basic-attack step rather than assuming equivalence."
+          }
         },
         {
           "id": "leveling",
@@ -4051,6 +4201,69 @@
           "steps": [
             "Q"
           ]
+        },
+        {
+          "id": "community-trigger-line",
+          "label": "Community comparison · extra trigger",
+          "lines": [
+            {
+              "key": "Q",
+              "name": "Dark Crush / trigger line",
+              "priority": [
+                "Dark Crush",
+                "Spinning Strike",
+                "Impactful Crush",
+                "Incandescent Blow"
+              ]
+            },
+            {
+              "key": "E",
+              "name": "Basic attack",
+              "priority": [
+                "Onslaught"
+              ]
+            }
+          ],
+          "manual": [
+            "Marchutan’s Wrath",
+            "Power of the Storm",
+            "Mantras",
+            "Wave Blow on valid Stun",
+            "Healing, cleanse and defensives"
+          ],
+          "stigmas": [
+            "Undefeated Mantra",
+            "Power of the Storm",
+            "Marchutan’s Wrath",
+            "Focused Defense"
+          ],
+          "notes": [
+            "Arthars-derived comparison adds Impactful Crush after Spinning Strike; Marchutan’s Wrath remains a manually timed reserve.",
+            "Require the relevant Dark Crush level-16 setup. Below it, keep openers manual rather than spending them while Dark Crush is unavailable.",
+            "Do not interpret the abstract priority preview as proof that a short trigger window is respected in the client."
+          ],
+          "minCharacterLevel": 45,
+          "minSkillTier": 16,
+          "evidence": {
+            "communitySupported": true,
+            "mechanicallyVerified": false,
+            "logTested": false,
+            "benchmarkValidated": false
+          },
+          "copyEnabled": true,
+          "sources": [
+            "https://aion2-guides.info/en/chanter/",
+            "https://daevaguides.com/en/chanter/"
+          ],
+          "steps": [
+            "Q",
+            "E"
+          ],
+          "basicAttack": {
+            "skill": "Onslaught",
+            "binding": "LMB",
+            "usage": "Weave separately for resource sustain; compare with a macro basic-attack step rather than assuming equivalence."
+          }
         }
       ],
       "levelNotes": {

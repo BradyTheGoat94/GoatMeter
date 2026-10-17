@@ -7,7 +7,7 @@ Entry: `builds/index.html`, served with `website/` as the static root. Use a loc
 
 ## Included
 
-- Eight Global class pages, 53 selectable content/configuration worksheets.
+- Eight Global class pages, 55 selectable content/configuration worksheets.
 - One-key native damage-line candidates; separate manually timed boss burst.
 - PvP, solo, dungeon/raid and leveling/fresh-45 modes. Cleric additionally separates healing and Chanter-present composition. Unsupported exact configurations are visible as research and cannot be copied.
 - Exact row 0–3 previews, selected-line copy plans, 10 ms default / 20 ms alternative, character-level and equipped-skill-tier gating, manual charge exceptions.
@@ -16,7 +16,7 @@ Entry: `builds/index.html`, served with `website/` as the static root. Use a loc
 
 Templar's requested candidate is Q bottom-first Judgment / Shield Smite / Warding Strike / Doom Shield, then E Annihilate / Debilitating Smash / Pummel. Its comparison preset keeps Doom Shield manual. Both keep Punishment manual. Confirm Judgment's selected specialty, stack legality and Doom Shield's client behavior before assigning mechanical verification.
 
-Sorcerer's eight-step published candidate is separated from the controlled burst setup. It is not presented as a safe copyable recommendation. Hellfire stays manual in every mode. Spiritmaster does not require four different spirits by assumption; charged Fusion moves off automatic lines. Cleric's overlapping-mantra replacement remains unresolved and cannot be copied as a complete build.
+Sorcerer's eight-step published candidate is separated from the controlled burst setup. It is not presented as a safe copyable recommendation. Hellfire stays manual in every mode. Spiritmaster does not require four different spirits by assumption; charged Fusion moves off automatic lines. Cleric’s Chanter-present candidate uses Absolution with an explicit equipped-stigma level-15 requirement; actual buff overlap and healing safety remain unverified.
 
 ## Checks
 

@@ -7,11 +7,12 @@ export function effectivePreset(build,modeId,{charged=false}={}){
  if(charged&&chargeSkill){for(const line of mode.lines)line.priority=line.priority.filter(s=>s===chargeSkill?false:true);mode.manual=[...new Set([...mode.manual,chargeSkill+' (manual charge)'])];}
  return mode;
 }
-export function eligibility(mode,{characterLevel=45,skillTier=16}={}){
+export function eligibility(mode,{characterLevel=45,skillTier=16,stigmaLevels={}}={}){
  if(!Number.isInteger(characterLevel)||characterLevel<1||characterLevel>45)return 'Choose a character level from 1 to 45.';
  if(![8,12,16].includes(Number(skillTier)))return 'Choose the equipped skill tier.';
  if(characterLevel<mode.minCharacterLevel)return `This candidate is scoped to character level ${mode.minCharacterLevel}; use the leveling worksheet.`;
  if(skillTier<mode.minSkillTier)return `Requires the relevant skill at ${mode.minSkillTier} and its selected specialty. Character level alone is insufficient.`;
+ for(const [skill,level] of Object.entries(mode.stigmaRequirements??{})){const actual=stigmaLevels[skill]??0;if(!Number.isInteger(actual)||actual<0||actual>20)return `Enter a valid equipped ${skill} stigma level (0–20).`;if(actual<level)return `Requires ${skill} stigma level ${level}; enter your actual equipped level.`;}
  if(!mode.copyEnabled)return 'Research worksheet: exact compatibility or configuration is unresolved; copying is disabled.';
  return '';
 }
