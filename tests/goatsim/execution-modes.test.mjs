@@ -1,0 +1,5 @@
+import test from 'node:test';import assert from 'node:assert/strict';import {simulate} from '../../labs/goatsim/engine.mjs';
+const base={durationMs:100,delayMs:10,skills:{A:{cooldownMs:100,lockMs:10},B:{cooldownMs:0,lockMs:10}},lines:{Q:['B'],E:['A']},steps:['Q','E']};
+test('macro cycles slots while APL chooses highest available priority',()=>{const macro=simulate(base);const apl=simulate({...base,executionMode:'apl',apl:[{skill:'A'},{skill:'B'}]});assert.equal(macro.timeline[0].skill,'B');assert.equal(apl.timeline[0].skill,'A');assert.equal(apl.timeline[0].input,'apl');assert.equal(apl.verifiedGameMechanics,false);});
+test('APL explicit conditions gate resources and opener time',()=>{const r=simulate({...base,executionMode:'apl',apl:[{skill:'A',notBeforeMs:30},{skill:'B',minResource:2}],resource:{initial:0,max:2}});assert.equal(r.timeline[0].atMs,30);assert.equal(r.timeline[0].skill,'A');});
+test('unknown mode or unsupported APL conditions fail instead of silently changing behavior',()=>{assert.throws(()=>simulate({...base,executionMode:'human'}));assert.throws(()=>simulate({...base,executionMode:'apl',apl:[{skill:'A',buff:'imaginary'}]}));});

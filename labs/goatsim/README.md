@@ -33,3 +33,9 @@ Use total damage to that same target divided by the fixed 120-second test window
 `node labs/goatsim/run.mjs labs/goatsim/synthetic-example.json`
 
 Optionally append a new output filename to save the JSON report. Existing files are never overwritten. The example contains deliberately fictional skills and timings, not any AION class. Reports include a cast timeline, counts, skipped manual taps and remaining resources, with an explicit warning that they are not game DPS. This makes the current core runnable without needing a game account or Sorcerer character.
+
+## Execution mode selector
+
+Set `executionMode` to `macro` (default) or `apl` in the input JSON. Both use the same skill timings, resources, target-window duration, basic inputs and scheduled manual taps. Macro mode cycles `steps` and resolves each referenced hotbar stack. APL mode takes an ordered `apl` array, e.g. `[{"skill":"Synthetic spender","minResource":2},{"skill":"Synthetic generator"}]`, and picks the first usable matching rule. Supported rule conditions are `minResource` and `notBeforeMs`; unknown conditions are rejected. `decisionIntervalMs` controls APL reevaluation (default10ms, explicit model assumption, not a native macro delay).
+
+Reports identify the selected mode. APL currently represents ideal priority execution, not a measured human: reaction delay, mistakes, latency and queue behavior remain unimplemented. Buff/proc conditions and charge handling still require implementation before class rotation claims. Native macro input remains restricted to10/20ms. A web UI selector is not yet published; this selection exists in the offline engine input. Comparing mode totals currently compares synthetic casts, not DPS or a guaranteed theoretical ceiling.

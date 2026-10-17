@@ -1,14 +1,18 @@
 /** Synthetic timing model, not a Global-client or DPS implementation. Times are integer ms. */
 export function simulate(config) {
  const {durationMs,skills,lines,steps,delayMs=10,basic=null,manual=[],resource={initial:0,max:0},maxEvents=200000}=config;
+ const {executionMode='macro',apl=[],decisionIntervalMs=10}=config;
  const integer=(n,min=0)=>Number.isSafeInteger(n)&&n>=min;
  if(!integer(durationMs,1)||durationMs>600000||![10,20].includes(delayMs)||!integer(maxEvents,1)||maxEvents>1000000)throw new Error('Invalid simulation bounds');
- if(!skills||!lines||!Array.isArray(steps)||!steps.length||steps.length>20)throw new Error('Missing macro configuration');
+ if(!skills||!['macro','apl'].includes(executionMode))throw new Error('Invalid execution mode');
+ if(executionMode==='macro'&&(!lines||!Array.isArray(steps)||!steps.length||steps.length>20))throw new Error('Missing macro configuration');
+ if(executionMode==='apl'&&(!Array.isArray(apl)||!apl.length||apl.length>100||!integer(decisionIntervalMs,1)))throw new Error('Invalid APL configuration');
  for(const [id,s] of Object.entries(skills)) {
   if(!id||!integer(s.cooldownMs)||!integer(s.lockMs,1)||!integer(s.cost??0)||!integer(s.gain??0))throw new Error('Every skill requires explicit cooldown and positive execution lock');
  }
- for(const line of Object.values(lines))if(!Array.isArray(line)||line.length>4||line.some(id=>!Object.hasOwn(skills,id)))throw new Error('Invalid hotbar line');
- if(steps.some(key=>!Object.hasOwn(lines,key)))throw new Error('Missing hotbar slot');
+ for(const line of Object.values(lines??{}))if(!Array.isArray(line)||line.length>4||line.some(id=>!Object.hasOwn(skills,id)))throw new Error('Invalid hotbar line');
+ if(executionMode==='macro'&&steps.some(key=>!Object.hasOwn(lines,key)))throw new Error('Missing hotbar slot');
+ for(const rule of apl)if(!objectRule(rule,skills))throw new Error('Invalid APL rule');
  if(!integer(resource.max)||!integer(resource.initial)||resource.initial>resource.max)throw new Error('Invalid resource');
  if(basic&&(!Object.hasOwn(skills,basic.skill)||!integer(basic.intervalMs,1)))throw new Error('Invalid basic input');
  if(!Array.isArray(manual)||manual.length>10000||manual.some(m=>!integer(m.atMs)||!Object.hasOwn(skills,m.skill)))throw new Error('Invalid manual action');
@@ -21,7 +25,12 @@ export function simulate(config) {
  while(true){const at=Math.min(macroAt,basicAt,actions[manualIndex]?.atMs??Infinity);if(at>=durationMs)break;if(++events>maxEvents)throw new Error('Event budget exceeded');
   while(actions[manualIndex]?.atMs===at){const m=actions[manualIndex++];if(usable(m.skill,at))cast(m.skill,at,'manual');else timeline.push({atMs:at,skill:m.skill,input:'manual',skipped:true});}
   if(basicAt===at){if(usable(basic.skill,at))cast(basic.skill,at,'basic');basicAt+=basic.intervalMs;}
-  if(macroAt===at){const key=steps[step++%steps.length];const id=lines[key].find(id=>usable(id,at));if(id)cast(id,at,`macro:${key}`);macroAt+=delayMs;}
+  if(macroAt===at){
+   if(executionMode==='macro'){const key=steps[step++%steps.length];const id=lines[key].find(id=>usable(id,at));if(id)cast(id,at,`macro:${key}`);macroAt+=delayMs;}
+   else {const rule=apl.find(r=>usable(r.skill,at)&&pool>=(r.minResource??0)&&at>=(r.notBeforeMs??0));if(rule)cast(rule.skill,at,'apl');macroAt+=decisionIntervalMs;}
+  }
  }
- return {model:'synthetic-timing-v0',verifiedGameMechanics:false,durationMs,counts,timeline,resource:pool,events};
+ return {executionMode,model:'synthetic-timing-v0',verifiedGameMechanics:false,durationMs,counts,timeline,resource:pool,events};
 }
+
+function objectRule(r,skills){return r&&typeof r==='object'&&Object.hasOwn(skills,r.skill)&&Object.keys(r).every(k=>['skill','minResource','notBeforeMs'].includes(k))&&['minResource','notBeforeMs'].every(k=>r[k]===undefined||(Number.isSafeInteger(r[k])&&r[k]>=0));}
