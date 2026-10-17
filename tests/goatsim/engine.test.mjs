@@ -1,0 +1,13 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {simulate} from '../../labs/goatsim/engine.mjs';
+const skill=(cooldownMs=100,lockMs=10,extra={})=>({cooldownMs,lockMs,...extra});
+const fixture=(extra={})=>({durationMs:100,skills:{A:skill(),B:skill(0)},lines:{Q:['A','B']},steps:['Q'],...extra});
+test('priority falls through on cooldown and deterministic runs agree',()=>{const c=fixture();const a=simulate(c);assert.deepEqual(a,simulate(c));assert.equal(a.counts.A,1);assert.equal(a.counts.B,9);assert.equal(a.verifiedGameMechanics,false);});
+test('execution lock prevents overlap',()=>{const r=simulate(fixture({skills:{A:skill(0,30),B:skill(0)}}));assert.deepEqual(r.timeline.map(e=>e.atMs),[0,30,60,90]);});
+test('resources gate high priority and gains cap at maximum',()=>{const r=simulate(fixture({skills:{A:skill(0,10,{cost:2}),B:skill(0,10,{gain:3})},resource:{initial:0,max:2}}));assert.deepEqual(r.timeline.slice(0,3).map(e=>e.skill),['B','A','B']);assert.ok(r.resource<=2);});
+test('one macro cycles multiple hotbar slots',()=>{const r=simulate(fixture({lines:{Q:['A'],E:['B']},steps:['Q','E']}));assert.deepEqual(r.timeline.slice(0,2).map(e=>e.input),['macro:Q','macro:E']);});
+test('manual tie has precedence; blocked taps are not secretly queued',()=>{const r=simulate(fixture({manual:[{atMs:0,skill:'B'},{atMs:1,skill:'A'}]}));assert.equal(r.timeline[0].input,'manual');assert.equal(r.timeline[1].skipped,true);assert.equal(r.timeline[2].atMs,10);});
+test('basic attack competes for the shared execution lock',()=>{const r=simulate(fixture({basic:{skill:'B',intervalMs:20}}));assert.equal(r.timeline[0].input,'basic');assert.equal(r.timeline[1].input,'macro:Q');assert.equal(r.timeline[1].atMs,10);});
+test('duration boundary is exclusive and 20ms supported',()=>{const r=simulate(fixture({durationMs:20,delayMs:20}));assert.equal(r.timeline.length,1);});
+test('rejects unsupported delays, absent mechanics, invalid references and exhausted budget',()=>{for(const c of [fixture({delayMs:50}),fixture({skills:{A:{cooldownMs:10}}}),fixture({steps:['X']}),fixture({maxEvents:1}),fixture({resource:{initial:3,max:2}})])assert.throws(()=>simulate(c));});

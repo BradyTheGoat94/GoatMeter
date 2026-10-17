@@ -2,7 +2,7 @@ name: Build handbook test candidates
 on:
   push:
     branches: [labs/goatsim-rankings-updater-20261016]
-    paths: ['website/**', 'tests/builds/**', '.github/workflows/build-handbook-test.yml']
+    paths: ['website/**', 'tests/builds/**', 'labs/goatsim/**', 'tests/goatsim/**', '.github/workflows/build-handbook-test.yml']
   workflow_dispatch:
 jobs:
   handbook:
@@ -13,7 +13,7 @@ jobs:
         with:
           node-version: '24'
       - run: node --check website/builds/app.js
-      - run: node --test tests/builds/*.test.mjs
+      - run: node --test tests/builds/*.test.mjs tests/goatsim/*.test.mjs
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"

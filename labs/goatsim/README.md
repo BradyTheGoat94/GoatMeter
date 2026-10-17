@@ -1,0 +1,13 @@
+# GoatSim timing foundation
+
+Test branch only. Run `node --test tests/goatsim/*.test.mjs`.
+
+`engine.mjs` is a deterministic, bounded, synthetic event model. Supply explicit skill cooldown and execution-lock durations in integer milliseconds, optional resource cost/gain, hotbar priority arrays (highest first), and macro slot steps. Only 10ms and 20ms macro polling are accepted. Basic attacks share the execution lock with macro/manual actions. Manual inputs are taps: blocked taps are recorded as skipped, not queued. At equal timestamps this model uses manual > basic > macro; this is an assumption, not measured client behavior. Cooldown starts at activation; resource changes occur immediately. End time is exclusive.
+
+No actual class coefficients, skill damage, charge behavior, proc windows, network latency, animation cancellation, Skill Queue, or verified client timings are implemented. Cast counts are not damage or DPS. The existing build handbook's readiness model remains unchanged. Do not infer a winning class macro from synthetic fixtures.
+
+Next: add provenance-bearing mechanic profiles, reject missing prerequisite mechanics, implement conditional windows and charged/manual scheduling, and compare Templar automatic/manual Doom Shield only after measured inputs are available. Use authorized logs for calibration while keeping raw private data out of commits. Add a runnable comparison report with explicit assumptions before exposing any UI or optimization recommendation.
+
+## Required first benchmark: Patchwerk / stationary dummy
+
+The first DPS comparison must use one stationary, continuously attackable target, full uptime, no adds, movement, encounter downtime or target switching. Hold duration, gear/stats, skill and stigma levels, selected specialties, buffs/debuffs, starting resources and initial cooldown state identical across candidates. Record the actual client patch and target defenses. Separate self-buffed and party-buffed scenarios. Use repeated trials for random procs once implemented and report variation. Start with a documented cold opener; any sustained/warm-start comparison must be a separate scenario. Never compare mismatched scenarios or interpret cast counts as DPS. Current timing-only engine has no target damage model and cannot yet produce this benchmark's game DPS.
