@@ -2,7 +2,7 @@
 
 Test branch only. Live thegoatmeter.us and public desktop download are unchanged by this work.
 
-Implemented eight classes and 57 mode worksheets, with explicit evidence status and blocked copying for unresolved exact configurations. This is broader candidate coverage, not 57 verified recommendations. UI state and copied configuration share the same model. Skill tiers and charge variants are explicit. A dedicated CI uploads the test-only static artifact.
+Implemented eight classes and 58 mode worksheets, with explicit evidence status and blocked copying for unresolved exact configurations. This is broader candidate coverage, not 58 verified recommendations. UI state and copied configuration share the same model. Skill tiers and charge variants are explicit. A dedicated CI uploads the test-only static artifact.
 
 Research: current Global Season 1 class guides at aion2-guides.info/en/{templar,gladiator,assassin,ranger,sorcerer,elementalist,cleric,chanter}/; SolAshur's original Templar macro guide; prior Daeva guide comparisons and provisional Rotation Lab notes, cited within each class. Referenced creator videos with unavailable playback/transcripts remain labeled as unreviewed, not watched.
 
@@ -31,3 +31,7 @@ Corrected the automatic-enabler candidate to put Rage Burst before Overhead Slam
 ## Templar three-slot comparison
 
 Added the user-confirmed comparison: Judgment stack / Annihilate plus Debilitating Smash stack / Pummel alone, cycled as three hotbar inputs by one held native macro key. Punishment stays manual. The original two-step candidate remains available. This is a user-proposed comparison, not a mechanically verified or benchmark-supported improvement, and does not earn the Community-supported label by inheritance.
+
+## Mouse-input instructions and Gladiator website pass
+
+The handbook explicitly explains LMB basic attack plus RMB native macro, with the distinction between a single macro binding and its internal hotbar steps. Gladiator retains a progression exception: compare macro-only at actual core skill 16 with the relevant specialties and sufficient mana sustain. No input style is labeled a measured winner. Current Global PvP uncertainty is now explicit and copying that unresolved Gladiator PvP candidate is disabled. The default Templar three-slot explanation is preserved across class switches.

@@ -84,3 +84,7 @@ test('Templar separate-Pummel candidate copies three stack inputs instead of ind
  const b=build('templar'),m=effectivePreset(b,'separate-pummel');assert.deepEqual(m.steps,['Q','E','R']);assert.deepEqual(m.lines[1].priority,['Annihilate','Debilitating Smash']);assert.deepEqual(m.lines[2].priority,['Pummel']);assert.equal(m.lines[0].priority[3],'Doom Shield');assert.ok(m.manual.includes('Punishment charge'));assert.match(copyPlan(b,m),/Macro steps: Q → E → R/);assert.equal(m.evidence.communitySupported,false);
  assert.deepEqual(effectivePreset(b,'one-button').steps,['Q','E']);
 });
+test('input instructions distinguish the basic attack from the macro and retain Gladiator progression exception',()=>{
+ for(const b of catalog.classes){assert.equal(b.inputGuide.basicBinding,'LMB');assert.equal(b.inputGuide.macroBinding,'RMB');assert.match(b.inputGuide.instructions,/Hold LMB and RMB together/);}
+ const b=build('gladiator'),m=effectivePreset(b,'one-button');assert.match(copyPlan(b,m,{skillLevels:m.skillRequirements}),/LMB = Keen Strike; RMB = native macro/);assert.match(b.inputGuide.exception,/Sources disagree/);assert.equal(effectivePreset(b,'pvp').copyEnabled,false);
+});

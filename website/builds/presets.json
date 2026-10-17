@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "version": "0.2.7-test",
+  "version": "0.2.8-test",
   "reviewed": "2026-10-17",
   "classes": [
     {
@@ -549,7 +549,16 @@
         "12": "Mid progression: verify the second specialty in the actual client; charge variants change automation suitability.",
         "16": "Later setup: explicitly equip required specialties. Skill 20 and extra slots still require the appropriate gear and board investment."
       },
-      "researchComparison": "Sources conflict on Doom Shield automation: SolAshur includes it in the Judgment line, while Daeva/Xia treats it as charged and manual. The requested candidate is not a universal recommendation. Use manual Doom Shield until its actual behavior is confirmed."
+      "researchComparison": "Sources conflict on Doom Shield automation: SolAshur includes it in the Judgment line, while Daeva/Xia treats it as charged and manual. The requested candidate is not a universal recommendation. Use manual Doom Shield until its actual behavior is confirmed.",
+      "inputGuide": {
+        "basicAttack": "Vicious Strike",
+        "basicBinding": "LMB",
+        "macroBinding": "RMB",
+        "instructions": "Put the basic attack on left click and bind the native in-game macro to right click. Hold LMB and RMB together for the separate-basic-attack comparison.",
+        "setup": "Bind the Macro action in Settings → Key Settings → General → Macro. Mouse binding may require AION 2 control mode. Q/E/R/T are internal hotbar slots, not extra keys to hold.",
+        "exception": "Release either input when mechanics require movement or a manual action. Charged attacks, interrupts and defensive decisions stay under your control."
+      },
+      "defaultMode": "separate-pummel"
     },
     {
       "id": "gladiator",
@@ -947,17 +956,18 @@
           "notes": [
             "Damage-only macro candidate. Engage, crowd control, interrupts, cleansing and defensive reactions remain manual.",
             "No claim that a PvE loop is optimal in PvP. Test against actual opponents with matching gear.",
-            "Community sources describe both a single four-skill priority line and a split Overhead line at skill 16. No controlled comparison in the reviewed source proves which wins."
+            "Community sources describe both a single four-skill priority line and a split Overhead line at skill 16. No controlled comparison in the reviewed source proves which wins.",
+            "The reviewed Gladiator PvP guide is adapted from KR/TW sources, not an independently checked current Global PvP configuration."
           ],
           "minCharacterLevel": 45,
           "minSkillTier": 8,
           "evidence": {
-            "communitySupported": true,
+            "communitySupported": false,
             "mechanicallyVerified": false,
             "logTested": false,
             "benchmarkValidated": false
           },
-          "copyEnabled": true,
+          "copyEnabled": false,
           "sources": [
             "https://aion2-guides.info/en/gladiator/",
             "https://daevaguides.com/en/gladiator/"
@@ -1093,7 +1103,15 @@
           "title": "Keep defensive and movement decisions manual",
           "detail": "Focused Block, crowd control and gap closers are encounter decisions. The guide does not trade them for an automatic personal-DPS opener."
         }
-      ]
+      ],
+      "inputGuide": {
+        "basicAttack": "Keen Strike",
+        "basicBinding": "LMB",
+        "macroBinding": "RMB",
+        "instructions": "Put the basic attack on left click and bind the native in-game macro to right click. Hold LMB and RMB together for the separate-basic-attack comparison.",
+        "setup": "Bind the Macro action in Settings → Key Settings → General → Macro. Mouse binding may require AION 2 control mode. Q/E/R/T are internal hotbar slots, not extra keys to hold.",
+        "exception": "Progression exception: after Overhead Slam and Rending Blow reach skill 16 with the relevant specialties and reliable mana sustain, compare macro-only against LMB + RMB. Sources disagree; neither has won a matched test here."
+      }
     },
     {
       "id": "assassin",
@@ -1594,7 +1612,15 @@
         "12": "Mid progression: verify the second specialty in the actual client; charge variants change automation suitability.",
         "16": "Later setup: explicitly equip required specialties. Skill 20 and extra slots still require the appropriate gear and board investment."
       },
-      "researchComparison": "The community one-button macro includes Quick Slice as a separate step. Compare that convenience setup with separately holding the basic attack; rear uptime and Clone timing must remain matched."
+      "researchComparison": "The community one-button macro includes Quick Slice as a separate step. Compare that convenience setup with separately holding the basic attack; rear uptime and Clone timing must remain matched.",
+      "inputGuide": {
+        "basicAttack": "Quick Slice",
+        "basicBinding": "LMB",
+        "macroBinding": "RMB",
+        "instructions": "Put the basic attack on left click and bind the native in-game macro to right click. Hold LMB and RMB together for the separate-basic-attack comparison.",
+        "setup": "Bind the Macro action in Settings → Key Settings → General → Macro. Mouse binding may require AION 2 control mode. Q/E/R/T are internal hotbar slots, not extra keys to hold.",
+        "exception": "Release either input when mechanics require movement or a manual action. Charged attacks, interrupts and defensive decisions stay under your control."
+      }
     },
     {
       "id": "ranger",
@@ -2151,7 +2177,15 @@
         "12": "Mid progression: verify the second specialty in the actual client; charge variants change automation suitability.",
         "16": "Later setup: explicitly equip required specialties. Skill 20 and extra slots still require the appropriate gear and board investment."
       },
-      "researchComparison": "Keep the two damage lines separate from Marking Shot, charged Deadshot and control. More automatic steps are not evidence of higher damage."
+      "researchComparison": "Keep the two damage lines separate from Marking Shot, charged Deadshot and control. More automatic steps are not evidence of higher damage.",
+      "inputGuide": {
+        "basicAttack": "Snipe",
+        "basicBinding": "LMB",
+        "macroBinding": "RMB",
+        "instructions": "Put the basic attack on left click and bind the native in-game macro to right click. Hold LMB and RMB together for the separate-basic-attack comparison.",
+        "setup": "Bind the Macro action in Settings → Key Settings → General → Macro. Mouse binding may require AION 2 control mode. Q/E/R/T are internal hotbar slots, not extra keys to hold.",
+        "exception": "Release either input when mechanics require movement or a manual action. Charged attacks, interrupts and defensive decisions stay under your control."
+      }
     },
     {
       "id": "sorcerer",
@@ -2779,7 +2813,15 @@
         "12": "Mid progression: verify the second specialty in the actual client; charge variants change automation suitability.",
         "16": "Later setup: explicitly equip required specialties. Skill 20 and extra slots still require the appropriate gear and board investment."
       },
-      "researchComparison": "Sources place Wish of Concentration last in the sustained line, whereas the controlled preset keeps it manual. Compare cooldown benefit against burst timing and resource needs."
+      "researchComparison": "Sources place Wish of Concentration last in the sustained line, whereas the controlled preset keeps it manual. Compare cooldown benefit against burst timing and resource needs.",
+      "inputGuide": {
+        "basicAttack": "Flame Arrow",
+        "basicBinding": "LMB",
+        "macroBinding": "RMB",
+        "instructions": "Put the basic attack on left click and bind the native in-game macro to right click. Hold LMB and RMB together for the separate-basic-attack comparison.",
+        "setup": "Bind the Macro action in Settings → Key Settings → General → Macro. Mouse binding may require AION 2 control mode. Q/E/R/T are internal hotbar slots, not extra keys to hold.",
+        "exception": "Release either input when mechanics require movement or a manual action. Charged attacks, interrupts and defensive decisions stay under your control."
+      }
     },
     {
       "id": "spiritmaster",
@@ -3301,7 +3343,15 @@
         "12": "Mid progression: verify the second specialty in the actual client; charge variants change automation suitability.",
         "16": "Later setup: explicitly equip required specialties. Skill 20 and extra slots still require the appropriate gear and board investment."
       },
-      "researchComparison": "Community layouts use Fusion/Water/Earth/Fire and Corrode/Curse/Dimensional Control/Combustion. That layout is not evidence that four distinct spirits are required for Four Elements."
+      "researchComparison": "Community layouts use Fusion/Water/Earth/Fire and Corrode/Curse/Dimensional Control/Combustion. That layout is not evidence that four distinct spirits are required for Four Elements.",
+      "inputGuide": {
+        "basicAttack": "Cold Shock",
+        "basicBinding": "LMB",
+        "macroBinding": "RMB",
+        "instructions": "Put the basic attack on left click and bind the native in-game macro to right click. Hold LMB and RMB together for the separate-basic-attack comparison.",
+        "setup": "Bind the Macro action in Settings → Key Settings → General → Macro. Mouse binding may require AION 2 control mode. Q/E/R/T are internal hotbar slots, not extra keys to hold.",
+        "exception": "Release either input when mechanics require movement or a manual action. Charged attacks, interrupts and defensive decisions stay under your control."
+      }
     },
     {
       "id": "cleric",
@@ -3973,7 +4023,15 @@
         "12": "Mid progression: verify the second specialty in the actual client; charge variants change automation suitability.",
         "16": "Later setup: explicitly equip required specialties. Skill 20 and extra slots still require the appropriate gear and board investment."
       },
-      "researchComparison": "Lucia-derived community layouts automate Prayer of Amplification; the controlled preset preserves it manually. Compare buff coverage and encounter timing, not only a stationary opener."
+      "researchComparison": "Lucia-derived community layouts automate Prayer of Amplification; the controlled preset preserves it manually. Compare buff coverage and encounter timing, not only a stationary opener.",
+      "inputGuide": {
+        "basicAttack": "Earth’s Retribution",
+        "basicBinding": "LMB",
+        "macroBinding": "RMB",
+        "instructions": "Put the basic attack on left click and bind the native in-game macro to right click. Hold LMB and RMB together for the separate-basic-attack comparison.",
+        "setup": "Bind the Macro action in Settings → Key Settings → General → Macro. Mouse binding may require AION 2 control mode. Q/E/R/T are internal hotbar slots, not extra keys to hold.",
+        "exception": "Release either input when mechanics require movement or a manual action. Charged attacks, interrupts and defensive decisions stay under your control."
+      }
     },
     {
       "id": "chanter",
@@ -4529,7 +4587,15 @@
         "12": "Mid progression: verify the second specialty in the actual client; charge variants change automation suitability.",
         "16": "Later setup: explicitly equip required specialties. Skill 20 and extra slots still require the appropriate gear and board investment."
       },
-      "researchComparison": "Keep Dark Crush ahead of Spinning Strike and Incandescent Blow, with Onslaught separate. Basic-attack weaving and actual proc availability still need client tests."
+      "researchComparison": "Keep Dark Crush ahead of Spinning Strike and Incandescent Blow, with Onslaught separate. Basic-attack weaving and actual proc availability still need client tests.",
+      "inputGuide": {
+        "basicAttack": "Onslaught",
+        "basicBinding": "LMB",
+        "macroBinding": "RMB",
+        "instructions": "Put the basic attack on left click and bind the native in-game macro to right click. Hold LMB and RMB together for the separate-basic-attack comparison.",
+        "setup": "Bind the Macro action in Settings → Key Settings → General → Macro. Mouse binding may require AION 2 control mode. Q/E/R/T are internal hotbar slots, not extra keys to hold.",
+        "exception": "Release either input when mechanics require movement or a manual action. Charged attacks, interrupts and defensive decisions stay under your control."
+      }
     }
   ]
 }
