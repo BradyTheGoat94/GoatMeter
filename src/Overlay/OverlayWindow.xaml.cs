@@ -35,7 +35,9 @@ public partial class OverlayWindow : Window
     bool showCharacterStats=true;
     EventTimersWindow? eventTimers;
     bool showDetails = true;
-    public OverlayWindow() { InitializeComponent(); CategoryPicker.ItemsSource=new[]{"Damage","Healing","Damage Taken","Deaths","Buffs","Debuffs","Interrupts","Dispels"}; CategoryPicker.SelectedIndex=0; FightHistory.ItemsSource=new[]{new HistoryChoice("Saved fights ▾",null)}; FightHistory.SelectedIndex=0; ApplyTheme(currentTheme); ApplyOverlayStyle(currentStyle); LoadPreferences(); }
+    readonly bool persistPreferences;
+    public OverlayWindow() : this(true) { }
+    public OverlayWindow(bool persistPreferences) { this.persistPreferences=persistPreferences;InitializeComponent(); CategoryPicker.ItemsSource=new[]{"Damage","Healing","Damage Taken","Deaths","Buffs","Debuffs","Interrupts","Dispels"}; CategoryPicker.SelectedIndex=0; FightHistory.ItemsSource=new[]{new HistoryChoice("Saved fights ▾",null)}; FightHistory.SelectedIndex=0; ApplyTheme(currentTheme); ApplyOverlayStyle(currentStyle); if(persistPreferences)LoadPreferences(); }
     static readonly Dictionary<string,string> Colors = new(StringComparer.OrdinalIgnoreCase) {
         ["Gladiator"]="#E65353", ["Templar"]="#E8903D", ["Assassin"]="#C45CFF", ["Ranger"]="#F2C94C",
         ["Sorcerer"]="#4DA3FF", ["Spiritmaster"]="#48C9D8", ["Cleric"]="#6DDB72", ["Chanter"]="#D6DCE8", ["Brawler"]="#FF7A45", ["Unknown"]="#AAB6CC" };
@@ -656,6 +658,7 @@ public partial class OverlayWindow : Window
     }
     void SavePreferences()
     {
+        if(!persistPreferences)return;
         try {
             var path=PreferencesPath;System.IO.Directory.CreateDirectory(System.IO.Path.GetDirectoryName(path)!);
             var p=new OverlayPreferences(currentStyle,currentTheme,Opacity,showDetails,Topmost,Width,Height,double.IsFinite(Left)?Left:0,double.IsFinite(Top)?Top:0,positionLocked,hideNames,showCharacterStats,uiScale,playerScope);

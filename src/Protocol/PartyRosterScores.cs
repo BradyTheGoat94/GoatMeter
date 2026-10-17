@@ -24,7 +24,30 @@ public static class PartyRosterScores
         {
             if(p+11>body.Length)return empty;
             byte slot=body[p+1];var dbid=BinaryPrimitives.ReadUInt64LittleEndian(body.Slice(p+2,8));int length=body[p+10];
-            if(length==0){if(dbid!=0)return empty;break;}
+            if(length==0)
+            {
+                if(slot!=0)
+                {
+                    // Live captures contain 35-byte vacant slots between
+                    // occupied members; vacancy does not terminate the roster.
+                    if(slot!=priorSlot+1||dbid!=0||p+35>body.Length||body.Slice(p+2,21).IndexOfAnyExcept((byte)0)>=0)return empty;
+                    priorSlot=slot;p+=35;continue;
+                }
+                // A compact zero sentinel terminates the occupied roster, but every
+                // advertised remaining slot must still be present and vacant.
+                // Otherwise a truncated or contradictory snapshot could expose
+                // a partial membership list to the Party filter.
+                int remaining=checked((int)(count-member));
+                // Retain compact zero-filled vacant headers used by fixtures.
+                int stride=11;
+                if(p+remaining*stride>body.Length)return empty;
+                for(int vacant=0;vacant<remaining;vacant++)
+                {
+                    int q=p+vacant*stride;
+                    if(body[q+1]!=0||BinaryPrimitives.ReadUInt64LittleEndian(body.Slice(q+2,8))!=0||body[q+10]!=0)return empty;
+                }
+                break;
+            }
             int server=(int)(dbid>>48);long character=(long)(dbid&0x0000FFFFFFFFFFFFUL);
             if(slot<=priorSlot||slot>12||server is <1001 or >9999||character is <1 or >uint.MaxValue||length is <2 or >48||p+11+length+12>body.Length)return empty;
             string name;try{name=Utf8.GetString(body.Slice(p+11,length));}catch(DecoderFallbackException){return empty;}
@@ -50,14 +73,16 @@ public static class PartyRosterScores
                 int next=-1;
                 for(int q=p;q<=Math.Min(p+64,body.Length-11);q++)
                 {
-                    if(body.Slice(q,11).IndexOfAnyExcept((byte)0)<0 && body.Length-q>=(count-member-1)*11)
-                    {next=q;break;}
                     if(body[q+1]!=(byte)(slot+1))continue;
                     var nextDbid=BinaryPrimitives.ReadUInt64LittleEndian(body.Slice(q+2,8));int n=body[q+10];
-                    if(n==0&&nextDbid==0){next=q;break;}
+                    if(n==0&&nextDbid==0&&q+35<=body.Length&&body.Slice(q+2,21).IndexOfAnyExcept((byte)0)<0){if(next>=0)return empty;next=q;continue;}
                     if((nextDbid>>48) is >=1001 and <=9999 && (nextDbid&0x0000FFFFFFFFFFFFUL)>0 && n is >=2 and <=48 && q+11+n+12<=body.Length)
                     {if(next>=0)return empty;next=q;}
                 }
+                if(next<0)
+                    for(int q=p;q<=Math.Min(p+64,body.Length-11);q++)
+                        if(body.Slice(q,11).IndexOfAnyExcept((byte)0)<0 && body.Length-q>=(count-member-1)*11)
+                        {next=q;break;}
                 if(next<0)return empty;p=next;
             }
         }
