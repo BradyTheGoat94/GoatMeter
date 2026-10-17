@@ -53,7 +53,10 @@ public sealed class PacketDispatcher
         {
             if(a==0x02 && profile.ExperimentalRosterScores)
             {
-                foreach(var stats in PartyRosterScores.Parse(frame.AsSpan(p+2),utc))
+                var parsedRoster=PartyRosterScores.Parse(frame.AsSpan(p+2),utc);
+                // Metadata only: no raw packets, IP addresses, or player names.
+                ValidationRecord?.Invoke($"{utc:O}|tag=rosterScoreDecode|opcode=0297|rows={parsedRoster.Count}|status={(parsedRoster.Count>0?"accepted":"unresolved")}");
+                foreach(var stats in parsedRoster)
                 {
                     rosterScores[(stats.CharacterId,stats.ServerId)]=stats;
                     yield return new(CombatKind.CharacterStats,0,stats.Name,0,"","",0,DamageType.Unknown,0,0,"",0,ClassFromJobCode(stats.ClassCode),SourceServerId:stats.ServerId,SourceCharacterId:stats.CharacterId,SourceGearScore:stats.GearScore,SourceCombatPower:stats.CombatPower,StatsObservedUtc:stats.ObservedUtc);
