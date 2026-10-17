@@ -19,6 +19,9 @@ public partial class MainWindow : Window
     // Identity is only trusted when the decoder explicitly labels a selfInfo
     // packet. Nearby identityMap records must never promote a player to self.
     long? verifiedLocalActorId;
+    // Only structured roster records and verified session/global links may populate party membership.
+    readonly Dictionary<(long CharacterId,int ServerId),DateTime> verifiedPartyMembers=new();
+    readonly Dictionary<long,(long CharacterId,int ServerId)> verifiedCombatIdentityLinks=new();
 
     readonly Queue<string> inspector=new();
     long packets,decoderDiagnostics,recognized,parsedEvents,duplicates,damageEvents,healEvents,hpEvents,otherEvents,acceptedDamageEvents,snapshotId;
@@ -65,8 +68,17 @@ public partial class MainWindow : Window
         InitializeComponent();
         overlay.Engine=engine;
         overlay.LocalActorProvider=()=> { lock(diagnosticsGate) return verifiedLocalActorId; };
-        // No verified party/force membership API yet: those scopes fail closed.
-        overlay.PartyRosterProvider=()=>null;
+        // Fail closed until structured roster entries can be joined to combat actors.
+        overlay.PartyRosterProvider=()=>
+        {
+            lock(diagnosticsGate)
+            {
+                var now=DateTime.UtcNow;
+                var members=verifiedPartyMembers.Where(x=>now-x.Value<TimeSpan.FromMinutes(10)).Select(x=>x.Key).ToHashSet();
+                if(members.Count==0)return null;
+                return verifiedCombatIdentityLinks.Where(x=>members.Contains(x.Value)).Select(x=>x.Key).ToArray();
+            }
+        };
         overlay.ForceRosterProvider=()=>null;
 
         overlay.SnapshotProvider=(segment,category)=>engine.Snapshot(segment,category);
@@ -127,12 +139,21 @@ public partial class MainWindow : Window
         capture.FlowLocked += s=> {lock(diagnosticsGate)activeFlow=s;};
         capture.ConnectionReset += ()=>
         {
-            lock(diagnosticsGate) verifiedLocalActorId=null;
+            lock(diagnosticsGate) {verifiedLocalActorId=null;verifiedPartyMembers.Clear();verifiedCombatIdentityLinks.Clear();}
             engine.Apply(new(DateTime.UtcNow,CombatKind.Zone));
         };
         capture.StatusChanged += s=> {lock(diagnosticsGate)captureStatus=s;};
         capture.EventReceived += e=>
         {
+            // Never infer party membership from nearby damage or matching display names.
+            // The roster and combat identity must agree on character and server IDs.
+            lock(diagnosticsGate)
+            {
+                if(e.Kind==CombatKind.CharacterStats && e.SourceCharacterId is long rosterId && rosterId>0 && e.SourceServerId is int rosterServer && rosterServer>0 && e.StatsObservedUtc is DateTime observed)
+                    verifiedPartyMembers[(rosterId,rosterServer)]=observed;
+                if(e.Kind==CombatKind.PlayerName && e.SourceId>0 && e.SourceCharacterId is long combatId && combatId>0 && e.SourceServerId is int combatServer && combatServer>0)
+                    verifiedCombatIdentityLinks[e.SourceId]=(combatId,combatServer);
+            }
             engine.Apply(e);
             lock(diagnosticsGate)
             {
