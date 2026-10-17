@@ -1,3 +1,4 @@
+import {EventQueue} from './events.mjs';
 /** Synthetic timing model, not a Global-client or DPS implementation. Times are integer ms. */
 export function simulate(config) {
  const {durationMs,skills,lines,steps,delayMs=10,basic=null,manual=[],resource={initial:0,max:0},maxEvents=200000}=config;
@@ -18,18 +19,24 @@ export function simulate(config) {
  if(!Array.isArray(manual)||manual.length>10000||manual.some(m=>!integer(m.atMs)||!Object.hasOwn(skills,m.skill)))throw new Error('Invalid manual action');
  const actions=manual.map((m,index)=>({...m,index})).sort((a,b)=>a.atMs-b.atMs||a.index-b.index);
  const ready=Object.create(null),counts=Object.create(null),timeline=[];
- let pool=resource.initial,lockedUntil=0,macroAt=0,basicAt=basic?0:Infinity,manualIndex=0,step=0,events=0;
+ let pool=resource.initial,lockedUntil=0,step=0;
  const usable=(id,at)=>at>=lockedUntil&&(ready[id]??0)<=at&&pool>=(skills[id].cost??0);
  function cast(id,at,input){const s=skills[id];pool=Math.min(resource.max,pool-(s.cost??0)+(s.gain??0));ready[id]=at+s.cooldownMs;lockedUntil=at+s.lockMs;counts[id]=(counts[id]??0)+1;timeline.push({atMs:at,skill:id,input,resource:pool});}
  // Tie order is explicit model policy: manual, basic, macro. No input queue or retry for manual taps.
- while(true){const at=Math.min(macroAt,basicAt,actions[manualIndex]?.atMs??Infinity);if(at>=durationMs)break;if(++events>maxEvents)throw new Error('Event budget exceeded');
-  while(actions[manualIndex]?.atMs===at){const m=actions[manualIndex++];if(usable(m.skill,at))cast(m.skill,at,'manual');else timeline.push({atMs:at,skill:m.skill,input:'manual',skipped:true});}
-  if(basicAt===at){if(usable(basic.skill,at))cast(basic.skill,at,'basic');basicAt+=basic.intervalMs;}
-  if(macroAt===at){
-   if(executionMode==='macro'){const key=steps[step++%steps.length];const id=lines[key].find(id=>usable(id,at));if(id)cast(id,at,`macro:${key}`);macroAt+=delayMs;}
-   else {const rule=apl.find(r=>usable(r.skill,at)&&pool>=(r.minResource??0)&&at>=(r.notBeforeMs??0));if(rule)cast(rule.skill,at,'apl');macroAt+=decisionIntervalMs;}
+ const queue=new EventQueue({maxEvents});
+ const schedule=(at,kind,payload,priority)=>{if(at<durationMs)queue.schedule(at,kind,payload,priority);};
+ for(const action of actions)schedule(action.atMs,'manual',action,-2);
+ if(basic)schedule(0,'basic',null,-1);
+ schedule(0,'decision',null,0);
+ const events=queue.runUntil(durationMs,event=>{
+  const at=event.atMs;
+  if(event.kind==='manual'){const m=event.payload;if(usable(m.skill,at))cast(m.skill,at,'manual');else timeline.push({atMs:at,skill:m.skill,input:'manual',skipped:true});}
+  else if(event.kind==='basic'){if(usable(basic.skill,at))cast(basic.skill,at,'basic');schedule(at+basic.intervalMs,'basic',null,-1);}
+  else {
+   if(executionMode==='macro'){const key=steps[step++%steps.length];const id=lines[key].find(id=>usable(id,at));if(id)cast(id,at,`macro:${key}`);schedule(at+delayMs,'decision',null,0);}
+   else {const rule=apl.find(r=>usable(r.skill,at)&&pool>=(r.minResource??0)&&at>=(r.notBeforeMs??0));if(rule)cast(rule.skill,at,'apl');schedule(at+decisionIntervalMs,'decision',null,0);}
   }
- }
+ });
  return {executionMode,model:'synthetic-timing-v0',verifiedGameMechanics:false,durationMs,counts,timeline,resource:pool,events};
 }
 

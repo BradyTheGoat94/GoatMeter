@@ -43,3 +43,7 @@ Reports identify the selected mode. APL currently represents ideal priority exec
 ## Test interface
 
 `ui/index.html` provides Macro/APL/both selection, shared duration/delay controls, an editable synthetic configuration, cast counts, first100-action timelines and JSON export. Serve the repository through an ordinary local HTTP static server and open `/labs/goatsim/ui/`; ES module imports/fetch are not designed for file://. No server has been launched as part of managed-environment QA. Browser visual verification remains pending. This interface is not deployed to production. The test CI artifact includes `labs/goatsim/` alongside the handbook so it can be evaluated without altering the live site.
+
+## Stable event scheduling
+
+The timing engine now uses `EventQueue` (`events.mjs`) for macro/APL decisions, basic input and scheduled manual taps. The queue orders by time, explicit priority and insertion sequence; the current input tie policy remains manual > basic > decision. Fight end is exclusive, and past scheduling and unbounded event loops are rejected. The event count now counts individual input events rather than distinct timestamps. The queue supports callback scheduling for future impacts/expirations, but those class combat effects are not implemented yet. No claim of observed Global event tie semantics is made.
