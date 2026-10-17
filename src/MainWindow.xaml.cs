@@ -54,7 +54,9 @@ public partial class MainWindow : Window
         }
         catch(Exception ex)
         {
-            MessageBox.Show(this,$"Update was not installed: {ex.Message}","GoatMeter Updates",MessageBoxButton.OK,MessageBoxImage.Warning);
+            // Offline startup must not interrupt the meter. Manual checks report errors.
+            if(showUpToDate)
+                MessageBox.Show(this,$"Update was not installed: {ex.Message}","GoatMeter Updates",MessageBoxButton.OK,MessageBoxImage.Warning);
         }
     }
 
