@@ -1,0 +1,8 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {validateProfile,profileReadiness} from '../../labs/goatsim/profiles.mjs';
+const fixture=()=>({schemaVersion:1,source:{kind:'manual',capturedAt:'2026-10-17T07:00:00Z',clientPatch:'not captured; pending'},character:{region:'GLOBAL',classId:'templar',level:45,stats:{attack:0,crit:null},equipment:[],skills:[{id:'judgment',level:16}],stigmas:[],specializations:{judgment:null}},target:{kind:'stationary-dummy',count:1,uptime:1,movement:false,level:null,stats:{defense:null}}});
+const requirements={characterStats:['attack','crit'],targetStats:['defense'],specializations:['judgment']};
+test('unknowns remain unknown, legitimate zero is present',()=>{const p=fixture();assert.equal(validateProfile(p),true);const r=profileReadiness(p,requirements);assert.deepEqual(r.missing,['character.stats.crit','target.stats.defense','character.specializations.judgment']);assert.equal(r.gameDpsValidated,false);});
+test('complete inputs do not confer mechanical validation',()=>{const p=fixture();p.character.stats.crit=100;p.target.stats.defense=200;p.character.specializations.judgment=[];const r=profileReadiness(p,requirements);assert.equal(r.inputsComplete,true);assert.equal(r.gameDpsValidated,false);});
+test('rejects mixed regions, incomplete provenance, duplicate skills and nonfinite stats',()=>{for(const mutate of [p=>p.character.region='TW',p=>p.source.capturedAt='yesterday',p=>p.character.skills.push(p.character.skills[0]),p=>p.character.stats.attack=Infinity,p=>p.target.movement=true,p=>p.target.stats.defense=-1]){const p=fixture();mutate(p);assert.throws(()=>validateProfile(p));}});

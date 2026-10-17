@@ -11,3 +11,9 @@ Next: add provenance-bearing mechanic profiles, reject missing prerequisite mech
 ## Required first benchmark: Patchwerk / stationary dummy
 
 The first DPS comparison must use one stationary, continuously attackable target, full uptime, no adds, movement, encounter downtime or target switching. Hold duration, gear/stats, skill and stigma levels, selected specialties, buffs/debuffs, starting resources and initial cooldown state identical across candidates. Record the actual client patch and target defenses. Separate self-buffed and party-buffed scenarios. Use repeated trials for random procs once implemented and report variation. Start with a documented cold opener; any sustained/warm-start comparison must be a separate scenario. Never compare mismatched scenarios or interpret cast counts as DPS. Current timing-only engine has no target damage model and cannot yet produce this benchmark's game DPS.
+
+## Character and target import contract
+
+`profiles.mjs` validates Global character/loadout snapshots separately from a stationary dummy target. Unknown stats, skill levels and specialization choices use explicit `null`; zero is a real measured value, never a missing-data fallback. Snapshots require capture time and client patch information; a patch marked pending is not verification. `profileReadiness` checks the inputs requested by a mechanics model and always reports `gameDpsValidated: false`. Completeness is not correctness. No network fetcher or damage formulas are implemented.
+
+Shugo.GG's FAQ (reviewed 2026-10-17, https://shugo.gg/faq) states there is no public API and skill specializations are not exposed by the upstream character API. Do not depend on undocumented internal routes. Support manual entry or an authorized import adapter, retain source provenance, and require the player to confirm missing specialties. Never derive target defense from player Combat Power or gear score.
