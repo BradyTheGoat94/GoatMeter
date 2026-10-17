@@ -1,12 +1,14 @@
-# GoatSim timing foundation
+# GoatSim test prototype
+
+Start with [TESTING.md](TESTING.md) for runnable artifact instructions, mode distinctions, coverage and unresolved blockers.
 
 Test branch only. Run `node --test tests/goatsim/*.test.mjs`.
 
 `engine.mjs` is a deterministic, bounded, synthetic event model. Supply explicit skill cooldown and execution-lock durations in integer milliseconds, optional resource cost/gain, hotbar priority arrays (highest first), and macro slot steps. Only 10ms and 20ms macro polling are accepted. Basic attacks share the execution lock with macro/manual actions. Manual inputs are taps: blocked taps are recorded as skipped, not queued. At equal timestamps this model uses manual > basic > macro; this is an assumption, not measured client behavior. Cooldown starts at activation; resource changes occur immediately. End time is exclusive.
 
-No actual class coefficients, skill damage, charge behavior, proc windows, network latency, animation cancellation, Skill Queue, or verified client timings are implemented. Cast counts are not damage or DPS. The existing build handbook's readiness model remains unchanged. Do not infer a winning class macro from synthetic fixtures.
+No validated class coefficients, game damage formulas, client charge/proc behavior, network latency, animation cancellation, Skill Queue, or verified client timings are implemented. Synthetic charge/window behavior is implemented as explicitly documented assumptions, not game mechanics. Cast counts are not damage or DPS. The existing build handbook's readiness model remains unchanged. Do not infer a winning class macro from synthetic fixtures.
 
-Next: add provenance-bearing mechanic profiles, reject missing prerequisite mechanics, implement conditional windows and charged/manual scheduling, and compare Templar automatic/manual Doom Shield only after measured inputs are available. Use authorized logs for calibration while keeping raw private data out of commits. Add a runnable comparison report with explicit assumptions before exposing any UI or optimization recommendation.
+Next: establish provenance-bearing game mechanic profiles from supported evidence, then compare Templar automatic/manual Doom Shield only after measured inputs are available. The existing conditional windows, charge scheduling and comparison reports are synthetic. Use authorized logs for calibration while keeping raw private data out of commits; expose no optimization recommendation from synthetic or incomplete replay results.
 
 ## Required first benchmark: Patchwerk / stationary dummy
 
@@ -38,7 +40,7 @@ Optionally append a new output filename to save the JSON report. Existing files 
 
 Set `executionMode` to `macro` (default) or `apl` in the input JSON. Both use the same skill timings, resources, target-window duration, basic inputs and scheduled manual taps. Macro mode cycles `steps` and resolves each referenced hotbar stack. APL mode takes an ordered `apl` array, e.g. `[{"skill":"Synthetic spender","minResource":2},{"skill":"Synthetic generator"}]`, and picks the first usable matching rule. Supported rule conditions are `minResource` and `notBeforeMs`; unknown conditions are rejected. `decisionIntervalMs` controls APL reevaluation (default10ms, explicit model assumption, not a native macro delay).
 
-Reports identify the selected mode. APL currently represents ideal priority execution, not a measured human: reaction delay, mistakes, latency and queue behavior remain unimplemented. Buff/proc conditions and charge handling still require implementation before class rotation claims. Native macro input remains restricted to10/20ms. A web UI selector is not yet published; this selection exists in the offline engine input. Comparing mode totals currently compares synthetic casts, not DPS or a guaranteed theoretical ceiling.
+Reports identify the selected mode. APL currently represents ideal priority execution, not a measured human: reaction delay, mistakes, latency and queue behavior remain unimplemented. Synthetic buff conditions and full-charge handling exist, but actual class proc/charge mechanics remain unvalidated. Native macro input remains restricted to10/20ms. The local test UI has the three-way selector; it is not published to production. Comparing mode totals compares synthetic casts/units, not game DPS or a guaranteed theoretical ceiling.
 
 ## Test interface
 
@@ -46,7 +48,7 @@ Reports identify the selected mode. APL currently represents ideal priority exec
 
 ## Stable event scheduling
 
-The timing engine now uses `EventQueue` (`events.mjs`) for macro/APL decisions, basic input and scheduled manual taps. The queue orders by time, explicit priority and insertion sequence; the current input tie policy remains manual > basic > decision. Fight end is exclusive, and past scheduling and unbounded event loops are rejected. The event count now counts individual input events rather than distinct timestamps. The queue supports callback scheduling for future impacts/expirations, but those class combat effects are not implemented yet. No claim of observed Global event tie semantics is made.
+The timing engine now uses `EventQueue` (`events.mjs`) for macro/APL decisions, basic input and scheduled manual taps. The queue orders by time, explicit priority and insertion sequence; the current input tie policy remains manual > basic > decision. Fight end is exclusive, and past scheduling and unbounded event loops are rejected. The event count now counts individual input events rather than distinct timestamps. The queue schedules synthetic impacts/expirations; actual class combat effects remain unvalidated. No claim of observed Global event tie semantics is made.
 
 ## Synthetic impacts and buffs
 
