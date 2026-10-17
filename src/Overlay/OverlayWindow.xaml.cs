@@ -188,6 +188,22 @@ public partial class OverlayWindow : Window
         var w = new Window { Title="AION 2 DPS — Overlay Settings", Width=450, Height=700,
             WindowStartupLocation=WindowStartupLocation.CenterOwner, Owner=this, Background=Brush("#0A0E16"), Foreground=Brush("#F4F7FF"), ResizeMode=ResizeMode.NoResize };
         w.Resources.MergedDictionaries.Add(Resources);
+        // Settings use a fixed high-contrast palette independent of the selected
+        // overlay theme. WPF popup items must be styled explicitly as well.
+        var settingsBackground=Brush("#121925");
+        var settingsForeground=Brush("#FFFFFF");
+        var settingsBorder=Brush("#8DA6CE");
+        var comboStyle=new Style(typeof(System.Windows.Controls.ComboBox));
+        comboStyle.Setters.Add(new Setter(System.Windows.Controls.Control.BackgroundProperty,settingsBackground));
+        comboStyle.Setters.Add(new Setter(System.Windows.Controls.Control.ForegroundProperty,settingsForeground));
+        comboStyle.Setters.Add(new Setter(System.Windows.Controls.Control.BorderBrushProperty,settingsBorder));
+        comboStyle.Setters.Add(new Setter(System.Windows.Controls.Control.FontSizeProperty,14.0));
+        var itemStyle=new Style(typeof(System.Windows.Controls.ComboBoxItem));
+        itemStyle.Setters.Add(new Setter(System.Windows.Controls.Control.BackgroundProperty,settingsBackground));
+        itemStyle.Setters.Add(new Setter(System.Windows.Controls.Control.ForegroundProperty,settingsForeground));
+        itemStyle.Setters.Add(new Setter(System.Windows.Controls.Control.FontSizeProperty,14.0));
+        comboStyle.Setters.Add(new Setter(System.Windows.Controls.ItemsControl.ItemContainerStyleProperty,itemStyle));
+        w.Resources.Add(typeof(System.Windows.Controls.ComboBox),comboStyle);
         var panel = new System.Windows.Controls.StackPanel { Margin=new Thickness(20) };
         panel.Children.Add(new System.Windows.Controls.TextBlock { Text="OVERLAY SETTINGS", FontSize=22, FontWeight=FontWeights.Bold, Margin=new Thickness(0,0,0,16) });
         panel.Children.Add(new System.Windows.Controls.TextBlock { Text="Overlay style", Foreground=Brush("#9DB7DE") });
