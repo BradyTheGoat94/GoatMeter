@@ -67,3 +67,10 @@ test('support-class comparisons preserve deliberate order and manual emergency b
  const chanter=effectivePreset(build('chanter'),'community-trigger-line');assert.equal(chanter.minSkillTier,16);assert.deepEqual(chanter.lines[0].priority,['Dark Crush','Spinning Strike','Impactful Crush','Incandescent Blow']);assert.ok(chanter.manual.includes('Marchutan’s Wrath'));assert.ok(chanter.lines.every(l=>!l.priority.some(s=>/Mantra|Recuperation|Wave Blow/.test(s))));
  const cleric=effectivePreset(build('cleric'),'community-lucia');assert.equal(cleric.lines[0].priority[0],'Prayer of Amplification');assert.equal(cleric.lines[1].priority[0],'Divine Aura');assert.ok(cleric.manual.includes('Healing and cleanse'));
 });
+test('Assassin and Ranger comparisons preserve distinct basic inputs and four stigma slots',()=>{
+ const assassin=effectivePreset(build('assassin'),'community-separate-basic');assert.deepEqual(assassin.steps,['Q']);assert.equal(assassin.basicAttack.skill,'Quick Slice');assert.ok(assassin.lines.every(l=>!l.priority.includes('Quick Slice')));
+ const ranger=effectivePreset(build('ranger'),'community-explosive');assert.deepEqual(ranger.steps,['Q','T']);assert.equal(ranger.stigmas.length,4);assert.ok(ranger.stigmas.includes('Explosive Arrow'));assert.ok(!ranger.stigmas.includes('Griffon Arrow'));assert.deepEqual(ranger.lines[1].priority,['Drill Dart','Burst Arrow','Tempest Shot']);assert.ok(ranger.lines.every(l=>!l.priority.includes('Deadshot')));
+});
+test('copy instructions distinguish a single held macro key from its internal hotbar steps',()=>{
+ const b=build('templar'),plan=copyPlan(b,effectivePreset(b,'one-button'));assert.match(plan,/ONE native macro button/);assert.match(plan,/not separate buttons to hold/);assert.match(plan,/Macro steps: Q → E/);
+});

@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "version": "0.2.4-test",
+  "version": "0.2.5-test",
   "reviewed": "2026-10-17",
   "classes": [
     {
@@ -1434,6 +1434,62 @@
           "steps": [
             "Q"
           ]
+        },
+        {
+          "id": "community-separate-basic",
+          "label": "Community comparison · separate Quick Slice",
+          "lines": [
+            {
+              "key": "Q",
+              "name": "Insignia damage line",
+              "priority": [
+                "Insignia Explosion",
+                "Heart Gore",
+                "Ambush",
+                "Savage Roar"
+              ]
+            }
+          ],
+          "manual": [
+            "Quick Slice on LMB",
+            "Illusive Clone / Swift Contract",
+            "Savage Fang",
+            "Triniel’s Dagger",
+            "Repositioning and Defiance",
+            "Illusive Clone",
+            "Swift Contract"
+          ],
+          "stigmas": [
+            "Illusive Clone",
+            "Swift Contract",
+            "Savage Fang",
+            "Triniel’s Dagger"
+          ],
+          "notes": [
+            "Newer source revisions put Quick Slice outside the native macro. Keep the older basic-attack-step candidate for comparison; neither has a matched benchmark here.",
+            "Compare at the same skill levels, rear uptime and Clone timing. Sources also differ in Heart Gore and stagger-skill ordering."
+          ],
+          "minCharacterLevel": 45,
+          "minSkillTier": 8,
+          "evidence": {
+            "communitySupported": true,
+            "mechanicallyVerified": false,
+            "logTested": false,
+            "benchmarkValidated": false
+          },
+          "copyEnabled": true,
+          "sources": [
+            "https://aion2-guides.info/en/assassin/",
+            "https://daevaguides.com/en/assassin/"
+          ],
+          "steps": [
+            "Q"
+          ],
+          "basicAttack": {
+            "skill": "Quick Slice",
+            "binding": "LMB",
+            "usage": "Hold separately alongside the native macro. This is a two-input comparison; no external mouse automation is required."
+          }
         }
       ],
       "levelNotes": {
@@ -1625,7 +1681,12 @@
           "steps": [
             "Q",
             "E"
-          ]
+          ],
+          "basicAttack": {
+            "skill": "Snipe",
+            "binding": "LMB",
+            "usage": "Hold separately with the native macro; charged Deadshot remains manual."
+          }
         },
         {
           "id": "boss-manual",
@@ -1687,7 +1748,12 @@
           "steps": [
             "Q",
             "E"
-          ]
+          ],
+          "basicAttack": {
+            "skill": "Snipe",
+            "binding": "LMB",
+            "usage": "Hold separately with the native macro; charged Deadshot remains manual."
+          }
         },
         {
           "id": "solo",
@@ -1745,7 +1811,12 @@
           "steps": [
             "Q",
             "E"
-          ]
+          ],
+          "basicAttack": {
+            "skill": "Snipe",
+            "binding": "LMB",
+            "usage": "Hold separately with the native macro; charged Deadshot remains manual."
+          }
         },
         {
           "id": "group",
@@ -1806,7 +1877,12 @@
           "steps": [
             "Q",
             "E"
-          ]
+          ],
+          "basicAttack": {
+            "skill": "Snipe",
+            "binding": "LMB",
+            "usage": "Hold separately with the native macro; charged Deadshot remains manual."
+          }
         },
         {
           "id": "pvp",
@@ -1905,6 +1981,72 @@
           "steps": [
             "Q"
           ]
+        },
+        {
+          "id": "community-explosive",
+          "label": "Community comparison · Explosive Arrow",
+          "lines": [
+            {
+              "key": "Q",
+              "name": "Gale / Explosive",
+              "priority": [
+                "Gale Arrow",
+                "Snare Shot",
+                "Explosive Arrow"
+              ]
+            },
+            {
+              "key": "T",
+              "name": "Drill / Burst",
+              "priority": [
+                "Drill Dart",
+                "Burst Arrow",
+                "Tempest Shot"
+              ]
+            }
+          ],
+          "manual": [
+            "Snipe / basic attack on LMB",
+            "Deadshot (charge)",
+            "Marking Shot",
+            "Bow of Blessing / Vaizel’s Authority",
+            "Suppressing Arrow",
+            "Deadshot charge",
+            "Vaizel’s Authority",
+            "Bow of Blessing"
+          ],
+          "stigmas": [
+            "Vaizel’s Authority",
+            "Bow of Blessing",
+            "Supporting Fire",
+            "Explosive Arrow"
+          ],
+          "notes": [
+            "Fubgun-derived alternative replaces Griffon Arrow with Explosive Arrow; it does not equip a fifth stigma.",
+            "Marking Shot, charged Deadshot and control remain manual. Compare Precision coverage and charge completion before concluding that line order improves damage."
+          ],
+          "minCharacterLevel": 45,
+          "minSkillTier": 8,
+          "evidence": {
+            "communitySupported": true,
+            "mechanicallyVerified": false,
+            "logTested": false,
+            "benchmarkValidated": false
+          },
+          "copyEnabled": true,
+          "sources": [
+            "https://aion2-guides.info/en/ranger/",
+            "https://daevaguides.com/en/ranger/"
+          ],
+          "steps": [
+            "Q",
+            "T"
+          ],
+          "basicAttack": {
+            "skill": "Snipe",
+            "binding": "LMB",
+            "usage": "Hold separately with the native macro; charged Deadshot remains manual."
+          }
         }
       ],
       "levelNotes": {

@@ -2,7 +2,7 @@
 
 Test branch only. Live thegoatmeter.us and public desktop download are unchanged by this work.
 
-Implemented eight classes and 55 mode worksheets, with explicit evidence status and blocked copying for unresolved exact configurations. This is broader candidate coverage, not 55 verified recommendations. UI state and copied configuration share the same model. Skill tiers and charge variants are explicit. A dedicated CI uploads the test-only static artifact.
+Implemented eight classes and 57 mode worksheets, with explicit evidence status and blocked copying for unresolved exact configurations. This is broader candidate coverage, not 57 verified recommendations. UI state and copied configuration share the same model. Skill tiers and charge variants are explicit. A dedicated CI uploads the test-only static artifact.
 
 Research: current Global Season 1 class guides at aion2-guides.info/en/{templar,gladiator,assassin,ranger,sorcerer,elementalist,cleric,chanter}/; SolAshur's original Templar macro guide; prior Daeva guide comparisons and provisional Rotation Lab notes, cited within each class. Referenced creator videos with unavailable playback/transcripts remain labeled as unreviewed, not watched.
 
@@ -19,3 +19,7 @@ EUTOPIA's Sorcerer update page and pinned creator comment were directly inspecte
 Spiritmaster's controlled two-line plan now explicitly cycles the damage line before the spirit line, and displays Cold Shock separately. The source comparison also identifies a differing buff-inclusive macro; it is not silently treated as equivalent. Chanter gains a separate level-16 trigger-line comparison retaining manually timed Marchutan's Wrath, Wave Blow and emergency support. Cleric gains the community Lucia-line comparison and a Chanter-present Absolution candidate gated by the user-entered equipped stigma level 15. These are community-supported configurations, not observed client verification. In-game buff overlap and comparative healing/damage results remain pending.
 
 Evripides’ original Global Spiritmaster guide was additionally inspected. It documents a buff-inclusive macro and identifies adaptation from TW/KR material. The controlled comparison is explicitly distinct. Conflicting source claims about skill ceilings are recorded as unknown; the catalog no longer presents skill 20 as a confirmed Global cap.
+
+## Website integration preparation
+
+The handbook now explicitly distinguishes one held macro key from the multiple hotbar lines it cycles. Added a separate-basic Assassin comparison following newer guide revisions, and a Ranger Explosive Arrow alternative that replaces Griffon Arrow within four stigma slots. These remain source comparisons, not measured winners. The existing Site is being prepared as an unpublished review version; no production publication is authorized by this checkpoint.

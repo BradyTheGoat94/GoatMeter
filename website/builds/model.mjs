@@ -30,7 +30,7 @@ export function copyPlan(build,mode,options={}){
  const reason=eligibility(mode,options);if(reason)throw new Error(reason);
  return [`GoatMeter Build Lab · ${build.name} · ${mode.label} · TEST CANDIDATE`,
  `Global Season 1 source scope; exact client build and execution unverified. Character level ${options.characterLevel??45}; equipped skill tier ${options.skillTier??16}.`,
- 'Native macro: bind one held key; add the following hotbar lines in order. Row 0 = bottom / highest priority.',
+ 'ONE native macro button: bind a single held key to the macro. The Q/E/T labels are hotbar slots cycled by that macro, not separate buttons to hold. Row 0 = bottom / highest priority.',
  ...mode.lines.map(l=>`${l.key}: ${l.priority.map((s,i)=>`Row ${i}: ${s}`).join('; ')}`),
  `Macro steps: ${mode.steps.join(' → ')}; delay ${delay} ms.`,
  ...(mode.basicAttack?[`Basic attack: ${mode.basicAttack.skill} on ${mode.basicAttack.binding}. ${mode.basicAttack.usage}`]:[]),

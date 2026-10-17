@@ -7,7 +7,7 @@ Entry: `builds/index.html`, served with `website/` as the static root. Use a loc
 
 ## Included
 
-- Eight Global class pages, 55 selectable content/configuration worksheets.
+- Eight Global class pages, 57 selectable content/configuration worksheets.
 - One-key native damage-line candidates; separate manually timed boss burst.
 - PvP, solo, dungeon/raid and leveling/fresh-45 modes. Cleric additionally separates healing and Chanter-present composition. Unsupported exact configurations are visible as research and cannot be copied.
 - Exact row 0–3 previews, selected-line copy plans, 10 ms default / 20 ms alternative, character-level and equipped-skill-tier gating, manual charge exceptions.
