@@ -149,7 +149,10 @@ public partial class MainWindow : Window
             // The roster and combat identity must agree on character and server IDs.
             lock(diagnosticsGate)
             {
-                if(e.Kind==CombatKind.CharacterStats && e.SourceCharacterId is long rosterId && rosterId>0 && e.SourceServerId is int rosterServer && rosterServer>0 && e.StatsObservedUtc is DateTime observed)
+                // The adapter keeps raw CharacterStats inside its identity bridge.
+                // A score-enriched PlayerName carries the same exact verified
+                // roster join and observation time to the host.
+                if((e.Kind==CombatKind.CharacterStats||e.Kind==CombatKind.PlayerName) && e.SourceCharacterId is long rosterId && rosterId>0 && e.SourceServerId is int rosterServer && rosterServer>0 && e.StatsObservedUtc is DateTime observed)
                     verifiedPartyMembers[(rosterId,rosterServer)]=observed;
                 if(e.Kind==CombatKind.PlayerName && e.SourceId>0 && e.SourceCharacterId is long combatId && combatId>0 && e.SourceServerId is int combatServer && combatServer>0)
                     verifiedCombatIdentityLinks[e.SourceId]=(combatId,combatServer);
