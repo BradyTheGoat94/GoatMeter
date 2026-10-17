@@ -30,10 +30,20 @@ public partial class MainWindow : Window
         if(sender is System.Windows.Controls.Button button) button.IsEnabled=false;
         try
         {
+            await CheckForUpdatesCoreAsync(showUpToDate:true);
+        }
+        finally {if(sender is System.Windows.Controls.Button button2)button2.IsEnabled=true;}
+    }
+
+    private async Task CheckForUpdatesCoreAsync(bool showUpToDate)
+    {
+        try
+        {
             var update=await GoatMeterUpdater.CheckAsync();
             if(update is null)
             {
-                MessageBox.Show(this,"You're running the latest available stable release, or no compatible release was found.","GoatMeter Updates",MessageBoxButton.OK,MessageBoxImage.Information);
+                if(showUpToDate)
+                    MessageBox.Show(this,"You're running the latest available stable release, or no compatible release was found.","GoatMeter Updates",MessageBoxButton.OK,MessageBoxImage.Information);
                 return;
             }
             if(MessageBox.Show(this,$"GoatMeter {update.Version} is available. Download and verify the installer? Your local settings and fight history are stored separately and will be preserved.","GoatMeter Updates",MessageBoxButton.YesNo,MessageBoxImage.Question)!=MessageBoxResult.Yes)return;
@@ -46,7 +56,6 @@ public partial class MainWindow : Window
         {
             MessageBox.Show(this,$"Update was not installed: {ex.Message}","GoatMeter Updates",MessageBoxButton.OK,MessageBoxImage.Warning);
         }
-        finally {if(sender is System.Windows.Controls.Button button2)button2.IsEnabled=true;}
     }
 
     public MainWindow()
@@ -135,6 +144,12 @@ public partial class MainWindow : Window
             }
         };
         timer.Tick += (_,_)=>Render(); timer.Start(); capture.Start();
+        // Startup check is non-blocking. Installation always requires consent.
+        Loaded += async (_,_) =>
+        {
+            await Task.Yield();
+            await CheckForUpdatesCoreAsync(showUpToDate:false);
+        };
     }
     void OpenOverlay(object sender,RoutedEventArgs e) {if(!overlay.IsVisible)overlay.Show();overlay.Activate();}
     void Reset(object sender,RoutedEventArgs e)=>engine.ResetFight();
