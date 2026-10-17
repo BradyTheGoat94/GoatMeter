@@ -1,4 +1,5 @@
-import importlib.util,json,pathlib,unittest
+import importlib.util,json,pathlib,unittest,sys
+sys.path.insert(0,str(pathlib.Path(__file__).parents[2]/'tools'))
 spec=importlib.util.spec_from_file_location('calibration',pathlib.Path(__file__).parents[2]/'tools/calibrate_skill_hits.py');m=importlib.util.module_from_spec(spec);spec.loader.exec_module(m)
 class CalibrationTest(unittest.TestCase):
  def fixture(self):

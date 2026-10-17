@@ -1,3 +1,4 @@
+import {estimateReplay} from '../empirical.mjs';
 import {compareModes} from '../compare.mjs';
 const $=id=>document.getElementById(id);
 let lastResult;
@@ -16,3 +17,11 @@ $('run').onclick=()=>{try{
  }catch(e){lastResult=null;$('results').hidden=true;$('status').textContent='Cannot run: '+e.message;}};
 $('download').onclick=()=>{if(!lastResult)return;const url=URL.createObjectURL(new Blob([JSON.stringify(lastResult,null,2)],{type:'application/json'}));const a=document.createElement('a');a.href=url;a.download='GoatSim-synthetic-comparison.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);};
 start().catch(e=>{$('status').textContent=e.message;$('run').disabled=true;});
+
+$('empirical-file').onchange=async e=>{
+ $('empirical-result').textContent='';
+ try{const file=e.target.files[0];if(!file)return;if(file.size>1024*1024)throw Error('Replay limit is 1 MiB');const r=estimateReplay(JSON.parse(await file.text()));const pct=n=>n===null?'Unavailable':(n*100).toFixed(1)+'%';
+ $('empirical-result').innerHTML=`<p class="warning"><strong>Observed-schedule estimate only</strong>No new rotation, gear scaling or independent game validation.</p><p>Capture class: ${esc(r.className)} · Observed window: ${r.observedWindowSeconds.toFixed(3)} seconds</p><table><tbody><tr><th>Held-out hit coverage</th><td>${pct(r.coveredHitFraction)}</td></tr><tr><th>Held-out damage coverage</th><td>${pct(r.coveredDamageFraction)}</td></tr><tr><th>Predicted covered-window DPS</th><td>${r.predictedCoveredWindowDps.toFixed(1)}</td></tr><tr><th>Observed covered-window DPS</th><td>${r.observedCoveredWindowDps.toFixed(1)}</td></tr><tr><th>Covered damage total error</th><td>${r.coveredTotalErrorPercent===null?'Unavailable':r.coveredTotalErrorPercent.toFixed(2)+'%'}</td></tr></tbody></table><p class="muted">The DPS figures cover supported hits only. Unmodeled damage is excluded from both; these are not full encounter DPS predictions. The time window comes from observed hits, not a controlled 120-second dummy test.</p>`;
+ $('empirical-status').textContent='Local replay analyzed. No file or character data was uploaded.';
+ }catch(error){$('empirical-status').textContent='Cannot analyze replay: '+error.message;}
+};

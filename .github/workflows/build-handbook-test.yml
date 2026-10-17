@@ -2,7 +2,7 @@ name: Build handbook test candidates
 on:
   push:
     branches: [labs/goatsim-rankings-updater-20261016]
-    paths: ['website/**', 'tests/builds/**', 'labs/goatsim/**', 'tests/goatsim/**', '.github/workflows/build-handbook-test.yml']
+    paths: ['website/**', 'tests/builds/**', 'labs/goatsim/**', 'tests/goatsim/**', 'tools/calibrat*.py', 'tools/build_empirical_replay.py', '.github/workflows/build-handbook-test.yml']
   workflow_dispatch:
 jobs:
   handbook:
@@ -24,4 +24,7 @@ jobs:
           path: |
             website/
             labs/goatsim/
+            tools/calibration_events.py
+            tools/calibrate_skill_hits.py
+            tools/build_empirical_replay.py
           retention-days: 14
