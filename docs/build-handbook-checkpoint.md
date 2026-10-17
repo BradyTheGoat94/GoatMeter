@@ -17,3 +17,5 @@ EUTOPIA's Sorcerer update page and pinned creator comment were directly inspecte
 ## Support-class comparison pass
 
 Spiritmaster's controlled two-line plan now explicitly cycles the damage line before the spirit line, and displays Cold Shock separately. The source comparison also identifies a differing buff-inclusive macro; it is not silently treated as equivalent. Chanter gains a separate level-16 trigger-line comparison retaining manually timed Marchutan's Wrath, Wave Blow and emergency support. Cleric gains the community Lucia-line comparison and a Chanter-present Absolution candidate gated by the user-entered equipped stigma level 15. These are community-supported configurations, not observed client verification. In-game buff overlap and comparative healing/damage results remain pending.
+
+Evripides’ original Global Spiritmaster guide was additionally inspected. It documents a buff-inclusive macro and identifies adaptation from TW/KR material. The controlled comparison is explicitly distinct. Conflicting source claims about skill ceilings are recorded as unknown; the catalog no longer presents skill 20 as a confirmed Global cap.

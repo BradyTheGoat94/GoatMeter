@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "version": "0.2.3-test",
+  "version": "0.2.4-test",
   "reviewed": "2026-10-17",
   "classes": [
     {
@@ -133,8 +133,9 @@
         "season": "Season 1",
         "reviewed": "2026-10-17",
         "clientBuild": "Not captured; exact client compatibility pending",
-        "skillCapAssumption": 20,
-        "stigmaSlotsAssumption": 4
+        "stigmaSlotsAssumption": 4,
+        "comparisonSkillTiersThrough": 20,
+        "actualSkillCap": "Unconfirmed; comparison tiers are not a claimed Global skill cap."
       },
       "modes": [
         {
@@ -608,8 +609,9 @@
         "season": "Season 1",
         "reviewed": "2026-10-17",
         "clientBuild": "Not captured; exact client compatibility pending",
-        "skillCapAssumption": 20,
-        "stigmaSlotsAssumption": 4
+        "stigmaSlotsAssumption": 4,
+        "comparisonSkillTiersThrough": 20,
+        "actualSkillCap": "Unconfirmed; comparison tiers are not a claimed Global skill cap."
       },
       "modes": [
         {
@@ -1117,8 +1119,9 @@
         "season": "Season 1",
         "reviewed": "2026-10-17",
         "clientBuild": "Not captured; exact client compatibility pending",
-        "skillCapAssumption": 20,
-        "stigmaSlotsAssumption": 4
+        "stigmaSlotsAssumption": 4,
+        "comparisonSkillTiersThrough": 20,
+        "actualSkillCap": "Unconfirmed; comparison tiers are not a claimed Global skill cap."
       },
       "modes": [
         {
@@ -1560,8 +1563,9 @@
         "season": "Season 1",
         "reviewed": "2026-10-17",
         "clientBuild": "Not captured; exact client compatibility pending",
-        "skillCapAssumption": 20,
-        "stigmaSlotsAssumption": 4
+        "stigmaSlotsAssumption": 4,
+        "comparisonSkillTiersThrough": 20,
+        "actualSkillCap": "Unconfirmed; comparison tiers are not a claimed Global skill cap."
       },
       "modes": [
         {
@@ -2030,8 +2034,9 @@
         "season": "Season 1",
         "reviewed": "2026-10-17",
         "clientBuild": "Not captured; exact client compatibility pending",
-        "skillCapAssumption": 20,
-        "stigmaSlotsAssumption": 4
+        "stigmaSlotsAssumption": 4,
+        "comparisonSkillTiersThrough": 20,
+        "actualSkillCap": "Unconfirmed; comparison tiers are not a claimed Global skill cap."
       },
       "modes": [
         {
@@ -2630,6 +2635,10 @@
         {
           "label": "Macro/build comparison notes",
           "url": "https://daevaguides.com/en/elementalist/"
+        },
+        {
+          "label": "Evripides — original Global Spiritmaster guide",
+          "url": "https://aion2sm.com/global/"
         }
       ],
       "videos": [
@@ -2653,15 +2662,17 @@
       "specializations": [
         "Elemental Fusion: select charged or uncharged explicitly; never let the macro interrupt a charge.",
         "Four Elements is a resource condition, not proof that four distinct spirit types must be summoned.",
-        "Corrode: use the base duration unless the duration specialty is actually equipped."
+        "Corrode: use the base duration unless the duration specialty is actually equipped.",
+        "Published Global guides disagree about skill ceilings. The displayed 16–20 targets are comparison tiers, not a statement that the client caps skills at 20."
       ],
       "compatibility": {
         "region": "Global",
         "season": "Season 1",
         "reviewed": "2026-10-17",
         "clientBuild": "Not captured; exact client compatibility pending",
-        "skillCapAssumption": 20,
-        "stigmaSlotsAssumption": 4
+        "stigmaSlotsAssumption": 4,
+        "comparisonSkillTiersThrough": 20,
+        "actualSkillCap": "Unconfirmed; comparison tiers are not a claimed Global skill cap."
       },
       "modes": [
         {
@@ -2709,7 +2720,8 @@
             "Uncharged Fusion is the displayed default. Choose the charged-Fusion option to move it off the automatic line.",
             "Ancient Spirit stays manual. Test snapshot behavior rather than assuming a buff applied after summoning changes the spirit.",
             "Community layouts use Fusion/Water/Earth/Fire and Corrode/Curse/Dimensional Control/Combustion. That layout is not evidence that four distinct spirits are required for Four Elements.",
-            "This controlled two-line candidate cycles damage line E before spirit line Q. Sources also describe buff-in-macro variants; those are not assumed equivalent. No four-distinct-spirit requirement is imposed."
+            "This controlled two-line candidate cycles damage line E before spirit line Q. Sources also describe buff-in-macro variants; those are not assumed equivalent. No four-distinct-spirit requirement is imposed.",
+            "Evripides’ Global guide describes a Benediction → Fusion → Corrode macro and notes adaptation from TW/KR material. Our manual-buff comparison is a different candidate, not an exact reproduction. Current client compatibility still needs checking."
           ],
           "minCharacterLevel": 45,
           "minSkillTier": 8,
@@ -2781,7 +2793,8 @@
             "Uncharged Fusion is the displayed default. Choose the charged-Fusion option to move it off the automatic line.",
             "Ancient Spirit stays manual. Test snapshot behavior rather than assuming a buff applied after summoning changes the spirit.",
             "Community layouts use Fusion/Water/Earth/Fire and Corrode/Curse/Dimensional Control/Combustion. That layout is not evidence that four distinct spirits are required for Four Elements.",
-            "This controlled two-line candidate cycles damage line E before spirit line Q. Sources also describe buff-in-macro variants; those are not assumed equivalent. No four-distinct-spirit requirement is imposed."
+            "This controlled two-line candidate cycles damage line E before spirit line Q. Sources also describe buff-in-macro variants; those are not assumed equivalent. No four-distinct-spirit requirement is imposed.",
+            "Evripides’ Global guide describes a Benediction → Fusion → Corrode macro and notes adaptation from TW/KR material. Our manual-buff comparison is a different candidate, not an exact reproduction. Current client compatibility still needs checking."
           ],
           "minCharacterLevel": 45,
           "minSkillTier": 8,
@@ -2848,7 +2861,8 @@
             "Use sustainable resource choices before damage-only specialties; retain escape and recovery. Pull size and control immunity alter the rotation.",
             "Unlock prerequisites still apply. At level 45, skill level 16 is not automatic.",
             "Community layouts use Fusion/Water/Earth/Fire and Corrode/Curse/Dimensional Control/Combustion. That layout is not evidence that four distinct spirits are required for Four Elements.",
-            "This controlled two-line candidate cycles damage line E before spirit line Q. Sources also describe buff-in-macro variants; those are not assumed equivalent. No four-distinct-spirit requirement is imposed."
+            "This controlled two-line candidate cycles damage line E before spirit line Q. Sources also describe buff-in-macro variants; those are not assumed equivalent. No four-distinct-spirit requirement is imposed.",
+            "Evripides’ Global guide describes a Benediction → Fusion → Corrode macro and notes adaptation from TW/KR material. Our manual-buff comparison is a different candidate, not an exact reproduction. Current client compatibility still needs checking."
           ],
           "minCharacterLevel": 45,
           "minSkillTier": 8,
@@ -2917,7 +2931,8 @@
           "notes": [
             "Use the manual-burst preset. Reserve defensive and group utility buttons for mechanics; do not evaluate only the opener.",
             "Community layouts use Fusion/Water/Earth/Fire and Corrode/Curse/Dimensional Control/Combustion. That layout is not evidence that four distinct spirits are required for Four Elements.",
-            "This controlled two-line candidate cycles damage line E before spirit line Q. Sources also describe buff-in-macro variants; those are not assumed equivalent. No four-distinct-spirit requirement is imposed."
+            "This controlled two-line candidate cycles damage line E before spirit line Q. Sources also describe buff-in-macro variants; those are not assumed equivalent. No four-distinct-spirit requirement is imposed.",
+            "Evripides’ Global guide describes a Benediction → Fusion → Corrode macro and notes adaptation from TW/KR material. Our manual-buff comparison is a different candidate, not an exact reproduction. Current client compatibility still needs checking."
           ],
           "minCharacterLevel": 45,
           "minSkillTier": 8,
@@ -2971,7 +2986,8 @@
           "notes": [
             "Damage-only macro candidate. Engage, crowd control, interrupts, cleansing and defensive reactions remain manual.",
             "No claim that a PvE loop is optimal in PvP. Test against actual opponents with matching gear.",
-            "Community layouts use Fusion/Water/Earth/Fire and Corrode/Curse/Dimensional Control/Combustion. That layout is not evidence that four distinct spirits are required for Four Elements."
+            "Community layouts use Fusion/Water/Earth/Fire and Corrode/Curse/Dimensional Control/Combustion. That layout is not evidence that four distinct spirits are required for Four Elements.",
+            "Evripides’ Global guide describes a Benediction → Fusion → Corrode macro and notes adaptation from TW/KR material. Our manual-buff comparison is a different candidate, not an exact reproduction. Current client compatibility still needs checking."
           ],
           "minCharacterLevel": 45,
           "minSkillTier": 8,
@@ -3020,7 +3036,8 @@
             "Progression worksheet, not an exact skill-point allocation. Invest in unlocked core attacks and resource sustain.",
             "At fresh level 45, use actual equipped skill levels (often 8–10), not the later 16–20 target. Bonus levels from gear/boards are separate.",
             "Exact unlock levels and point budgets have not been verified against a captured Global client. Copy is disabled rather than presenting an invented allocation.",
-            "Community layouts use Fusion/Water/Earth/Fire and Corrode/Curse/Dimensional Control/Combustion. That layout is not evidence that four distinct spirits are required for Four Elements."
+            "Community layouts use Fusion/Water/Earth/Fire and Corrode/Curse/Dimensional Control/Combustion. That layout is not evidence that four distinct spirits are required for Four Elements.",
+            "Evripides’ Global guide describes a Benediction → Fusion → Corrode macro and notes adaptation from TW/KR material. Our manual-buff comparison is a different candidate, not an exact reproduction. Current client compatibility still needs checking."
           ],
           "minCharacterLevel": 1,
           "minSkillTier": 8,
@@ -3170,8 +3187,9 @@
         "season": "Season 1",
         "reviewed": "2026-10-17",
         "clientBuild": "Not captured; exact client compatibility pending",
-        "skillCapAssumption": 20,
-        "stigmaSlotsAssumption": 4
+        "stigmaSlotsAssumption": 4,
+        "comparisonSkillTiersThrough": 20,
+        "actualSkillCap": "Unconfirmed; comparison tiers are not a claimed Global skill cap."
       },
       "modes": [
         {
@@ -3837,8 +3855,9 @@
         "season": "Season 1",
         "reviewed": "2026-10-17",
         "clientBuild": "Not captured; exact client compatibility pending",
-        "skillCapAssumption": 20,
-        "stigmaSlotsAssumption": 4
+        "stigmaSlotsAssumption": 4,
+        "comparisonSkillTiersThrough": 20,
+        "actualSkillCap": "Unconfirmed; comparison tiers are not a claimed Global skill cap."
       },
       "modes": [
         {
