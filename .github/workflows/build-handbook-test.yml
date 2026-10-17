@@ -21,5 +21,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: GoatMeter-Build-Lab-test-only
-          path: website/
+          path: |
+            website/
+            labs/goatsim/
           retention-days: 14
