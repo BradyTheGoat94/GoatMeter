@@ -1,0 +1,7 @@
+import test from 'node:test';import assert from 'node:assert/strict';import {simulate} from '../../labs/goatsim/engine.mjs';
+const config=()=>({durationMs:100,skills:{Hit:{cooldownMs:1000,lockMs:10,impactUnits:10,impactDelayMs:20},Buff:{cooldownMs:10,lockMs:1,buff:{id:'power',durationMs:30,multiplier:2}}},lines:{Q:['Hit']},steps:['Q']});
+test('delayed impact uses impact-time buff and preserves activation time',()=>{const c=config();c.manual=[{atMs:10,skill:'Buff'}];const r=simulate(c);assert.equal(r.timeline[0].atMs,0);assert.equal(r.impacts[0].atMs,20);assert.equal(r.totalSyntheticUnits,20);});
+test('buff expiration is exclusive at same timestamp as impact',()=>{const c=config();c.skills.Hit.impactDelayMs=40;c.manual=[{atMs:10,skill:'Buff'}];assert.equal(simulate(c).totalSyntheticUnits,10);});
+test('refresh prevents an earlier expiration event from removing renewed buff',()=>{const c=config();c.skills.Hit.impactDelayMs=45;c.manual=[{atMs:10,skill:'Buff'},{atMs:30,skill:'Buff'}];assert.equal(simulate(c).totalSyntheticUnits,20);});
+test('impacts landing at or after fight end contribute nothing',()=>{const c=config();c.skills.Hit.impactDelayMs=100;const r=simulate(c);assert.equal(r.counts.Hit,1);assert.equal(r.totalSyntheticUnits,0);assert.equal(r.impacts.length,0);});
+test('invalid units and multipliers fail explicitly',()=>{const c=config();c.skills.Hit.impactUnits=Infinity;assert.throws(()=>simulate(c));c.skills.Hit.impactUnits=10;c.skills.Buff.buff.multiplier=-1;assert.throws(()=>simulate(c));});

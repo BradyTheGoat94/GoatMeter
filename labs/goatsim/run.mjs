@@ -3,7 +3,7 @@ import {pathToFileURL} from 'node:url';
 import {simulate} from './engine.mjs';
 export function report(config){
  const r=simulate(config);const summary=Object.entries(r.counts).map(([skill,casts])=>({skill,casts}));
- return {warning:'SYNTHETIC TIMING MODEL — NOT AION 2 DPS',executionMode:r.executionMode,executionLabel:r.executionMode==='apl'?'Ideal APL benchmark; not measured human execution':'Native macro timing model; client execution unverified',model:r.model,verifiedGameMechanics:false,durationMs:r.durationMs,summary,skippedManualInputs:r.timeline.filter(e=>e.skipped).length,remainingResource:r.resource,timeline:r.timeline,limitations:['No damage formula or class coefficients','No verified Global timings','No proc windows, latency, charge stages or Skill Queue','Cast counts do not establish optimal DPS']};
+ return {warning:'SYNTHETIC TIMING MODEL — NOT AION 2 DPS',executionMode:r.executionMode,executionLabel:r.executionMode==='apl'?'Ideal APL benchmark; not measured human execution':'Native macro timing model; client execution unverified',model:r.model,verifiedGameMechanics:false,durationMs:r.durationMs,summary,syntheticEffects:{units:r.totalSyntheticUnits,bySkill:r.syntheticUnitsBySkill,impacts:r.impacts,notGameDamage:true},skippedManualInputs:r.timeline.filter(e=>e.skipped).length,remainingResource:r.resource,timeline:r.timeline,limitations:['No damage formula or class coefficients','No verified Global timings','No proc windows, latency, charge stages or Skill Queue','Cast counts do not establish optimal DPS']};
 }
 export async function main(args){
  const [input,output]=args;

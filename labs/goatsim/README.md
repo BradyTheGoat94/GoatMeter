@@ -47,3 +47,9 @@ Reports identify the selected mode. APL currently represents ideal priority exec
 ## Stable event scheduling
 
 The timing engine now uses `EventQueue` (`events.mjs`) for macro/APL decisions, basic input and scheduled manual taps. The queue orders by time, explicit priority and insertion sequence; the current input tie policy remains manual > basic > decision. Fight end is exclusive, and past scheduling and unbounded event loops are rejected. The event count now counts individual input events rather than distinct timestamps. The queue supports callback scheduling for future impacts/expirations, but those class combat effects are not implemented yet. No claim of observed Global event tie semantics is made.
+
+## Synthetic impacts and buffs
+
+Optional skill fields `impactUnits` and `impactDelayMs` schedule fictional impact values separately from activation. Optional `buff: {id, durationMs, multiplier}` activates immediately; a same-ID refresh replaces its earlier duration without an old expiry removing the refreshed buff. Multipliers from different IDs multiply. Impacts use buffs active at impact time, not a cast-time snapshot. A buff is inactive exactly at its expiry timestamp; expiry events precede impacts, which precede new input events. A newly cast buff affects its own immediate impact. These are explicit synthetic assumptions, not observed AION 2 mechanics. Both activation and impact must occur before the exclusive fight-end boundary to contribute.
+
+Reports/export expose `totalSyntheticUnits`, per-skill units and impact events; UI labels them fictional and never calls them game damage or DPS. No stat coefficients, crits, defense, DoTs, pets, charge stages, buff caps or skill-specific snapshot behavior are inferred. Zero-delay effects are queued at the activation timestamp. Effects that would land after the test window do not contribute. Numeric bounds and event budgets reject runaway effects.
