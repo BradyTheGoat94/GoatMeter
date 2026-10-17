@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "version": "0.2.8-test",
+  "version": "0.2.9-test",
   "reviewed": "2026-10-17",
   "classes": [
     {
@@ -1225,7 +1225,7 @@
       ],
       "labSource": "https://github.com/BradyTheGoat94/GoatMeter-Rotation-Lab/blob/e97db9e/docs/rotation-evidence.md",
       "specializations": [
-        "Insignia Explosion: verify the retain-two-insignias option at skill 12.",
+        "Insignia Explosion: reviewed guides disagree on the unlock tier of its retain-two-Insignias option. Confirm the actual Global tooltip rather than copying an assumed tier.",
         "Heart Gore: record critical-trigger availability and the Clone window separately.",
         "Quick Slice: retain the mana option until sustained resources are measured."
       ],
@@ -1620,7 +1620,22 @@
         "instructions": "Put the basic attack on left click and bind the native in-game macro to right click. Hold LMB and RMB together for the separate-basic-attack comparison.",
         "setup": "Bind the Macro action in Settings → Key Settings → General → Macro. Mouse binding may require AION 2 control mode. Q/E/R/T are internal hotbar slots, not extra keys to hold.",
         "exception": "Release either input when mechanics require movement or a manual action. Charged attacks, interrupts and defensive decisions stay under your control."
-      }
+      },
+      "mechanics": [
+        {
+          "title": "Basic attack is a separate input in the newer comparison",
+          "detail": "The default comparison keeps Quick Slice on LMB, outside the native macro. The older macro-step version remains available for comparison, not as a measured winner."
+        },
+        {
+          "title": "Read the actual crit and Insignia state",
+          "detail": "Heart Gore availability and Insignia Explosion conditions depend on specialties and current combat state. The preview cannot infer them from a skill name."
+        },
+        {
+          "title": "Reserve burst and movement decisions",
+          "detail": "Clone, Swift Contract, Savage Fang and Triniel’s Dagger stay manual. Match rear uptime before comparing two macro layouts."
+        }
+      ],
+      "defaultMode": "community-separate-basic"
     },
     {
       "id": "ranger",
@@ -1774,7 +1789,8 @@
             "Snipe / basic attack on LMB",
             "Deadshot (charge)",
             "Marking Shot",
-            "Bow of Blessing / Vaizel’s Authority"
+            "Bow of Blessing / Vaizel’s Authority",
+            "Supporting Fire"
           ],
           "stigmas": [
             "Vaizel’s Authority",
@@ -1842,7 +1858,8 @@
             "Suppressing Arrow",
             "Deadshot charge",
             "Vaizel’s Authority",
-            "Bow of Blessing"
+            "Bow of Blessing",
+            "Supporting Fire"
           ],
           "stigmas": [
             "Vaizel’s Authority",
@@ -1905,7 +1922,8 @@
             "Snipe / basic attack on LMB",
             "Deadshot (charge)",
             "Marking Shot",
-            "Bow of Blessing / Vaizel’s Authority"
+            "Bow of Blessing / Vaizel’s Authority",
+            "Supporting Fire"
           ],
           "stigmas": [
             "Vaizel’s Authority",
@@ -1972,7 +1990,8 @@
             "Suppressing Arrow",
             "Deadshot charge",
             "Vaizel’s Authority",
-            "Bow of Blessing"
+            "Bow of Blessing",
+            "Supporting Fire"
           ],
           "stigmas": [
             "Vaizel’s Authority",
@@ -2136,7 +2155,8 @@
             "Suppressing Arrow",
             "Deadshot charge",
             "Vaizel’s Authority",
-            "Bow of Blessing"
+            "Bow of Blessing",
+            "Supporting Fire"
           ],
           "stigmas": [
             "Vaizel’s Authority",
@@ -2185,7 +2205,22 @@
         "instructions": "Put the basic attack on left click and bind the native in-game macro to right click. Hold LMB and RMB together for the separate-basic-attack comparison.",
         "setup": "Bind the Macro action in Settings → Key Settings → General → Macro. Mouse binding may require AION 2 control mode. Q/E/R/T are internal hotbar slots, not extra keys to hold.",
         "exception": "Release either input when mechanics require movement or a manual action. Charged attacks, interrupts and defensive decisions stay under your control."
-      }
+      },
+      "mechanics": [
+        {
+          "title": "Keep the Precision application deliberate",
+          "detail": "Marking Shot remains manual. Watch the actual Precision duration instead of repeatedly spending a macro step on it."
+        },
+        {
+          "title": "Deadshot needs a complete manual charge",
+          "detail": "LMB is Snipe and RMB is the native macro. Deadshot has its own charge input; the macro is not assumed to hold it."
+        },
+        {
+          "title": "Four stigmas means an actual tradeoff",
+          "detail": "Explosive Arrow replaces Griffon Arrow in the alternative. Supporting Fire, Bow of Blessing and Vaizel’s Authority retain deliberate activation; there is no fifth equipped slot."
+        }
+      ],
+      "defaultMode": "boss-manual"
     },
     {
       "id": "sorcerer",
@@ -2332,7 +2367,9 @@
             "Winter’s Shackles",
             "Hellfire charge",
             "Defensives and interrupts",
-            "Wish of Concentration"
+            "Wish of Concentration",
+            "Fire Wall",
+            "Cold Storm"
           ],
           "stigmas": [
             "Element Enhancement",
@@ -2390,7 +2427,9 @@
             "Winter’s Shackles",
             "Hellfire charge",
             "Defensives and interrupts",
-            "Wish of Concentration"
+            "Wish of Concentration",
+            "Fire Wall",
+            "Cold Storm"
           ],
           "stigmas": [
             "Element Enhancement",
@@ -2447,7 +2486,9 @@
             "Winter’s Shackles",
             "Hellfire charge",
             "Defensives and interrupts",
-            "Wish of Concentration"
+            "Wish of Concentration",
+            "Fire Wall",
+            "Cold Storm"
           ],
           "stigmas": [
             "Element Enhancement",
@@ -2504,7 +2545,9 @@
             "Winter’s Shackles",
             "Hellfire charge",
             "Defensives and interrupts",
-            "Wish of Concentration"
+            "Wish of Concentration",
+            "Fire Wall",
+            "Cold Storm"
           ],
           "stigmas": [
             "Element Enhancement",
@@ -2768,7 +2811,9 @@
             "Delayed Explosion",
             "Winter’s Shackles",
             "Hellfire charge",
-            "Defensives and interrupts"
+            "Defensives and interrupts",
+            "Fire Wall",
+            "Cold Storm"
           ],
           "stigmas": [
             "Element Enhancement",
@@ -2805,6 +2850,9 @@
             "binding": "LMB",
             "usage": "Hold separately alongside the native macro; do not insert it into the damage-line cycle.",
             "source": "https://www.youtube.com/watch?v=Qr9NvMvI1-M&lc=UgydeJPAbkhSME9om454AaABAg"
+          },
+          "skillRequirements": {
+            "Wish of Concentration": 16
           }
         }
       ],
@@ -2821,7 +2869,22 @@
         "instructions": "Put the basic attack on left click and bind the native in-game macro to right click. Hold LMB and RMB together for the separate-basic-attack comparison.",
         "setup": "Bind the Macro action in Settings → Key Settings → General → Macro. Mouse binding may require AION 2 control mode. Q/E/R/T are internal hotbar slots, not extra keys to hold.",
         "exception": "Release either input when mechanics require movement or a manual action. Charged attacks, interrupts and defensive decisions stay under your control."
-      }
+      },
+      "mechanics": [
+        {
+          "title": "Burst setup is different from sustained filler",
+          "detail": "Element Enhancement, Delayed Explosion, Winter’s Shackles, Fire Wall and Cold Storm remain deliberate inputs in the controlled setup. Place ground effects when the boss can remain in them."
+        },
+        {
+          "title": "Keep Hellfire fully manual",
+          "detail": "The guide does not assume a repeated macro tap completes its charge. The pinned creator correction also keeps Flame Arrow separately held."
+        },
+        {
+          "title": "Wish is specialization dependent",
+          "detail": "The automatic-Wish comparison requires the actual equipped skill at 16 plus the appropriate specialty. Do not apply its later cooldown plan to a fresh level-45 character."
+        }
+      ],
+      "defaultMode": "boss-manual"
     },
     {
       "id": "spiritmaster",
@@ -3351,7 +3414,21 @@
         "instructions": "Put the basic attack on left click and bind the native in-game macro to right click. Hold LMB and RMB together for the separate-basic-attack comparison.",
         "setup": "Bind the Macro action in Settings → Key Settings → General → Macro. Mouse binding may require AION 2 control mode. Q/E/R/T are internal hotbar slots, not extra keys to hold.",
         "exception": "Release either input when mechanics require movement or a manual action. Charged attacks, interrupts and defensive decisions stay under your control."
-      }
+      },
+      "mechanics": [
+        {
+          "title": "Four Elements is a resource condition",
+          "detail": "Record resource changes from actual spirit-skill activations, including repeat activations. Do not replace that observation with a rule requiring four distinct spirits."
+        },
+        {
+          "title": "Separate charging from the automatic line",
+          "detail": "The charge selector moves Fusion out of every automatic line. Cold Shock stays a separate basic input; Ancient Spirit and buffs remain manual."
+        },
+        {
+          "title": "Do not equate different creator macros",
+          "detail": "The controlled damage-first candidate differs from the buff-inclusive primary guide. Buff timing, spirit persistence and resource readiness still need client tests."
+        }
+      ]
     },
     {
       "id": "cleric",
@@ -3498,7 +3575,7 @@
               "key": "E",
               "name": "E skill line",
               "priority": [
-                "Lightning Strike Scattershot",
+                "Divine Aura",
                 "Judgment Thunder"
               ]
             }
@@ -3508,7 +3585,9 @@
             "All healing and cleanse",
             "Bolt charge",
             "Light of Protection toggle",
-            "Divine Aura and Light of Regeneration"
+            "Lightning Strike Scattershot (valid stagger only)",
+            "Debilitating Mark",
+            "Light of Regeneration"
           ],
           "stigmas": [
             "Earth Punishment",
@@ -3562,7 +3641,7 @@
               "key": "E",
               "name": "E skill line",
               "priority": [
-                "Lightning Strike Scattershot",
+                "Divine Aura",
                 "Judgment Thunder"
               ]
             }
@@ -3572,7 +3651,9 @@
             "All healing and cleanse",
             "Bolt charge",
             "Light of Protection toggle",
-            "Divine Aura and Light of Regeneration"
+            "Lightning Strike Scattershot (valid stagger only)",
+            "Debilitating Mark",
+            "Light of Regeneration"
           ],
           "stigmas": [
             "Earth Punishment",
@@ -3625,7 +3706,7 @@
               "key": "E",
               "name": "E skill line",
               "priority": [
-                "Lightning Strike Scattershot",
+                "Divine Aura",
                 "Judgment Thunder"
               ]
             }
@@ -3635,7 +3716,9 @@
             "All healing and cleanse",
             "Bolt charge",
             "Light of Protection toggle",
-            "Divine Aura and Light of Regeneration"
+            "Lightning Strike Scattershot (valid stagger only)",
+            "Debilitating Mark",
+            "Light of Regeneration"
           ],
           "stigmas": [
             "Earth Punishment",
@@ -3688,7 +3771,7 @@
               "key": "E",
               "name": "E skill line",
               "priority": [
-                "Lightning Strike Scattershot",
+                "Divine Aura",
                 "Judgment Thunder"
               ]
             }
@@ -3698,7 +3781,9 @@
             "All healing and cleanse",
             "Bolt charge",
             "Light of Protection toggle",
-            "Divine Aura and Light of Regeneration"
+            "Lightning Strike Scattershot (valid stagger only)",
+            "Debilitating Mark",
+            "Light of Regeneration"
           ],
           "stigmas": [
             "Earth Punishment",
@@ -3856,7 +3941,7 @@
               "key": "E",
               "name": "E skill line",
               "priority": [
-                "Lightning Strike Scattershot",
+                "Divine Aura",
                 "Judgment Thunder"
               ]
             }
@@ -3866,8 +3951,10 @@
             "All healing and cleanse",
             "Bolt charge",
             "Light of Protection toggle",
-            "Divine Aura and Light of Regeneration",
-            "Absolution (heal / cleanse)"
+            "Absolution (heal / cleanse)",
+            "Lightning Strike Scattershot (valid stagger only)",
+            "Debilitating Mark",
+            "Light of Regeneration"
           ],
           "stigmas": [
             "Earth Punishment",
@@ -3995,7 +4082,7 @@
             "Do not infer a winner from the number of Condemnation hits; the debuff, crit and cooldown-reset specialties must be confirmed."
           ],
           "minCharacterLevel": 45,
-          "minSkillTier": 8,
+          "minSkillTier": 12,
           "evidence": {
             "communitySupported": true,
             "mechanicallyVerified": false,
@@ -4015,6 +4102,12 @@
             "skill": "Earth’s Retribution",
             "binding": "LMB",
             "usage": "Hold alongside the native damage macro when healing and movement permit."
+          },
+          "skillRequirements": {
+            "Condemnation": 12
+          },
+          "stigmaRequirements": {
+            "Earth Punishment": 5
           }
         }
       ],
@@ -4031,7 +4124,22 @@
         "instructions": "Put the basic attack on left click and bind the native in-game macro to right click. Hold LMB and RMB together for the separate-basic-attack comparison.",
         "setup": "Bind the Macro action in Settings → Key Settings → General → Macro. Mouse binding may require AION 2 control mode. Q/E/R/T are internal hotbar slots, not extra keys to hold.",
         "exception": "Release either input when mechanics require movement or a manual action. Charged attacks, interrupts and defensive decisions stay under your control."
-      }
+      },
+      "mechanics": [
+        {
+          "title": "Damage filler cannot choose healing priorities",
+          "detail": "Keep healing, cleanse, Bolt charging and Light of Protection’s toggle manual. Interrupt the damage loop when the group needs support."
+        },
+        {
+          "title": "Debuffs and crit resets have prerequisites",
+          "detail": "Earth Punishment’s relevant specialty and Condemnation’s crit-reset specialty must be equipped. The macro cannot guarantee an affliction landed."
+        },
+        {
+          "title": "Composition affects the utility slot",
+          "detail": "The Chanter-present candidate uses manual Absolution with an explicit stigma-level requirement. Verify overlap with the actual party buffs; do not infer healing safety from a DPS result."
+        }
+      ],
+      "defaultMode": "boss-manual"
     },
     {
       "id": "chanter",
@@ -4579,6 +4687,9 @@
             "skill": "Onslaught",
             "binding": "LMB",
             "usage": "Weave separately for resource sustain; compare with a macro basic-attack step rather than assuming equivalence."
+          },
+          "skillRequirements": {
+            "Dark Crush": 16
           }
         }
       ],
@@ -4595,7 +4706,21 @@
         "instructions": "Put the basic attack on left click and bind the native in-game macro to right click. Hold LMB and RMB together for the separate-basic-attack comparison.",
         "setup": "Bind the Macro action in Settings → Key Settings → General → Macro. Mouse binding may require AION 2 control mode. Q/E/R/T are internal hotbar slots, not extra keys to hold.",
         "exception": "Release either input when mechanics require movement or a manual action. Charged attacks, interrupts and defensive decisions stay under your control."
-      }
+      },
+      "mechanics": [
+        {
+          "title": "Do not spend openers into a closed window",
+          "detail": "The later extra-trigger line requires the actual Dark Crush skill at 16 and its cooldown-removal specialty. Earlier play retains manually timed openers."
+        },
+        {
+          "title": "Keep Onslaught and support accessible",
+          "detail": "Onslaught is the basic attack. Mantra toggles, Power of the Storm, healing and cleanses stay available for manual timing."
+        },
+        {
+          "title": "Wave Blow is conditional control",
+          "detail": "Use actual Stun evidence. Do not put it in the repeated damage macro or assume an existing Knockdown satisfies its condition."
+        }
+      ]
     }
   ]
 }

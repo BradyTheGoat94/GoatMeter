@@ -35,3 +35,7 @@ Added the user-confirmed comparison: Judgment stack / Annihilate plus Debilitati
 ## Mouse-input instructions and Gladiator website pass
 
 The handbook explicitly explains LMB basic attack plus RMB native macro, with the distinction between a single macro binding and its internal hotbar steps. Gladiator retains a progression exception: compare macro-only at actual core skill 16 with the relevant specialties and sufficient mana sustain. No input style is labeled a measured winner. Current Global PvP uncertainty is now explicit and copying that unresolved Gladiator PvP candidate is disabled. The default Templar three-slot explanation is preserved across class switches.
+
+## Remaining six classes pass
+
+Assassin defaults to the separate-Quick-Slice comparison while preserving the older basic-step candidate; uncertain Insignia specialty tiers are explicit. Ranger now lists Supporting Fire among manual inputs. Sorcerer explicitly lists Fire Wall and Cold Storm in its controlled setup, and the automatic-Wish comparison requires the named equipped skill. Cleric separates its conditional stagger/debuff inputs from Divine Aura / Judgment Thunder; the Lucia comparison checks Condemnation 12 and Earth Punishment stigma 5. Chanter's later trigger line requires actual Dark Crush 16. All six classes now have compact mechanics notes explaining what the priority preview cannot infer. Source support was not promoted into client verification or a benchmark result.

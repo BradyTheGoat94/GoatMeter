@@ -60,7 +60,7 @@ test('source-comparison variants retain basic attacks and keep manual/automatic 
 });
 test('Sorcerer creator correction keeps Flame Arrow separate and gates the Wish specialty',()=>{
  const b=build('sorcerer'),m=effectivePreset(b,'boss-manual');assert.equal(m.basicAttack.binding,'LMB');assert.equal(m.basicAttack.skill,'Flame Arrow');assert.match(copyPlan(b,m),/Basic attack: Flame Arrow on LMB/);assert.ok(m.lines.every(l=>!l.priority.includes('Flame Arrow')));
- const wish=effectivePreset(b,'community-wish-line');assert.ok(eligibility(wish,{characterLevel:45,skillTier:12}));assert.equal(eligibility(wish,{characterLevel:45,skillTier:16}),'');
+ const wish=effectivePreset(b,'community-wish-line');assert.ok(eligibility(wish,{characterLevel:45,skillTier:12}));assert.equal(eligibility(wish,{characterLevel:45,skillTier:16,skillLevels:{'Wish of Concentration':16}}),'');
 });
 test('support-class comparisons preserve deliberate order and manual emergency buttons',()=>{
  const spirit=effectivePreset(build('spiritmaster'),'one-button');assert.deepEqual(spirit.steps,['E','Q']);assert.equal(spirit.basicAttack.skill,'Cold Shock');assert.ok(spirit.lines.every(l=>!l.priority.some(s=>/Ancient Spirit|Benediction|Flame Blessing/.test(s))));
@@ -87,4 +87,13 @@ test('Templar separate-Pummel candidate copies three stack inputs instead of ind
 test('input instructions distinguish the basic attack from the macro and retain Gladiator progression exception',()=>{
  for(const b of catalog.classes){assert.equal(b.inputGuide.basicBinding,'LMB');assert.equal(b.inputGuide.macroBinding,'RMB');assert.match(b.inputGuide.instructions,/Hold LMB and RMB together/);}
  const b=build('gladiator'),m=effectivePreset(b,'one-button');assert.match(copyPlan(b,m,{skillLevels:m.skillRequirements}),/LMB = Keen Strike; RMB = native macro/);assert.match(b.inputGuide.exception,/Sources disagree/);assert.equal(effectivePreset(b,'pvp').copyEnabled,false);
+});
+test('remaining classes expose deliberate actions and named-skill prerequisites',()=>{
+ assert.equal(build('assassin').defaultMode,'community-separate-basic');
+ const ranger=effectivePreset(build('ranger'),'boss-manual');assert.ok(ranger.manual.includes('Supporting Fire'));assert.ok(ranger.manual.some(s=>/Marking Shot/.test(s)));assert.ok(ranger.manual.some(s=>/Deadshot/.test(s)));
+ const sorc=effectivePreset(build('sorcerer'),'boss-manual');for(const skill of ['Fire Wall','Cold Storm','Hellfire charge'])assert.ok(sorc.manual.includes(skill));
+ const wish=effectivePreset(build('sorcerer'),'community-wish-line');assert.throws(()=>copyPlan(build('sorcerer'),wish),/equipped Wish/);
+ const cleric=effectivePreset(build('cleric'),'boss-manual');assert.deepEqual(cleric.lines[1].priority,['Divine Aura','Judgment Thunder']);assert.ok(cleric.lines.every(l=>!l.priority.includes('Lightning Strike Scattershot')));
+ const chanter=effectivePreset(build('chanter'),'community-trigger-line');assert.throws(()=>copyPlan(build('chanter'),chanter),/equipped Dark Crush/);
+ for(const id of ['assassin','ranger','sorcerer','spiritmaster','cleric','chanter'])assert.equal(build(id).mechanics.length,3);
 });
