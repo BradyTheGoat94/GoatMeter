@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "status": "awaiting-complete-layout-and-matched-trials",
+  "encounter": "stationary-dummy",
+  "targetCount": 1,
+  "durationSeconds": 120,
+  "delayMs": 10,
+  "alternativeDelayMs": 20,
+  "minimumPairedTrials": 5,
+  "candidates": [
+    {"id":"controlled","catalogMode":"boss-manual","label":"GoatMeter controlled burst candidate","performanceVerified":false},
+    {"id":"berdugz","label":"berdugz screenshot candidate","source":"https://www.youtube.com/watch?v=l5NSx4epUb0","visibleInputs":[{"key":"Q","displayedSkill":"Winter’s Shackles"},{"key":"2","displayedSkill":"Blaze"},{"key":"R","displayedSkill":"Flame Arrow"},{"key":"1","displayedSkill":"Frost Burst"}],"completeStacksConfirmed":false,"completeMacroConfirmed":false,"copyEnabled":false,"performanceVerified":false}
+  ],
+  "results": null,
+  "blockers": ["Identify every skill and priority row in the source hotbar stacks.","Confirm whether macro entries continue below the photographed list.","Record exact Global patch, equipped skills, specialties, stats and target defenses.","Collect paired in-game trials; synthetic cast counts cannot establish actual DPS."]
+}
