@@ -15,6 +15,7 @@
    <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
     <Button Content="OPEN OVERLAY" Margin="6" Padding="12,6" Click="OpenOverlay"/>
     <Button Content="RESET FIGHT" Margin="6" Padding="12,6" Click="Reset"/>
+    <Button Content="CHECK FOR UPDATES" Margin="6" Padding="12,6" Click="CheckForUpdates"/>
    </StackPanel>
   </DockPanel>
   <Grid Grid.Row="1">

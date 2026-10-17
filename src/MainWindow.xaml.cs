@@ -5,6 +5,7 @@ using Aion2DPSPro.Capture;
 using Aion2DPSPro.Overlay;
 using Aion2DPSPro.Protocol;
 using Aion2DPSPro.Storage;
+using Aion2DPSPro.Updates;
 
 namespace Aion2DPSPro;
 
@@ -15,15 +16,71 @@ public partial class MainWindow : Window
     readonly OverlayWindow overlay=new();
     readonly LiveCaptureAdapter capture;
     readonly object diagnosticsGate=new();
+    // Identity is only trusted when the decoder explicitly labels a selfInfo
+    // packet. Nearby identityMap records must never promote a player to self.
+    long? verifiedLocalActorId;
+    // Only structured roster records and verified session/global links may populate party membership.
+    readonly Dictionary<(long CharacterId,int ServerId),DateTime> verifiedPartyMembers=new();
+    readonly Dictionary<long,(long CharacterId,int ServerId)> verifiedCombatIdentityLinks=new();
+
     readonly Queue<string> inspector=new();
     long packets,decoderDiagnostics,recognized,parsedEvents,duplicates,damageEvents,healEvents,hpEvents,otherEvents,acceptedDamageEvents,snapshotId;
     string activeFlow="Waiting...",captureStatus="Starting capture...",lastDecoder="",lastEvent="",profileId="",validationPath="",historyError="";
     Task saveTail=Task.CompletedTask;
     readonly FightStore store=new();
+    private async void CheckForUpdates(object sender, RoutedEventArgs e)
+    {
+        if(sender is System.Windows.Controls.Button button) button.IsEnabled=false;
+        try
+        {
+            await CheckForUpdatesCoreAsync(showUpToDate:true);
+        }
+        finally {if(sender is System.Windows.Controls.Button button2)button2.IsEnabled=true;}
+    }
+
+    private async Task CheckForUpdatesCoreAsync(bool showUpToDate)
+    {
+        try
+        {
+            var update=await GoatMeterUpdater.CheckAsync();
+            if(update is null)
+            {
+                if(showUpToDate)
+                    MessageBox.Show(this,"You're running the latest available stable release, or no compatible release was found.","GoatMeter Updates",MessageBoxButton.OK,MessageBoxImage.Information);
+                return;
+            }
+            if(MessageBox.Show(this,$"GoatMeter {update.Version} is available. Download and verify the installer? Your local settings and fight history are stored separately and will be preserved.","GoatMeter Updates",MessageBoxButton.YesNo,MessageBoxImage.Question)!=MessageBoxResult.Yes)return;
+            var installer=await GoatMeterUpdater.DownloadVerifiedInstallerAsync(update);
+            if(MessageBox.Show(this,"Installer downloaded and SHA-256 verified. Close GoatMeter and start the installer now?","GoatMeter Updates",MessageBoxButton.YesNo,MessageBoxImage.Question)!=MessageBoxResult.Yes)return;
+            GoatMeterUpdater.LaunchInstaller(installer);
+            Close();
+        }
+        catch(Exception ex)
+        {
+            // Offline startup must not interrupt the meter. Manual checks report errors.
+            if(showUpToDate)
+                MessageBox.Show(this,$"Update was not installed: {ex.Message}","GoatMeter Updates",MessageBoxButton.OK,MessageBoxImage.Warning);
+        }
+    }
+
     public MainWindow()
     {
         InitializeComponent();
         overlay.Engine=engine;
+        overlay.LocalActorProvider=()=> { lock(diagnosticsGate) return verifiedLocalActorId; };
+        // Fail closed until structured roster entries can be joined to combat actors.
+        overlay.PartyRosterProvider=()=>
+        {
+            lock(diagnosticsGate)
+            {
+                var now=DateTime.UtcNow;
+                var members=verifiedPartyMembers.Where(x=>now-x.Value<TimeSpan.FromMinutes(10)).Select(x=>x.Key).ToHashSet();
+                if(members.Count==0)return null;
+                return verifiedCombatIdentityLinks.Where(x=>members.Contains(x.Value)).Select(x=>x.Key).ToArray();
+            }
+        };
+        overlay.ForceRosterProvider=()=>null;
+
         overlay.SnapshotProvider=(segment,category)=>engine.Snapshot(segment,category);
         overlay.HistoryProvider=()=>store.List().ToArray();
         overlay.HistoryLoader=path=>store.LoadAsync(path);
@@ -53,6 +110,18 @@ public partial class MainWindow : Window
                 catch(Exception ex) {lock(diagnosticsGate)captureStatus=$"Validation logging failed: {ex.Message}";}
             }
         }
+        decoder.ValidationRecord+=line =>
+        {
+            // Self-identity validation is emitted only for decoded selfInfo,
+            // not ordinary otherInfo or untrusted nearby combat participants.
+            if(line.Contains("|tag=selfIdentity|",StringComparison.Ordinal)
+                && !line.Contains("|status=no-name",StringComparison.Ordinal))
+            {
+                var field=line.Split('|').FirstOrDefault(part=>part.StartsWith("entity=",StringComparison.Ordinal));
+                if(field!=null && long.TryParse(field.AsSpan("entity=".Length),out var actor) && actor>0)
+                    lock(diagnosticsGate) verifiedLocalActorId=actor;
+            }
+        };
         decoder.ValidationRecord+=RecordValidation;
         decoder.Diagnostic += d => {lock(diagnosticsGate) {decoderDiagnostics++;if(d.Stage=="parse")recognized++;lastDecoder=$"[{d.Stage}] {d.Message} ({d.Bytes} bytes)";}};
         engine.EncounterCompleted += snapshot =>
@@ -68,10 +137,26 @@ public partial class MainWindow : Window
         capture.PacketCaptured += ()=>Interlocked.Increment(ref packets);
         capture.DuplicateSuppressed += ()=>Interlocked.Increment(ref duplicates);
         capture.FlowLocked += s=> {lock(diagnosticsGate)activeFlow=s;};
-        capture.ConnectionReset += ()=>engine.Apply(new(DateTime.UtcNow,CombatKind.Zone));
+        capture.ConnectionReset += ()=>
+        {
+            lock(diagnosticsGate) {verifiedLocalActorId=null;verifiedPartyMembers.Clear();verifiedCombatIdentityLinks.Clear();}
+            engine.Apply(new(DateTime.UtcNow,CombatKind.Zone));
+        };
         capture.StatusChanged += s=> {lock(diagnosticsGate)captureStatus=s;};
         capture.EventReceived += e=>
         {
+            // Never infer party membership from nearby damage or matching display names.
+            // The roster and combat identity must agree on character and server IDs.
+            lock(diagnosticsGate)
+            {
+                // The adapter keeps raw CharacterStats inside its identity bridge.
+                // A score-enriched PlayerName carries the same exact verified
+                // roster join and observation time to the host.
+                if((e.Kind==CombatKind.CharacterStats||e.Kind==CombatKind.PlayerName) && e.SourceCharacterId is long rosterId && rosterId>0 && e.SourceServerId is int rosterServer && rosterServer>0 && e.StatsObservedUtc is DateTime observed)
+                    verifiedPartyMembers[(rosterId,rosterServer)]=observed;
+                if(e.Kind==CombatKind.PlayerName && e.SourceId>0 && e.SourceCharacterId is long combatId && combatId>0 && e.SourceServerId is int combatServer && combatServer>0)
+                    verifiedCombatIdentityLinks[e.SourceId]=(combatId,combatServer);
+            }
             engine.Apply(e);
             lock(diagnosticsGate)
             {
@@ -85,6 +170,12 @@ public partial class MainWindow : Window
             }
         };
         timer.Tick += (_,_)=>Render(); timer.Start(); capture.Start();
+        // Startup check is non-blocking. Installation always requires consent.
+        Loaded += async (_,_) =>
+        {
+            await Task.Yield();
+            await CheckForUpdatesCoreAsync(showUpToDate:false);
+        };
     }
     void OpenOverlay(object sender,RoutedEventArgs e) {if(!overlay.IsVisible)overlay.Show();overlay.Activate();}
     void Reset(object sender,RoutedEventArgs e)=>engine.ResetFight();

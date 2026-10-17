@@ -6,7 +6,19 @@ public sealed class PacketDispatcher
 {
     public Aion2Decoded AttachRosterScores(Aion2Decoded e,DateTime utc)
     {
-        if(!profile.ExperimentalRosterScores||e.Kind!=CombatKind.PlayerName||!sessionToGlobal.TryGetValue(e.SourceId,out var global))return e;
+        if(!profile.ExperimentalRosterScores||e.Kind!=CombatKind.PlayerName)return e;
+        long global;
+        if(otherPlayerLinks.TryGetValue(e.SourceId,out var stable)&&stable.Name==e.Source&&utc>=stable.Seen&&utc-stable.Seen<=TimeSpan.FromMinutes(10))
+        {
+            if(sessionToGlobal.TryGetValue(e.SourceId,out var explicitId)&&explicitId!=stable.Character)
+                return e with {SourceCharacterId=0,SourceServerId=0,SourceGearScore=null,SourceCombatPower=null,StatsObservedUtc=null};
+            global=stable.Character;
+            e=e with {SourceCharacterId=global,SourceServerId=stable.Server};
+            var exact=rosterScores.GetValueOrDefault((global,stable.Server));
+            if(exact==null||exact.Name!=e.Source||utc<exact.ObservedUtc||utc-exact.ObservedUtc>TimeSpan.FromMinutes(10))return e;
+            return e with {SourceGearScore=exact.GearScore,SourceCombatPower=exact.CombatPower,StatsObservedUtc=exact.ObservedUtc};
+        }
+        if(!sessionToGlobal.TryGetValue(e.SourceId,out global))return e;
         e=e with {SourceCharacterId=global,SourceServerId=identityServers.GetValueOrDefault(e.SourceId,e.SourceServerId)};
         var candidates=rosterScores.Values.Where(x=>x.CharacterId==global&&x.Name==e.Source&&utc>=x.ObservedUtc&&utc-x.ObservedUtc<=TimeSpan.FromMinutes(10)).ToArray();
         if(identityServers.TryGetValue(e.SourceId,out var server)&&server>0)candidates=candidates.Where(x=>x.ServerId==server).ToArray();
@@ -28,6 +40,7 @@ public sealed class PacketDispatcher
     private readonly Queue<RecentSummonSpawn> recentSummonSpawns = new();
     private readonly Dictionary<(long Character,int Server),RosterScore> rosterScores=new();
     private readonly Dictionary<long,int> identityServers=new();
+    private readonly Dictionary<long,(long Character,int Server,string Name,DateTime Seen)> otherPlayerLinks=new();
     private readonly Dictionary<string,int> featureCandidateSamples = new();
     public event Action<DecoderDiagnostic>? Diagnostic;
     public event Action<string>? ValidationRecord;
@@ -53,7 +66,10 @@ public sealed class PacketDispatcher
         {
             if(a==0x02 && profile.ExperimentalRosterScores)
             {
-                foreach(var stats in PartyRosterScores.Parse(frame.AsSpan(p+2),utc))
+                var parsedRoster=PartyRosterScores.Parse(frame.AsSpan(p+2),utc);
+                // Metadata only: no raw packets, IP addresses, or player names.
+                ValidationRecord?.Invoke($"{utc:O}|tag=rosterScoreDecode|opcode=0297|rows={parsedRoster.Count}|status={(parsedRoster.Count>0?"accepted":"unresolved")}");
+                foreach(var stats in parsedRoster)
                 {
                     rosterScores[(stats.CharacterId,stats.ServerId)]=stats;
                     yield return new(CombatKind.CharacterStats,0,stats.Name,0,"","",0,DamageType.Unknown,0,0,"",0,ClassFromJobCode(stats.ClassCode),SourceServerId:stats.ServerId,SourceCharacterId:stats.CharacterId,SourceGearScore:stats.GearScore,SourceCombatPower:stats.CombatPower,StatsObservedUtc:stats.ObservedUtc);
@@ -62,10 +78,10 @@ public sealed class PacketDispatcher
                     if(rosterScores.Values.Count(x=>x.CharacterId==stats.CharacterId)==1)
                         partyIdentities[stats.CharacterId]=new PlayerIdentity(stats.Name,ClassFromJobCode(stats.ClassCode));
                 }
-                foreach(var link in sessionToGlobal)
-                    if(identities.TryGetValue(link.Key,out var known))
+                foreach(var actor in sessionToGlobal.Keys.Concat(otherPlayerLinks.Keys).Distinct().ToArray())
+                    if(identities.TryGetValue(actor,out var known))
                     {
-                        var resolved=AttachRosterScores(new(CombatKind.PlayerName,link.Key,known.Name,0,"","",0,DamageType.Unknown,0,0,"",0,known.ClassName),utc);
+                        var resolved=AttachRosterScores(new(CombatKind.PlayerName,actor,known.Name,0,"","",0,DamageType.Unknown,0,0,"",0,known.ClassName),utc);
                         if(resolved.StatsObservedUtc!=null)yield return resolved;
                     }
             }
@@ -204,7 +220,7 @@ public sealed class PacketDispatcher
             recentCombatIds.Remove(id);recentCombatEntityIds.Remove(id);
             return null;
         }
-        identities.Remove(id);globalPlayerNames.Remove(id);partyIdentities.Remove(id);sessionToGlobal.Remove(id);
+        identities.Remove(id);globalPlayerNames.Remove(id);partyIdentities.Remove(id);sessionToGlobal.Remove(id);otherPlayerLinks.Remove(id);identityServers.Remove(id);
         mobs.Remove(id);summonOwners.Remove(id);confirmedSummons.Remove(id);recentCombatIds.Remove(id);recentCombatEntityIds.Remove(id);
         foreach(var key in sessionToGlobal.Where(x=>x.Value==id).Select(x=>x.Key).ToArray())sessionToGlobal.Remove(key);
         foreach(var key in summonOwners.Where(x=>x.Value==id).Select(x=>x.Key).ToArray())summonOwners.Remove(key);
@@ -821,12 +837,27 @@ public sealed class PacketDispatcher
             serverId = FindLikelyServerId(d, afterName);
         }
         RememberGlobalPlayerIdentity(id, best, className, utc, packetKind);
+        long stableCharacter=0;int stableServer=0;
+        // This packet's entity id is the combat actor; the independently bounded
+        // attribute block supplies its full character/server dbid. Names only
+        // corroborate the exact roster join and never establish it.
+        if(profile.ExperimentalRosterScores&&packetKind=="otherInfo")
+        {
+            otherPlayerLinks.Remove(id);
+            if(OtherPlayerStableIdentity.TryRead(d,nameOffset+2+d[nameOffset+1],out var character,out var server))
+            {
+                stableCharacter=character;stableServer=server;
+                otherPlayerLinks[id]=(character,server,best,utc);
+                if(otherPlayerLinks.Count>4096)otherPlayerLinks.Remove(otherPlayerLinks.MinBy(x=>x.Value.Seen).Key);
+                ValidationRecord?.Invoke($"{utc:O}|tag=otherPlayerStableLink|status=structured|layout=attribute-dbid");
+            }
+        }
         Diagnostic?.Invoke(new(utc,"identity-map",$"Mapped entity {id} -> {best} class={className} job={jobCode} server={serverId}",d.Length));
         var idCandidates = DescribeIdentityCandidates(d, start);
         Diagnostic?.Invoke(new(utc,"identity",$"{packetKind} id={id} name={best} class={className} job={jobCode} server={serverId} idCandidates={idCandidates}",d.Length));
         ValidationRecord?.Invoke($"{utc:O}|tag=identity|packet={packetKind}|id={id}|name={best}|class={className}|jobCode={jobCode}|server={serverId}|nameOffset={nameOffset}|idCandidates={idCandidates}|bridgeFields={DescribeBridgeFields(d,start)}|bridgeStrings={DescribeBridgeStrings(d,start)}|combatIdHits={FindCombatIdEncodings(d)}|raw={Convert.ToHexString(d)}");
         ValidationRecord?.Invoke($"{utc:O}|tag=identityMap|entity={id}|name={best}|class={className}|jobCode={jobCode}|server={serverId}|source={packetKind}");
-        return new(CombatKind.PlayerName,id,best,0,"","",0,DamageType.Unknown,0,0,"",0,className);
+        return new(CombatKind.PlayerName,id,best,0,"","",0,DamageType.Unknown,0,0,"",0,className,SourceServerId:stableServer,SourceCharacterId:stableCharacter);
     }
 
     private static int FindLikelyServerId(ReadOnlySpan<byte> d, int afterName)

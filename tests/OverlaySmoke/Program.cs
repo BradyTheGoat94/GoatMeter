@@ -11,7 +11,13 @@ internal static class Program
  static void Main()
  {
   var app=new Application {ShutdownMode=ShutdownMode.OnExplicitShutdown};
-  var window=new OverlayWindow();
+  var window=new OverlayWindow(persistPreferences:false);
+  void Offscreen(Window target)
+  {
+   target.WindowStartupLocation=WindowStartupLocation.Manual;
+   target.Left=-32000;target.Top=-32000;target.ShowActivated=false;target.ShowInTaskbar=false;
+  }
+  Offscreen(window);
   void Invoke(string name,string value)=>typeof(OverlayWindow).GetMethod(name,BindingFlags.NonPublic|BindingFlags.Instance)!.Invoke(window,new object[]{value});
   string? previous=null;
   foreach(var theme in new[]{"Aion Blue/Red","Neon Spectrum","Void Purple","Emerald Glass","Solar Flare","Ice Crystal","Midnight Gold","Rose Quartz","Aurora","Black / Orange","Black / Yellow","Nightmare Before Christmas"})
@@ -78,6 +84,7 @@ internal static class Program
   reportEngine.Apply(new(t.AddSeconds(8),CombatKind.Damage,1,"TestHero",2,"Training Scarecrow","Pummel",9000,SourceClass:"Templar"));
   reportEngine.Apply(new(t.AddSeconds(10),CombatKind.Heal,1,"TestHero",1,"TestHero","Mend",3500,SourceClass:"Templar"));
   var report=new CombatReportWindow(()=>reportEngine.Snapshot(MeterSegment.Current,MeterCategory.Damage,true),1);
+  Offscreen(report);
   report.Show();report.UpdateLayout();
   if(((DataGrid)report.FindName("SkillGrid")).Items.Count!=3)throw new Exception("Report damage skills missing");
   if(((DataGrid)report.FindName("TargetGrid")).Items.Count!=1)throw new Exception("Report targets missing");
@@ -204,6 +211,7 @@ internal static class Program
   typeof(OverlayWindow).GetMethod("SetUiScale",BindingFlags.NonPublic|BindingFlags.Instance)!.Invoke(window,new object[]{1.0});
   Console.WriteLine("PASS: freeze preserves capture, navigation resumes display and UI scale");
   var eventWindow=new EventTimersWindow {Owner=window,Clock=()=>new DateTimeOffset(2026,10,14,2,59,0,TimeSpan.Zero)};
+  Offscreen(eventWindow);
   eventWindow.Show();eventWindow.Refresh();eventWindow.UpdateLayout();
   var eventItems=(ItemsControl)eventWindow.FindName("EventRows");
   if(eventItems.Items.Count!=2)throw new Exception("Imported rift/festival timers missing");

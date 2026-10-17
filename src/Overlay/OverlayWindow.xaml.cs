@@ -4,6 +4,7 @@ using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Media;
 using Aion2DPSPro;
+using GoatMeter.GoatSim;
 
 namespace Aion2DPSPro.Overlay;
 public partial class OverlayWindow : Window
@@ -13,6 +14,11 @@ public partial class OverlayWindow : Window
     public Func<string[]>? HistoryProvider {get;set;}
     public Func<string,Task<MeterSnapshot?>>? HistoryLoader {get;set;}
     MeterSnapshot? last;
+    PlayerViewScope playerScope=PlayerViewScope.EveryoneNearby;
+    // Hosts must provide verified actor and roster IDs; no proximity inference.
+    public Func<long?>? LocalActorProvider { get; set; }
+    public Func<IReadOnlyCollection<long>?>? PartyRosterProvider { get; set; }
+    public Func<IReadOnlyCollection<long>?>? ForceRosterProvider { get; set; }
     MeterSnapshot? historicalSnapshot;
     string? historicalPath;
     bool loadingHistory;
@@ -29,7 +35,9 @@ public partial class OverlayWindow : Window
     bool showCharacterStats=true;
     EventTimersWindow? eventTimers;
     bool showDetails = true;
-    public OverlayWindow() { InitializeComponent(); CategoryPicker.ItemsSource=new[]{"Damage","Healing","Damage Taken","Deaths","Buffs","Debuffs","Interrupts","Dispels"}; CategoryPicker.SelectedIndex=0; FightHistory.ItemsSource=new[]{new HistoryChoice("Saved fights ▾",null)}; FightHistory.SelectedIndex=0; ApplyTheme(currentTheme); ApplyOverlayStyle(currentStyle); LoadPreferences(); }
+    readonly bool persistPreferences;
+    public OverlayWindow() : this(true) { }
+    public OverlayWindow(bool persistPreferences) { this.persistPreferences=persistPreferences;InitializeComponent(); CategoryPicker.ItemsSource=new[]{"Damage","Healing","Damage Taken","Deaths","Buffs","Debuffs","Interrupts","Dispels"}; CategoryPicker.SelectedIndex=0; FightHistory.ItemsSource=new[]{new HistoryChoice("Saved fights ▾",null)}; FightHistory.SelectedIndex=0; ApplyTheme(currentTheme); ApplyOverlayStyle(currentStyle); if(persistPreferences)LoadPreferences(); }
     static readonly Dictionary<string,string> Colors = new(StringComparer.OrdinalIgnoreCase) {
         ["Gladiator"]="#E65353", ["Templar"]="#E8903D", ["Assassin"]="#C45CFF", ["Ranger"]="#F2C94C",
         ["Sorcerer"]="#4DA3FF", ["Spiritmaster"]="#48C9D8", ["Cleric"]="#6DDB72", ["Chanter"]="#D6DCE8", ["Brawler"]="#FF7A45", ["Unknown"]="#AAB6CC" };
@@ -45,8 +53,25 @@ public partial class OverlayWindow : Window
             s=SnapshotProvider?.Invoke((MeterSegment)Math.Clamp(Segment.SelectedIndex,0,2),category)??s;
         }
         selectedActor=(Rows.SelectedItem as Row)?.Stats.ActorId??selectedActor;
+        bool rosterUnavailable=false;
+        if(playerScope!=PlayerViewScope.EveryoneNearby)
+        {
+            try
+            {
+                var allowed=PlayerRosterVisibility.VisibleActors(playerScope,
+                    LocalActorProvider?.Invoke(),s.Players.Select(p=>p.ActorId),
+                    PartyRosterProvider?.Invoke(),ForceRosterProvider?.Invoke());
+                s=s with {Players=s.Players.Where(p=>allowed.Contains(p.ActorId)).ToList()};
+            }
+            catch(InvalidOperationException)
+            {
+                // Keep unfiltered combat visible, but never label it party/force DPS.
+                // The warning below explicitly marks this as an all-players fallback.
+                rosterUnavailable=true;
+            }
+        }
         last=s; PreviewBadge.Visibility=s.PreviewMode?Visibility.Visible:Visibility.Collapsed;
-        Timer.Text=TimeSpan.FromSeconds(s.FightSeconds).ToString(@"mm\:ss"); GroupDps.Text=$"GROUP {F(s.Players.Sum(p=>p.Dps))} {s.MetricLabel}";
+        Timer.Text=TimeSpan.FromSeconds(s.FightSeconds).ToString(@"mm\:ss"); GroupDps.Text=$"{(rosterUnavailable||playerScope==PlayerViewScope.EveryoneNearby?"GROUP":playerScope.ToString().ToUpperInvariant())} {F(s.Players.Sum(p=>p.Dps))} {s.MetricLabel}";
         BossHp.Value=s.Target?.Percent??0; BossHp.Visibility=s.Target?.MaxHp>0?Visibility.Visible:Visibility.Collapsed; TargetName.Text=s.Target?.Name??"No target";
         if(hideNames&&s.Target!=null&&s.Players.Any(p=>p.Name==s.Target.Name))TargetName.Text="Player target";
         EncounterTarget.Text=TargetName.Text!="No target"?TargetName.Text:(s.Players.Count>0?"Combat encounter":"Waiting for combat");
@@ -59,7 +84,9 @@ public partial class OverlayWindow : Window
         EncounterRateLabel.Text=s.MetricLabel;
         TargetHp.Text=s.Target is null?"":s.Target.MaxHp<=0?"HP unavailable":$"{s.Target.Percent:0.0}%   {F(s.Target.CurrentHp)} / {F(s.Target.MaxHp)}";
         StatusText.ToolTip="Captured combat data. Regression checks validate supported fields; live totals still depend on the packets received.";
-        StatusText.Text=s.PreviewMode?"SIMULATED DATA":s.Players.Count==0?"WAITING FOR COMBAT":$"{(s.InFight?"CURRENT":"COMPLETED")} • CAPTURED";
+        StatusText.Text=rosterUnavailable
+            ? $"{playerScope.ToString().ToUpperInvariant()} FILTER UNAVAILABLE • SHOWING ALL PLAYERS"
+            : s.PreviewMode?"SIMULATED DATA":s.Players.Count==0?"WAITING FOR COMBAT":$"{(s.InFight?"CURRENT":"COMPLETED")} • CAPTURED";
         ResetCurrentFight.IsEnabled=Engine!=null;
         var targetTotal=s.Targets.Where(x=>x.TargetId==s.SelectedTargetId).Sum(x=>x.Damage);
         string Metadata(PlayerStats p)
@@ -162,7 +189,37 @@ public partial class OverlayWindow : Window
     {
         var w = new Window { Title="AION 2 DPS — Overlay Settings", Width=450, Height=700,
             WindowStartupLocation=WindowStartupLocation.CenterOwner, Owner=this, Background=Brush("#0A0E16"), Foreground=Brush("#F4F7FF"), ResizeMode=ResizeMode.NoResize };
-        w.Resources.MergedDictionaries.Add(Resources);
+        // Do not import overlay theme resources into this separate settings window.
+        // Theme-specific implicit styles can make labels and checkboxes unreadable.
+        // Settings use a fixed high-contrast palette independent of the selected
+        // overlay theme. WPF popup items must be styled explicitly as well.
+        var settingsBackground=Brush("#121925");
+        var settingsForeground=Brush("#FFFFFF");
+        var settingsBorder=Brush("#8DA6CE");
+        var comboStyle=new Style(typeof(System.Windows.Controls.ComboBox));
+        comboStyle.Setters.Add(new Setter(System.Windows.Controls.Control.BackgroundProperty,settingsBackground));
+        comboStyle.Setters.Add(new Setter(System.Windows.Controls.Control.ForegroundProperty,settingsForeground));
+        comboStyle.Setters.Add(new Setter(System.Windows.Controls.Control.BorderBrushProperty,settingsBorder));
+        comboStyle.Setters.Add(new Setter(System.Windows.Controls.Control.FontSizeProperty,14.0));
+        var itemStyle=new Style(typeof(System.Windows.Controls.ComboBoxItem));
+        itemStyle.Setters.Add(new Setter(System.Windows.Controls.Control.BackgroundProperty,settingsBackground));
+        itemStyle.Setters.Add(new Setter(System.Windows.Controls.Control.ForegroundProperty,settingsForeground));
+        itemStyle.Setters.Add(new Setter(System.Windows.Controls.Control.FontSizeProperty,14.0));
+        comboStyle.Setters.Add(new Setter(System.Windows.Controls.ItemsControl.ItemContainerStyleProperty,itemStyle));
+        w.Resources.Add(typeof(System.Windows.Controls.ComboBox),comboStyle);
+        var textStyle=new Style(typeof(System.Windows.Controls.TextBlock));
+        textStyle.Setters.Add(new Setter(System.Windows.Controls.TextBlock.ForegroundProperty,settingsForeground));
+        w.Resources.Add(typeof(System.Windows.Controls.TextBlock),textStyle);
+        var checkboxStyle=new Style(typeof(System.Windows.Controls.CheckBox));
+        checkboxStyle.Setters.Add(new Setter(System.Windows.Controls.Control.ForegroundProperty,settingsForeground));
+        checkboxStyle.Setters.Add(new Setter(System.Windows.Controls.Control.FontSizeProperty,14.0));
+        w.Resources.Add(typeof(System.Windows.Controls.CheckBox),checkboxStyle);
+        var buttonStyle=new Style(typeof(System.Windows.Controls.Button));
+        buttonStyle.Setters.Add(new Setter(System.Windows.Controls.Control.BackgroundProperty,settingsBackground));
+        buttonStyle.Setters.Add(new Setter(System.Windows.Controls.Control.ForegroundProperty,settingsForeground));
+        buttonStyle.Setters.Add(new Setter(System.Windows.Controls.Control.BorderBrushProperty,settingsBorder));
+        buttonStyle.Setters.Add(new Setter(System.Windows.Controls.Control.FontSizeProperty,14.0));
+        w.Resources.Add(typeof(System.Windows.Controls.Button),buttonStyle);
         var panel = new System.Windows.Controls.StackPanel { Margin=new Thickness(20) };
         panel.Children.Add(new System.Windows.Controls.TextBlock { Text="OVERLAY SETTINGS", FontSize=22, FontWeight=FontWeights.Bold, Margin=new Thickness(0,0,0,16) });
         panel.Children.Add(new System.Windows.Controls.TextBlock { Text="Overlay style", Foreground=Brush("#9DB7DE") });
@@ -177,6 +234,18 @@ public partial class OverlayWindow : Window
         themes.SelectedItem=currentTheme;
         themes.SelectionChanged += (_,__) => { if(themes.SelectedItem is string name){ currentTheme=name; ApplyTheme(name); } };
         panel.Children.Add(themes);
+        panel.Children.Add(new System.Windows.Controls.TextBlock { Text="Player visibility (verified rosters only)", Foreground=Brush("#9DB7DE") });
+        var visibility = new System.Windows.Controls.ComboBox { Margin=new Thickness(0,5,0,14), Height=30 };
+        foreach(var scope in Enum.GetValues<PlayerViewScope>())visibility.Items.Add(scope);
+        visibility.SelectedItem=playerScope;
+        visibility.SelectionChanged += (_,__) => {
+            if(visibility.SelectedItem is PlayerViewScope scope) {
+                playerScope=scope;
+                SavePreferences();
+                if(last!=null)Render(last);
+            }
+        };
+        panel.Children.Add(visibility);
         panel.Children.Add(new System.Windows.Controls.TextBlock { Text="Overlay opacity", Foreground=Brush("#9DB7DE") });
         var opacity = new System.Windows.Controls.Slider { Minimum=.35, Maximum=1, Value=Opacity, TickFrequency=.05, IsSnapToTickEnabled=true, Margin=new Thickness(0,5,0,14) };
         opacity.ValueChanged += (_,__) => Opacity=opacity.Value;
@@ -565,7 +634,7 @@ public partial class OverlayWindow : Window
         report.Show();
     }
     static string PreferencesPath=>System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),"Aion2DPSPro","overlay-settings.json");
-    public sealed record OverlayPreferences(string Style,string Theme,double Opacity,bool Details,bool Topmost,double Width,double Height,double Left,double Top,bool PositionLocked=false,bool HideNames=false,bool ShowCharacterStats=true,double UiScale=1);
+    public sealed record OverlayPreferences(string Style,string Theme,double Opacity,bool Details,bool Topmost,double Width,double Height,double Left,double Top,bool PositionLocked=false,bool HideNames=false,bool ShowCharacterStats=true,double UiScale=1,PlayerViewScope PlayerScope=PlayerViewScope.EveryoneNearby);
     void LoadPreferences()
     {
         try {
@@ -573,6 +642,7 @@ public partial class OverlayWindow : Window
             var p=System.Text.Json.JsonSerializer.Deserialize<OverlayPreferences>(System.IO.File.ReadAllText(PreferencesPath));
             if(p==null)return;
             showDetails=p.Details;
+            playerScope=Enum.IsDefined(p.PlayerScope)?p.PlayerScope:PlayerViewScope.EveryoneNearby;
             positionLocked=p.PositionLocked;
             hideNames=p.HideNames;showCharacterStats=p.ShowCharacterStats;uiScale=double.IsFinite(p.UiScale)?Math.Clamp(p.UiScale,.7,1.25):1;
             if(ThemeNames.Contains(p.Theme))currentTheme=p.Theme;
@@ -588,9 +658,10 @@ public partial class OverlayWindow : Window
     }
     void SavePreferences()
     {
+        if(!persistPreferences)return;
         try {
             var path=PreferencesPath;System.IO.Directory.CreateDirectory(System.IO.Path.GetDirectoryName(path)!);
-            var p=new OverlayPreferences(currentStyle,currentTheme,Opacity,showDetails,Topmost,Width,Height,double.IsFinite(Left)?Left:0,double.IsFinite(Top)?Top:0,positionLocked,hideNames,showCharacterStats,uiScale);
+            var p=new OverlayPreferences(currentStyle,currentTheme,Opacity,showDetails,Topmost,Width,Height,double.IsFinite(Left)?Left:0,double.IsFinite(Top)?Top:0,positionLocked,hideNames,showCharacterStats,uiScale,playerScope);
             var temp=path+".tmp";System.IO.File.WriteAllText(temp,System.Text.Json.JsonSerializer.Serialize(p));System.IO.File.Move(temp,path,true);
         }
         catch(Exception ex) when(ex is System.IO.IOException or UnauthorizedAccessException) {StatusText.Text="Unable to save overlay settings";}
