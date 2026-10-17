@@ -51,6 +51,7 @@ public partial class OverlayWindow : Window
             s=SnapshotProvider?.Invoke((MeterSegment)Math.Clamp(Segment.SelectedIndex,0,2),category)??s;
         }
         selectedActor=(Rows.SelectedItem as Row)?.Stats.ActorId??selectedActor;
+        bool rosterUnavailable=false;
         if(playerScope!=PlayerViewScope.EveryoneNearby)
         {
             try
@@ -63,11 +64,12 @@ public partial class OverlayWindow : Window
             catch(InvalidOperationException)
             {
                 // Fail closed: do not show nearby players as party/force.
+                rosterUnavailable=true;
                 s=s with {Players=s.Players.Where(_=>false).ToList()};
             }
         }
         last=s; PreviewBadge.Visibility=s.PreviewMode?Visibility.Visible:Visibility.Collapsed;
-        Timer.Text=TimeSpan.FromSeconds(s.FightSeconds).ToString(@"mm\:ss"); GroupDps.Text=$"GROUP {F(s.Players.Sum(p=>p.Dps))} {s.MetricLabel}";
+        Timer.Text=TimeSpan.FromSeconds(s.FightSeconds).ToString(@"mm\:ss"); GroupDps.Text=$"{(playerScope==PlayerViewScope.EveryoneNearby?"GROUP":playerScope.ToString().ToUpperInvariant())} {F(s.Players.Sum(p=>p.Dps))} {s.MetricLabel}";
         BossHp.Value=s.Target?.Percent??0; BossHp.Visibility=s.Target?.MaxHp>0?Visibility.Visible:Visibility.Collapsed; TargetName.Text=s.Target?.Name??"No target";
         if(hideNames&&s.Target!=null&&s.Players.Any(p=>p.Name==s.Target.Name))TargetName.Text="Player target";
         EncounterTarget.Text=TargetName.Text!="No target"?TargetName.Text:(s.Players.Count>0?"Combat encounter":"Waiting for combat");
@@ -80,7 +82,9 @@ public partial class OverlayWindow : Window
         EncounterRateLabel.Text=s.MetricLabel;
         TargetHp.Text=s.Target is null?"":s.Target.MaxHp<=0?"HP unavailable":$"{s.Target.Percent:0.0}%   {F(s.Target.CurrentHp)} / {F(s.Target.MaxHp)}";
         StatusText.ToolTip="Captured combat data. Regression checks validate supported fields; live totals still depend on the packets received.";
-        StatusText.Text=s.PreviewMode?"SIMULATED DATA":s.Players.Count==0?"WAITING FOR COMBAT":$"{(s.InFight?"CURRENT":"COMPLETED")} • CAPTURED";
+        StatusText.Text=rosterUnavailable
+            ? $"{playerScope.ToString().ToUpperInvariant()} FILTER • VERIFIED ID/ROSTER UNAVAILABLE"
+            : s.PreviewMode?"SIMULATED DATA":s.Players.Count==0?"WAITING FOR COMBAT":$"{(s.InFight?"CURRENT":"COMPLETED")} • CAPTURED";
         ResetCurrentFight.IsEnabled=Engine!=null;
         var targetTotal=s.Targets.Where(x=>x.TargetId==s.SelectedTargetId).Sum(x=>x.Damage);
         string Metadata(PlayerStats p)
