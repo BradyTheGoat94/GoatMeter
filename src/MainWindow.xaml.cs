@@ -5,6 +5,7 @@ using Aion2DPSPro.Capture;
 using Aion2DPSPro.Overlay;
 using Aion2DPSPro.Protocol;
 using Aion2DPSPro.Storage;
+using Aion2DPSPro.Updates;
 
 namespace Aion2DPSPro;
 
@@ -24,6 +25,30 @@ public partial class MainWindow : Window
     string activeFlow="Waiting...",captureStatus="Starting capture...",lastDecoder="",lastEvent="",profileId="",validationPath="",historyError="";
     Task saveTail=Task.CompletedTask;
     readonly FightStore store=new();
+    private async void CheckForUpdates(object sender, RoutedEventArgs e)
+    {
+        if(sender is System.Windows.Controls.Button button) button.IsEnabled=false;
+        try
+        {
+            var update=await GoatMeterUpdater.CheckAsync();
+            if(update is null)
+            {
+                MessageBox.Show(this,"You're running the latest available stable release, or no compatible release was found.","GoatMeter Updates",MessageBoxButton.OK,MessageBoxImage.Information);
+                return;
+            }
+            if(MessageBox.Show(this,$"GoatMeter {update.Version} is available. Download and verify the installer? Your local settings and fight history are stored separately and will be preserved.","GoatMeter Updates",MessageBoxButton.YesNo,MessageBoxImage.Question)!=MessageBoxResult.Yes)return;
+            var installer=await GoatMeterUpdater.DownloadVerifiedInstallerAsync(update);
+            if(MessageBox.Show(this,"Installer downloaded and SHA-256 verified. Close GoatMeter and start the installer now?","GoatMeter Updates",MessageBoxButton.YesNo,MessageBoxImage.Question)!=MessageBoxResult.Yes)return;
+            GoatMeterUpdater.LaunchInstaller(installer);
+            Close();
+        }
+        catch(Exception ex)
+        {
+            MessageBox.Show(this,$"Update was not installed: {ex.Message}","GoatMeter Updates",MessageBoxButton.OK,MessageBoxImage.Warning);
+        }
+        finally {if(sender is System.Windows.Controls.Button button2)button2.IsEnabled=true;}
+    }
+
     public MainWindow()
     {
         InitializeComponent();
