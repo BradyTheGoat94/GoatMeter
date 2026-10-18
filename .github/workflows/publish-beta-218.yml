@@ -1,0 +1,66 @@
+name: Publish tested build 218 beta
+on:
+  push:
+    branches: [beta/publish-build-218]
+    paths: [.github/workflows/publish-beta-218.yml]
+permissions:
+  actions: read
+  contents: write
+concurrency:
+  group: publish-beta-218
+  cancel-in-progress: false
+jobs:
+  publish:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify source build and regression run
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $expected = '5f84a52aaa08d0c56b51aa916d35c5a719f413de'
+          foreach ($id in @(39072462480,39072462430)) {
+            $run = gh api "repos/$env:GITHUB_REPOSITORY/actions/runs/$id" | ConvertFrom-Json
+            if ($LASTEXITCODE -ne 0 -or $run.head_sha -ne $expected -or $run.conclusion -ne 'success') { throw 'Source CI verification failed' }
+          }
+      - uses: actions/download-artifact@v4
+        with:
+          name: GoatMeter-Setup
+          run-id: 39072462480
+          github-token: ${{ github.token }}
+          path: beta-assets
+      - name: Verify artifact checksums
+        shell: pwsh
+        run: |
+          $manifest = Get-Content beta-assets/SHA256SUMS.txt
+          foreach ($name in @('GoatMeter-Setup.exe','GoatMeter-win-x64.zip')) {
+            $line = @($manifest | Where-Object { $_ -match ('^[0-9a-fA-F]{64}  ' + [regex]::Escape($name) + '$') })
+            if ($line.Count -ne 1) { throw "Missing checksum: $name" }
+            $actual = (Get-FileHash "beta-assets/$name" -Algorithm SHA256).Hash
+            if ($actual -ne $line[0].Substring(0,64)) { throw "Checksum mismatch: $name" }
+          }
+      - name: Publish public prerelease
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $notes = @'
+          Public beta for Windows x64. This publishes the existing tested build 218 from commit 5f84a52; it does not include the newer experimental party-filter changes.
+
+          Downloads:
+          - GoatMeter-Setup.exe: guided installer. Npcap is required and downloaded separately from its official website.
+          - GoatMeter-win-x64.zip: portable build.
+          - SHA256SUMS.txt: download checksums.
+
+          Includes the existing party roster filtering, GS/CP metadata, overlay styles and combat reporting from the test/goatsim-integration branch. Source build and combat regression CI passed before publication.
+
+          Beta notes: party membership and GS/CP depend on supported server roster packets and exact actor identity links. Values may be unavailable until roster data arrives. Before membership is verified, this build can show all captured players with an unavailable-filter notice. This beta has not been validated for every party leave/disband or reconnect scenario.
+
+          This is an opt-in prerelease. The stable release and stable updater remain unchanged. Please remove private information before sharing diagnostic logs.
+          '@
+          $notes | Set-Content beta-notes.md
+          gh release create goatmeter-beta-218 beta-assets/GoatMeter-Setup.exe beta-assets/GoatMeter-win-x64.zip beta-assets/SHA256SUMS.txt --target 5f84a52aaa08d0c56b51aa916d35c5a719f413de --title 'GoatMeter 1.0.218 Beta' --notes-file beta-notes.md --prerelease --latest=false --draft
+          if ($LASTEXITCODE -ne 0) { throw 'Draft beta creation failed' }
+          gh release edit goatmeter-beta-218 --draft=false --prerelease --latest=false
+          if ($LASTEXITCODE -ne 0) { throw 'Beta publication failed' }
