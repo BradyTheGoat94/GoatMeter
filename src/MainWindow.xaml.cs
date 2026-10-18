@@ -22,6 +22,7 @@ public partial class MainWindow : Window
     // Only structured roster records and verified session/global links may populate party membership.
     readonly Dictionary<(long CharacterId,int ServerId),DateTime> verifiedPartyMembers=new();
     readonly Dictionary<long,(long CharacterId,int ServerId)> verifiedCombatIdentityLinks=new();
+    DateTime? partyRosterObservedUtc;
 
     readonly Queue<string> inspector=new();
     long packets,decoderDiagnostics,recognized,parsedEvents,duplicates,damageEvents,healEvents,hpEvents,otherEvents,acceptedDamageEvents,snapshotId;
@@ -139,7 +140,7 @@ public partial class MainWindow : Window
         capture.FlowLocked += s=> {lock(diagnosticsGate)activeFlow=s;};
         capture.ConnectionReset += ()=>
         {
-            lock(diagnosticsGate) {verifiedLocalActorId=null;verifiedPartyMembers.Clear();verifiedCombatIdentityLinks.Clear();}
+            lock(diagnosticsGate) {verifiedLocalActorId=null;verifiedPartyMembers.Clear();verifiedCombatIdentityLinks.Clear();partyRosterObservedUtc=null;}
             engine.Apply(new(DateTime.UtcNow,CombatKind.Zone));
         };
         capture.StatusChanged += s=> {lock(diagnosticsGate)captureStatus=s;};
@@ -149,11 +150,15 @@ public partial class MainWindow : Window
             // The roster and combat identity must agree on character and server IDs.
             lock(diagnosticsGate)
             {
-                // The adapter keeps raw CharacterStats inside its identity bridge.
-                // A score-enriched PlayerName carries the same exact verified
-                // roster join and observation time to the host.
-                if((e.Kind==CombatKind.CharacterStats||e.Kind==CombatKind.PlayerName) && e.SourceCharacterId is long rosterId && rosterId>0 && e.SourceServerId is int rosterServer && rosterServer>0 && e.StatsObservedUtc is DateTime observed)
-                    verifiedPartyMembers[(rosterId,rosterServer)]=observed;
+                // Membership comes only from a complete roster snapshot, not the score cache.
+                if(e.Kind==CombatKind.PartyRoster && e.PartyMembers!=null && (partyRosterObservedUtc==null||e.Utc>=partyRosterObservedUtc))
+                {
+                    partyRosterObservedUtc=e.Utc;
+                    verifiedPartyMembers.Clear();
+                    foreach(var member in e.PartyMembers)
+                        verifiedPartyMembers[(member.CharacterId,member.ServerId)]=e.Utc;
+                }
+                if(e.Kind==CombatKind.PlayerName && e.SourceId>0)verifiedCombatIdentityLinks.Remove(e.SourceId);
                 if(e.Kind==CombatKind.PlayerName && e.SourceId>0 && e.SourceCharacterId is long combatId && combatId>0 && e.SourceServerId is int combatServer && combatServer>0)
                     verifiedCombatIdentityLinks[e.SourceId]=(combatId,combatServer);
             }

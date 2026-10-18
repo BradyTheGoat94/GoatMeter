@@ -69,6 +69,8 @@ public sealed class PacketDispatcher
                 var parsedRoster=PartyRosterScores.Parse(frame.AsSpan(p+2),utc);
                 // Metadata only: no raw packets, IP addresses, or player names.
                 ValidationRecord?.Invoke($"{utc:O}|tag=rosterScoreDecode|opcode=0297|rows={parsedRoster.Count}|status={(parsedRoster.Count>0?"accepted":"unresolved")}");
+                if(parsedRoster.Count>0)
+                    yield return new(CombatKind.PartyRoster,0,"",0,"","",0,DamageType.Unknown,0,0,"",0,PartyMembers:parsedRoster.Select(x=>new PartyMember(x.CharacterId,x.ServerId)).ToArray());
                 foreach(var stats in parsedRoster)
                 {
                     rosterScores[(stats.CharacterId,stats.ServerId)]=stats;

@@ -2,7 +2,7 @@ name: Combat Regression Tests
 
 on:
   push:
-    branches: [ main, test/goatsim-integration ]
+    branches: [ main, test/goatsim-integration, test/party-gscp-fix ]
   pull_request:
     branches: [ main ]
   workflow_dispatch:

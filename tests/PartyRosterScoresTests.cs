@@ -23,6 +23,33 @@ public class PartyRosterScoresTests
     }
 
     [Fact]
+    public void CompleteRosterPublishesMembershipSeparatelyFromScores()
+    {
+        var events=Dispatcher().Dispatch(Frame(new byte[]{2,0x97},Roster()),DateTime.UnixEpoch).ToArray();
+        var roster=Assert.Single(events,x=>x.Kind==Aion2DPSPro.CombatKind.PartyRoster);
+        var member=Assert.Single(roster.PartyMembers!);
+        Assert.Equal(12345,member.CharacterId);Assert.Equal(2102,member.ServerId);
+        Assert.DoesNotContain(Dispatcher().Dispatch(Frame(new byte[]{2,0x97},Roster()[..30]),DateTime.UnixEpoch),x=>x.Kind==Aion2DPSPro.CombatKind.PartyRoster);
+    }
+
+    [Fact]
+    public void LatestRosterReplacesMembersWithoutErasingScoreCache()
+    {
+        var bridge=new Aion2DPSPro.Capture.CaptureIdentityBridge();var t=DateTime.UnixEpoch;
+        bridge.Observe("game",new(t,Aion2DPSPro.CombatKind.CharacterStats,Source:"CachedHero",SourceCharacterId:2,SourceServerId:2102,SourceGearScore:2800,StatsObservedUtc:t));
+        bridge.Observe("game",new(t,Aion2DPSPro.CombatKind.PartyRoster,PartyMembers:new[]{new Aion2DPSPro.PartyMember(1,2102),new Aion2DPSPro.PartyMember(2,2102)}));
+        bridge.Observe("game",new(t.AddSeconds(1),Aion2DPSPro.CombatKind.PartyRoster,PartyMembers:new[]{new Aion2DPSPro.PartyMember(1,2102)}));
+        bridge.Observe("game",new(t,Aion2DPSPro.CombatKind.PartyRoster,PartyMembers:new[]{new Aion2DPSPro.PartyMember(2,2102)}));
+        var roster=Assert.Single(bridge.Identities("game",t.AddSeconds(2)));
+        Assert.Equal(1,Assert.Single(roster.PartyMembers!).CharacterId);
+        var cached=bridge.Resolve("game",new(t.AddSeconds(2),Aion2DPSPro.CombatKind.PlayerName,Source:"CachedHero",SourceCharacterId:2,SourceServerId:2102));
+        Assert.Equal(2800,cached.SourceGearScore);
+        Assert.Empty(bridge.Identities("other",t.AddSeconds(2)));
+        Assert.Empty(bridge.Identities("game",t.AddMinutes(11)));
+        bridge.Clear();Assert.Empty(bridge.Identities("game",t.AddSeconds(2)));
+    }
+
+    [Fact]
     public void CompleteVacantSlotsPreserveScores()
     {
         var row=Assert.Single(PartyRosterScores.Parse(Roster(),DateTime.UnixEpoch));
@@ -147,6 +174,8 @@ public class PartyRosterScoresTests
         using var capture=new Aion2DPSPro.Capture.LiveCaptureAdapter(new CurrentClientDecoder(profile));
         var clock=DateTime.UnixEpoch;var engine=new Aion2DPSPro.CombatEngine(()=>clock);
         capture.EventReceived+=engine.Apply;
+        var memberships=new List<Aion2DPSPro.CombatEvent>();
+        capture.EventReceived+=e=>{if(e.Kind==Aion2DPSPro.CombatKind.PartyRoster)memberships.Add(e);};
         var process=typeof(Aion2DPSPro.Capture.LiveCaptureAdapter).GetMethod("Process",System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic)!;
         void Send(ushort port,byte[] payload)
         {
@@ -159,6 +188,8 @@ public class PartyRosterScoresTests
         Send(50002,OtherInfo(Attributes(),actor:6797));
         Send(50003,Convert.FromHexString("210438E3A00204008D3540B7B70009020B95C34701000000D658E7020100"));
         if(!rosterFirst)Send(50004,roster);
+        Assert.NotEmpty(memberships);
+        Assert.Equal(12345,Assert.Single(memberships.Last().PartyMembers!).CharacterId);
         var player=Assert.Single(engine.Snapshot().Players);
         Assert.Equal(6797,player.ActorId);Assert.Equal("FixtureHero",player.Name);
         Assert.Equal(2800,player.GearScore);Assert.Equal(121600,player.CombatPower);

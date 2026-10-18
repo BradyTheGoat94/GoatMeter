@@ -192,6 +192,22 @@ internal static class Program
    if(((Button)window.FindName("CopySummary")).Visibility!=Visibility.Visible || ((Button)window.FindName("FreezeView")).Visibility!=Visibility.Visible)throw new Exception("Preset lost shared summary/freeze controls");
    if(((Button)window.FindName("ResetCurrentFight")).Visibility!=Visibility.Visible)throw new Exception("Preset lost reset");
   }
+  tabs.SelectedIndex=0;segment.SelectedIndex=0;
+  var scopeField=typeof(OverlayWindow).GetField("playerScope",BindingFlags.NonPublic|BindingFlags.Instance)!;
+  scopeField.SetValue(window,GoatMeter.GoatSim.PlayerViewScope.Party);
+  window.LocalActorProvider=()=>100;window.PartyRosterProvider=()=>null;
+  window.Render(previewEngine.Snapshot());
+  if(rows.Items.Count!=1)throw new Exception("Unavailable party roster exposed nearby players");
+  if(!((TextBlock)window.FindName("EncounterRate")).Text.Contains("ROSTER UNAVAILABLE"))throw new Exception("Encounter layout hid roster warning");
+  window.LocalActorProvider=()=>null;window.Render(previewEngine.Snapshot());
+  if(rows.Items.Count!=0)throw new Exception("Unresolved self exposed nearby players");
+  window.LocalActorProvider=()=>100;window.PartyRosterProvider=()=>new long[]{101};window.Render(previewEngine.Snapshot());
+  if(rows.Items.Count!=2)throw new Exception("Verified party did not include only self and roster");
+  if(!rows.Items.Cast<object>().All(r=>r.GetType().GetProperty("CharacterStats")!.GetValue(r)!.ToString()!.Contains("CP")))throw new Exception("Verified party lost scores");
+  window.PartyRosterProvider=()=>new long[]{102};window.Render(previewEngine.Snapshot());
+  if(rows.Items.Cast<object>().Any(r=>((PlayerStats)r.GetType().GetProperty("Stats")!.GetValue(r)!).ActorId==101))throw new Exception("Departed member remained visible");
+  scopeField.SetValue(window,GoatMeter.GoatSim.PlayerViewScope.EveryoneNearby);
+  Console.WriteLine("PASS: party waits for roster, hides nearby players, preserves scores and replaces membership");
   typeof(OverlayWindow).GetField("hideNames",BindingFlags.NonPublic|BindingFlags.Instance)!.SetValue(window,true);tabs.SelectedIndex=0;window.Render(previewEngine.Snapshot());
   if(rows.Items.Cast<object>().Any(r=>r.GetType().GetProperty("Name")!.GetValue(r)!.ToString()!.Contains("TestHero")))throw new Exception("Stream-safe names exposed actor name");
   typeof(OverlayWindow).GetField("showCharacterStats",BindingFlags.NonPublic|BindingFlags.Instance)!.SetValue(window,false);window.Render(previewEngine.Snapshot());

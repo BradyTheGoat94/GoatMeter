@@ -16,10 +16,16 @@ public sealed class CaptureIdentityBridge
         string adapter=scope[..split];
         return adapter.Contains("NPF_",StringComparison.OrdinalIgnoreCase)?scope[(split+1)..]:scope;
     }
+    readonly Dictionary<string,CombatEvent> rosters=new();
     public void Observe(string scope,CombatEvent e)
     {
         Prune(e.Utc);
         var keyScope=KeyScope(scope);
+        if(e.Kind==CombatKind.PartyRoster)
+        {
+            if(!rosters.TryGetValue(keyScope,out var previous)||e.Utc>=previous.Utc)rosters[keyScope]=e;
+            return;
+        }
         if(e.Kind==CombatKind.CharacterStats)
         {
             if(e.SourceCharacterId<=0||e.SourceServerId is <1001 or >9999||e.StatsObservedUtc==null||e.StatsObservedUtc>e.Utc)return;
@@ -61,7 +67,8 @@ public sealed class CaptureIdentityBridge
     public IReadOnlyList<CombatEvent> Identities(string scope,DateTime utc)
     {
         Prune(utc);
-        return names.Where(x=>x.Key.Scope==KeyScope(scope)).Select(x=>x.Value.Event with {Utc=utc}).ToArray();
+        var roster=rosters.TryGetValue(KeyScope(scope),out var snapshot)&&utc>=snapshot.Utc&&utc-snapshot.Utc<=TimeSpan.FromMinutes(10)?new[]{snapshot}:Array.Empty<CombatEvent>();
+        return roster.Concat(names.Where(x=>x.Key.Scope==KeyScope(scope)).Select(x=>x.Value.Event with {Utc=utc})).ToArray();
     }
     public CombatEvent Resolve(string scope,CombatEvent e)
     {
@@ -92,9 +99,10 @@ public sealed class CaptureIdentityBridge
     }
     private void Prune(DateTime utc)
     {
+        foreach(var key in rosters.Where(x=>utc-x.Value.Utc>TimeSpan.FromMinutes(10)).Select(x=>x.Key).ToArray())rosters.Remove(key);
         foreach(var key in names.Where(x=>utc-x.Value.Seen>TimeSpan.FromMinutes(10)).Select(x=>x.Key).ToArray())names.Remove(key);
         foreach(var key in profiles.Where(x=>utc-x.Value.Seen>TimeSpan.FromMinutes(10)).Select(x=>x.Key).ToArray())profiles.Remove(key);
         foreach(var key in npcs.Where(x=>utc-x.Value.Seen>TimeSpan.FromMinutes(10)).Select(x=>x.Key).ToArray())npcs.Remove(key);
     }
-    public void Clear(){names.Clear();npcs.Clear();profiles.Clear();}
+    public void Clear(){names.Clear();npcs.Clear();profiles.Clear();rosters.Clear();}
 }

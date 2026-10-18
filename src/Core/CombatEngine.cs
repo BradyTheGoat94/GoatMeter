@@ -23,7 +23,7 @@ public sealed class CombatEngine
 
     public void Apply(CombatEvent e)
     {
-        if(e.Kind==CombatKind.CharacterStats)return;
+        if(e.Kind is CombatKind.CharacterStats or CombatKind.PartyRoster)return;
         MeterSnapshot? completed = null;
         lock(gate)
         {

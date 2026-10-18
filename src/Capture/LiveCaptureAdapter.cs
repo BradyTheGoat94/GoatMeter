@@ -111,9 +111,11 @@ public sealed class LiveCaptureAdapter : IDisposable
         var decoded=new List<CombatEvent>();
         foreach(var chunk in chunks)
         foreach(var d in active is CurrentClientDecoder c?c.DecodeStream(direction,chunk,utc):active.Decode(chunk,utc))
-            decoded.Add(new(utc,d.Kind,d.SourceId,d.Source,d.TargetId,d.Target,d.Skill,d.Amount,d.DamageType,d.CurrentHp,d.MaxHp,d.Effect,d.Stacks,d.SourceClass,d.DamageFlags,SourceIdentityConfirmed:d.SourceIdentityConfirmed,SourceServerId:d.SourceServerId,SourceCharacterId:d.SourceCharacterId,SourceGearScore:d.SourceGearScore,SourceCombatPower:d.SourceCombatPower,StatsObservedUtc:d.StatsObservedUtc));
-        foreach(var e in decoded.Where(x=>x.Kind is CombatKind.PlayerName or CombatKind.TargetHp or CombatKind.CharacterStats || primary&&x.Kind==CombatKind.Despawn))identityBridge.Observe(scope,e);
+            decoded.Add(new(utc,d.Kind,d.SourceId,d.Source,d.TargetId,d.Target,d.Skill,d.Amount,d.DamageType,d.CurrentHp,d.MaxHp,d.Effect,d.Stacks,d.SourceClass,d.DamageFlags,SourceIdentityConfirmed:d.SourceIdentityConfirmed,SourceServerId:d.SourceServerId,SourceCharacterId:d.SourceCharacterId,SourceGearScore:d.SourceGearScore,SourceCombatPower:d.SourceCombatPower,StatsObservedUtc:d.StatsObservedUtc,PartyMembers:d.PartyMembers));
+        foreach(var e in decoded.Where(x=>x.Kind is CombatKind.PlayerName or CombatKind.TargetHp or CombatKind.CharacterStats or CombatKind.PartyRoster || primary&&x.Kind==CombatKind.Despawn))identityBridge.Observe(scope,e);
         foreach(var e in decoded.Where(x=>x.Kind==CombatKind.PlayerName))ValidationRecord?.Invoke($"{utc:O}|tag=captureIdentity|entity={e.SourceId}|name={e.Source}|scope={scope}|conversation={conversation}|primary={primary}");
+        if(lockedConversation!=null)
+            foreach(var roster in decoded.Where(x=>x.Kind==CombatKind.PartyRoster))EventReceived?.Invoke(roster);
         if(lockedConversation!=null&&decoded.Any(x=>x.Kind==CombatKind.CharacterStats))
             foreach(var identity in identityBridge.Identities(scope,utc))EventReceived?.Invoke(identity);
         if(lockedConversation==null)
@@ -130,7 +132,7 @@ public sealed class LiveCaptureAdapter : IDisposable
             return;
         }
         lastPayload=utc;if(decoded.Count>0)lastEvent=utc;
-        foreach(var e in decoded.Where(x=>x.Kind!=CombatKind.CharacterStats))
+        foreach(var e in decoded.Where(x=>x.Kind!=CombatKind.CharacterStats && x.Kind!=CombatKind.PartyRoster))
         {
             var resolved=identityBridge.Resolve(scope,e);
             if(e.Kind is CombatKind.Damage or CombatKind.Heal)
