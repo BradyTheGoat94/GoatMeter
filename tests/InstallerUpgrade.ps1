@@ -5,8 +5,11 @@ $destination=Join-Path $env:RUNNER_TEMP 'GoatMeter-upgrade-smoke'
 $previous=Join-Path $env:RUNNER_TEMP 'GoatMeter-previous-218.exe'
 $url='https://github.com/BradyTheGoat94/GoatMeter/releases/download/goatmeter-beta-218'
 Invoke-WebRequest "$url/GoatMeter-Setup.exe" -OutFile $previous
-$manifest=(Invoke-WebRequest "$url/SHA256SUMS.txt").Content
-$expected=($manifest -split '\n' | Where-Object {$_ -match '^[0-9a-fA-F]{64}  GoatMeter-Setup.exe\s*$'}).Substring(0,64)
+$manifestPath=Join-Path $env:RUNNER_TEMP 'GoatMeter-previous-SHA256SUMS.txt'
+Invoke-WebRequest "$url/SHA256SUMS.txt" -OutFile $manifestPath
+$lines=@(Get-Content $manifestPath | Where-Object {$_ -match '^[0-9a-fA-F]{64}  GoatMeter-Setup.exe\s*$'})
+if ($lines.Count -ne 1) { throw 'Previous installer checksum entry missing.' }
+$expected=$lines[0].Substring(0,64)
 if ((Get-FileHash $previous -Algorithm SHA256).Hash -ne $expected) { throw 'Previous installer checksum failed.' }
 function Install([string]$exe,[string]$label) {
   $log=Join-Path $env:RUNNER_TEMP "GoatMeter-install-$label.log"
