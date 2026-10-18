@@ -1,6 +1,12 @@
 # Only run on a disposable CI Windows runner: installs the old and new app.
 $ErrorActionPreference='Stop'
 if ($env:GITHUB_ACTIONS -ne 'true') { throw 'Installer smoke test requires a disposable GitHub runner.' }
+# Installers check only this file for prerequisite presence. Simulate that
+# predicate on this disposable runner; never install or load a driver.
+$npcapFixture=Join-Path ([Environment]::SystemDirectory) 'drivers/npcap.sys'
+$createdFixture=!(Test-Path $npcapFixture)
+if ($createdFixture) {[IO.File]::WriteAllBytes($npcapFixture,[byte[]]@(0))}
+try {
 $destination=Join-Path $env:RUNNER_TEMP 'GoatMeter-upgrade-smoke'
 $previous=Join-Path $env:RUNNER_TEMP 'GoatMeter-previous-218.exe'
 $url='https://github.com/BradyTheGoat94/GoatMeter/releases/download/goatmeter-beta-218'
@@ -14,7 +20,7 @@ if ((Get-FileHash $previous -Algorithm SHA256).Hash -ne $expected) { throw 'Prev
 function Install([string]$exe,[string]$label) {
   $log=Join-Path $env:RUNNER_TEMP "GoatMeter-install-$label.log"
   $process=Start-Process -FilePath $exe -ArgumentList @('/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART',"/DIR=`"$destination`"",'/TASKS=',"/LOG=`"$log`"") -PassThru -WindowStyle Hidden
-  if (!$process.WaitForExit(120000)) { $process.Kill(); throw "Installer timed out: $label" }
+  if (!$process.WaitForExit(120000)) { $process.Kill(); if(Test-Path $log){Get-Content $log -Tail 50}; throw "Installer timed out: $label" }
   if ($process.ExitCode -ne 0) { Get-Content $log -Tail 35; throw "Installer failed: $label ($($process.ExitCode))" }
 }
 Install $previous 'previous'
@@ -29,3 +35,8 @@ Install (Resolve-Path 'dist/GoatMeter-Setup.exe').Path 'new'
 if ((Get-Item $app).VersionInfo.FileVersion -notlike "$env:GOATMETER_VERSION*") { throw 'Upgrade did not replace the app version.' }
 if ((Get-Content $marker) -ne 'preserve settings and history directory') { throw 'Upgrade changed user data.' }
 Write-Host "PASS: installed 1.0.218, upgraded to $env:GOATMETER_VERSION, preserved user data."
+
+}
+finally {
+  if($createdFixture){Remove-Item -LiteralPath $npcapFixture -Force}
+}

@@ -15,6 +15,6 @@ Public beta 218 was built with the old stable-only updater. Users of that beta n
 - 124 xUnit tests passed locally for Stable and Beta builds (including updater eligibility, channel metadata, official asset validation, verified download, missing/malformed/duplicate/mismatched checksums, truncated transfer, cancellation and separate attempts).
 - 231 legacy combat regression assertions and 29 Python checks passed.
 - A real public release check simulated an older beta, discovered beta 218, downloaded the 66,525,260-byte installer and verified its published checksum. The installer was not run locally.
-- The beta build workflow runs protocol/updater checks and WPF smoke checks before publishing. Its disposable-runner installer test installs public beta 218, upgrades in the same directory to the new build and checks a user-data marker. A failure prevents publishing the beta.
+- The beta build workflow runs protocol/updater checks and WPF smoke checks before publishing. Its disposable-runner installer test simulates the file-based Npcap prerequisite check (without installing/loading a driver), installs public beta 218, upgrades in the same directory to the new build and checks a user-data marker. A failure prevents publishing the beta.
 
 Future releases must include GoatMeter-Setup.exe and SHA256SUMS.txt with the expected version/tag convention. Publish beta builds through the beta workflow so assembly channel metadata is correct. Stable production builds remain Stable by default.
