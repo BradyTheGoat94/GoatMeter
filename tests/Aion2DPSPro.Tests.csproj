@@ -17,6 +17,7 @@
   <ItemGroup>
     <Compile Include="PacketDispatcherRegressionTests.cs" />
     <Compile Include="PartyRosterScoresTests.cs" />
+    <Compile Include="UpdaterTests.cs" />
     <ProjectReference Include="../src/Aion2DPSPro.csproj" />
   </ItemGroup>
 </Project>

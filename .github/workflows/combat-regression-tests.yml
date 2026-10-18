@@ -2,7 +2,7 @@ name: Combat Regression Tests
 
 on:
   push:
-    branches: [ main, test/goatsim-integration ]
+    branches: [ main, test/goatsim-integration, test/beta-updater ]
   pull_request:
     branches: [ main ]
   workflow_dispatch:
@@ -10,6 +10,8 @@ on:
 jobs:
   test:
     runs-on: windows-latest
+    env:
+      UpdateChannel: ${{ github.ref == 'refs/heads/test/beta-updater' && 'Beta' || 'Stable' }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-dotnet@v4

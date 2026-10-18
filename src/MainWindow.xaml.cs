@@ -27,6 +27,9 @@ public partial class MainWindow : Window
     long packets,decoderDiagnostics,recognized,parsedEvents,duplicates,damageEvents,healEvents,hpEvents,otherEvents,acceptedDamageEvents,snapshotId;
     string activeFlow="Waiting...",captureStatus="Starting capture...",lastDecoder="",lastEvent="",profileId="",validationPath="",historyError="";
     Task saveTail=Task.CompletedTask;
+    bool checkingUpdates;
+    string? pendingInstaller;
+    readonly DispatcherTimer updateTimer=new() {Interval=TimeSpan.FromHours(6)};
     readonly FightStore store=new();
     private async void CheckForUpdates(object sender, RoutedEventArgs e)
     {
@@ -40,19 +43,23 @@ public partial class MainWindow : Window
 
     private async Task CheckForUpdatesCoreAsync(bool showUpToDate)
     {
+        if(checkingUpdates||closing)return;
+        checkingUpdates=true;
         try
         {
             var update=await GoatMeterUpdater.CheckAsync();
+            if(closing)return;
             if(update is null)
             {
                 if(showUpToDate)
-                    MessageBox.Show(this,"You're running the latest available stable release, or no compatible release was found.","GoatMeter Updates",MessageBoxButton.OK,MessageBoxImage.Information);
+                    MessageBox.Show(this,"No newer compatible release is available for your update channel.","GoatMeter Updates",MessageBoxButton.OK,MessageBoxImage.Information);
                 return;
             }
-            if(MessageBox.Show(this,$"GoatMeter {update.Version} is available. Download and verify the installer? Your local settings and fight history are stored separately and will be preserved.","GoatMeter Updates",MessageBoxButton.YesNo,MessageBoxImage.Question)!=MessageBoxResult.Yes)return;
+            if(MessageBox.Show(this,$"GoatMeter {update.Version}{(update.IsBeta?" Beta":"")} is available. Download and verify the installer? Your local settings and fight history are stored separately and will be preserved.","GoatMeter Updates",MessageBoxButton.YesNo,MessageBoxImage.Question)!=MessageBoxResult.Yes)return;
             var installer=await GoatMeterUpdater.DownloadVerifiedInstallerAsync(update);
+            if(closing)return;
             if(MessageBox.Show(this,"Installer downloaded and SHA-256 verified. Close GoatMeter and start the installer now?","GoatMeter Updates",MessageBoxButton.YesNo,MessageBoxImage.Question)!=MessageBoxResult.Yes)return;
-            GoatMeterUpdater.LaunchInstaller(installer);
+            pendingInstaller=installer;
             Close();
         }
         catch(Exception ex)
@@ -61,6 +68,7 @@ public partial class MainWindow : Window
             if(showUpToDate)
                 MessageBox.Show(this,$"Update was not installed: {ex.Message}","GoatMeter Updates",MessageBoxButton.OK,MessageBoxImage.Warning);
         }
+        finally {checkingUpdates=false;}
     }
 
     public MainWindow()
@@ -170,6 +178,8 @@ public partial class MainWindow : Window
             }
         };
         timer.Tick += (_,_)=>Render(); timer.Start(); capture.Start();
+        updateTimer.Tick+=async (_,_)=>await CheckForUpdatesCoreAsync(showUpToDate:false);
+        updateTimer.Start();
         // Startup check is non-blocking. Installation always requires consent.
         Loaded += async (_,_) =>
         {
@@ -203,7 +213,7 @@ public partial class MainWindow : Window
         if(allowClose) {base.OnClosing(e);return;}
         e.Cancel=true;base.OnClosing(e);
         if(closing)return;
-        closing=true;timer.Stop();capture.Dispose();
+        closing=true;timer.Stop();updateTimer.Stop();capture.Dispose();
         try
         {
             await capture.Completion;
@@ -213,6 +223,11 @@ public partial class MainWindow : Window
             if(historyError.Length>0)MessageBox.Show(this,historyError,"History was not saved");
         }
         catch(Exception ex) {MessageBox.Show(this,ex.Message,"Unable to finish saving history");}
+        if(pendingInstaller!=null)
+        {
+            try {GoatMeterUpdater.LaunchInstaller(pendingInstaller);}
+            catch(Exception ex) {MessageBox.Show(this,$"The installer could not start: {ex.Message}\nVerified installer: {pendingInstaller}","GoatMeter Updates");}
+        }
         overlay.Close();allowClose=true;Close();
     }
 }

@@ -1,5 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
+    <UpdateChannel Condition="'$(UpdateChannel)' == ''">Stable</UpdateChannel>
     <AssemblyName>GoatMeter</AssemblyName>
     <Product>GoatMeter</Product>
     <ApplicationIcon>Assets/Brand/GoatHead.ico</ApplicationIcon>
@@ -14,6 +15,7 @@
     <SelfContained>true</SelfContained>
     <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
   </PropertyGroup>
+  <ItemGroup><AssemblyMetadata Include="UpdateChannel" Value="$(UpdateChannel)" /></ItemGroup>
   <ItemGroup>
     <PackageReference Include="SharpPcap" Version="6.2.5" />
   </ItemGroup>

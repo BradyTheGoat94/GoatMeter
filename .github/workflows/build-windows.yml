@@ -6,12 +6,14 @@ on:
     branches: [main]
     paths: ["src/**", "tests/**", "installer/**", ".github/workflows/build-windows.yml"]
   push:
-    branches: [main, accuracy-reliability, identity-reports, overlay-designs, 'test/goatsim-integration']
+    branches: [main, accuracy-reliability, identity-reports, overlay-designs, 'test/goatsim-integration', 'test/beta-updater']
     paths: ["src/**", "tests/**", "installer/**", ".github/workflows/build-windows.yml"]
 
 jobs:
   build:
     runs-on: windows-latest
+    env:
+      UpdateChannel: ${{ github.ref == 'refs/heads/test/beta-updater' && 'Beta' || 'Stable' }}
     permissions:
       contents: write
     steps:
@@ -26,6 +28,8 @@ jobs:
       - name: GoatSim prototype regression checks
         shell: pwsh
         run: python -m unittest discover -s tests -p 'test_goatsim_*.py'
+      - name: Protocol and updater regression tests
+        run: dotnet test tests/Aion2DPSPro.Tests.csproj -c Release
       - name: Restore
         run: dotnet restore src/Aion2DPSPro.csproj
       - name: WPF overlay smoke checks
@@ -62,6 +66,12 @@ jobs:
           if (!(Test-Path dist/GoatMeter-Setup.exe)) { throw "Installer missing" }
           Compress-Archive -Path publish/* -DestinationPath dist/GoatMeter-win-x64.zip
           Get-FileHash dist/GoatMeter-Setup.exe, dist/GoatMeter-win-x64.zip -Algorithm SHA256 | ForEach-Object { "$($_.Hash.ToLower())  $([IO.Path]::GetFileName($_.Path))" } | Set-Content dist/SHA256SUMS.txt
+      - name: Verify installer upgrade preserves user data
+        if: github.ref == 'refs/heads/test/beta-updater'
+        shell: pwsh
+        env:
+          GOATMETER_VERSION: 1.0.${{ github.run_number }}
+        run: ./tests/InstallerUpgrade.ps1
       - name: Upload installer
         uses: actions/upload-artifact@v4
         with:
@@ -77,3 +87,26 @@ jobs:
           $tag = "goatmeter-build-${{ github.run_number }}"
           gh release create $tag dist/GoatMeter-Setup.exe dist/GoatMeter-win-x64.zip dist/SHA256SUMS.txt --target "${{ github.sha }}" --title "GoatMeter $env:GITHUB_RUN_NUMBER" --notes "Windows x64 installer and portable ZIP. Installer guides Npcap setup; Npcap is downloaded separately from its official site." --latest
           if ($LASTEXITCODE -ne 0) { throw "Release publication failed" }
+
+      - name: Publish opt-in updater beta
+        if: github.event_name == 'push' && github.ref == 'refs/heads/test/beta-updater'
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $tag = "goatmeter-beta-${{ github.run_number }}"
+          @'
+          Windows x64 public beta with in-app installer updates.
+
+          Install this version once to enable beta-channel updates. Afterwards GoatMeter checks at startup and every six hours, offers newer compatible beta or stable releases, downloads the installer and verifies its SHA-256 checksum. Installation requires your confirmation and waits for fight history to finish saving.
+
+          Existing beta 218 only checks stable releases and cannot discover this beta automatically. Download GoatMeter-Setup.exe once to upgrade. Installed users retain their settings and fight history. Portable users are migrated to the standard installed app when they accept an installer update.
+
+          Combat and roster behavior remains based on the previously tested build 218. The separate experimental party-filter changes are not included. Party metadata can remain unavailable until supported roster packets arrive.
+
+          Stable users remain on the stable update channel. This release is marked as a prerelease and does not replace the stable download.
+          '@ | Set-Content beta-notes.md
+          gh release create $tag dist/GoatMeter-Setup.exe dist/GoatMeter-win-x64.zip dist/SHA256SUMS.txt --target "${{ github.sha }}" --title "GoatMeter 1.0.${{ github.run_number }} Beta" --notes-file beta-notes.md --prerelease --latest=false --draft
+          if ($LASTEXITCODE -ne 0) { throw 'Beta draft creation failed' }
+          gh release edit $tag --draft=false --prerelease --latest=false
+          if ($LASTEXITCODE -ne 0) { throw 'Beta publication failed' }
