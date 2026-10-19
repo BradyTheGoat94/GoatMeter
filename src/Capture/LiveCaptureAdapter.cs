@@ -116,7 +116,7 @@ public sealed class LiveCaptureAdapter : IDisposable
     {
         lockedDevice=null; lockedConversation=null; lockedScope=null; selectedDecoder=null; reassembler.Reset(); candidates.Clear(); identityBridge.Clear();
         if(decoder is CurrentClientDecoder c) c.ResetConnection();
-        ConnectionReset?.Invoke(); StatusChanged?.Invoke("Connection reset; searching for validated game traffic.");
+        ConnectionReset?.Invoke(); ReportStatusSafely("Connection reset; searching for validated game traffic.");
     }
     private void Process(string device,Packet packet,DateTime utc)
     {
