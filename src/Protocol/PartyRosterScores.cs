@@ -24,7 +24,8 @@ public static class PartyRosterScores
         {
             if(p+11>body.Length)return empty;
             byte slot=body[p+1];var dbid=BinaryPrimitives.ReadUInt64LittleEndian(body.Slice(p+2,8));int length=body[p+10];
-            if(length==0){if(dbid!=0)return empty;break;}
+            // A declared member count must be fully present. Never publish a partial roster.
+            if(length==0)return empty;
             int server=(int)(dbid>>48);long character=(long)(dbid&0x0000FFFFFFFFFFFFUL);
             if(slot<=priorSlot||slot>12||server is <1001 or >9999||character is <1 or >uint.MaxValue||length is <2 or >48||p+11+length+12>body.Length)return empty;
             string name;try{name=Utf8.GetString(body.Slice(p+11,length));}catch(DecoderFallbackException){return empty;}
