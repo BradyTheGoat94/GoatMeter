@@ -41,14 +41,14 @@
   <!-- Slim, class-colored damage bars for the GoatMeter Compact preset.
        Existing Neon Compact and Raid Compact templates remain unchanged. -->
   <DataTemplate x:Key="GoatCompactRows">
-   <Border Background="#B90C1420" CornerRadius="4" Margin="2,1" ClipToBounds="True">
+   <Border Background="#CE0C1420" CornerRadius="3" Margin="1,1" ClipToBounds="True">
     <Grid Height="30">
      <ProgressBar Value="{Binding Relative}" Maximum="100" Foreground="{Binding Brush}" Background="#26313E50" Opacity="0.50" IsHitTestVisible="False"/>
      <Grid Margin="8,0,10,0">
-      <Grid.ColumnDefinitions><ColumnDefinition Width="22"/><ColumnDefinition Width="24"/><ColumnDefinition Width="*"/><ColumnDefinition Width="88"/><ColumnDefinition Width="52"/></Grid.ColumnDefinitions>
+      <Grid.ColumnDefinitions><ColumnDefinition Width="20"/><ColumnDefinition Width="22"/><ColumnDefinition Width="*"/><ColumnDefinition Width="92"/><ColumnDefinition Width="46"/></Grid.ColumnDefinitions>
       <TextBlock Grid.Column="0" Text="{Binding Rank}" VerticalAlignment="Center" FontSize="11" Foreground="#D1D9E6"/>
       <Image Grid.Column="1" Source="{Binding ClassName, Converter={StaticResource ClassIconConverter}}" Width="18" Height="18" VerticalAlignment="Center"/>
-      <TextBlock Grid.Column="2" Text="{Binding Name}" Margin="5,0,5,0" VerticalAlignment="Center" FontSize="12" FontWeight="SemiBold" Foreground="#FFFFFF" TextTrimming="CharacterEllipsis" ToolTip="{Binding Name}"/>
+      <TextBlock Grid.Column="2" Text="{Binding Name}" Margin="4,0,4,0" VerticalAlignment="Center" FontSize="12" FontWeight="SemiBold" Foreground="#FFFFFF" TextTrimming="CharacterEllipsis" ToolTip="{Binding Name}"/>
       <TextBlock Grid.Column="3" Text="{Binding Dps}" VerticalAlignment="Center" HorizontalAlignment="Right" FontSize="13" FontWeight="Bold" Foreground="#FFFFFF"/>
       <TextBlock Grid.Column="4" Text="{Binding Share}" VerticalAlignment="Center" HorizontalAlignment="Right" FontSize="10" Foreground="#E2E8F0"/>
      </Grid>
