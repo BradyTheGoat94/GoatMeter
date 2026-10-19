@@ -69,7 +69,12 @@ public sealed class LiveCaptureAdapter : IDisposable
             if(!queue.TryAdd(()=>Process(device,Packet.ParsePacket(link,bytes),utc)))
                 Interlocked.Increment(ref dropped);
         }
-        catch(InvalidOperationException) { /* Capture queue is shutting down. */ }
+        catch(InvalidOperationException)
+        {
+            // Queue shutdown is expected only during disposal. Otherwise this
+            // indicates capture loss and must be surfaced to the user.
+            if(!disposed) Interlocked.Increment(ref dropped);
+        }
         catch(Exception ex)
         {
             Interlocked.Increment(ref dropped);
