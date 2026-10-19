@@ -118,6 +118,9 @@ byte[] ScoreRoster(uint stable=304076,ushort server=1102,uint gear=2800,ulong po
  data.AddRange(BitConverter.GetBytes(9u));data.AddRange(BitConverter.GetBytes(45u));data.AddRange(BitConverter.GetBytes(gear));data.Add(1);data.AddRange(BitConverter.GetBytes(server));data.AddRange(BitConverter.GetBytes(server));data.Add(0);data.AddRange(BitConverter.GetBytes(power));data.AddRange(new byte[3+11]);return data.ToArray();
 }
 var scoreBody=ScoreRoster();var parsedScores=PartyRosterScores.Parse(scoreBody,t);Equal(parsedScores.Count,1,"strict roster reads score record");Equal(parsedScores.Single().GearScore!.Value,2800,"GS differs from CP");Equal(parsedScores.Single().CombatPower!.Value,121600,"roster CP");
+var incompleteDeclaredRoster=(byte[])scoreBody.Clone();
+incompleteDeclaredRoster[23]=2; // Fixture declares two members, but supplies only one valid record.
+True(!PartyRosterScores.Parse(incompleteDeclaredRoster,t).Any(),"declared member count cannot publish partial roster");
 True(!PartyRosterScores.Parse(ScoreRoster(gear:999999),t).Any(),"invalid gear rejected");True(!PartyRosterScores.Parse(ScoreRoster(power:ulong.MaxValue),t).Any(),"invalid CP rejected");
 for(int length=0;length<scoreBody.Length-14;length++)True(!PartyRosterScores.Parse(scoreBody.AsSpan(0,length),t).Any(),"truncated roster rejected");
 var scoreProfile=profile with {ExperimentalRosterScores=true};var scoreDispatch=new PacketDispatcher(scoreProfile);
