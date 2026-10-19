@@ -40,7 +40,7 @@ public sealed class LiveCaptureAdapter : IDisposable
             if(selectedDecoder is CurrentClientDecoder selected) selected.ResetStream(key);
             if(decoder is CurrentClientDecoder c) c.ResetStream(key);
             foreach(var candidate in candidates.Values) candidate.Decoder.ResetStream(key);
-            StatusChanged?.Invoke("TCP gap/flow reset; incomplete data discarded.");
+            ReportStatusSafely("TCP gap/flow reset; incomplete data discarded.");
         };
         worker=Task.Run(()=>
         {
@@ -78,9 +78,9 @@ public sealed class LiveCaptureAdapter : IDisposable
                     ReportStatusSafely($"Adapter unavailable: {ex.Message}");
                 }
             }
-            StatusChanged?.Invoke(devices.Count==0?"No capture adapter available. Install Npcap.":$"Waiting for validated AION traffic ({devices.Count} adapters).");
+            ReportStatusSafely(devices.Count==0?"No capture adapter available. Install Npcap.":$"Waiting for validated AION traffic ({devices.Count} adapters).");
         }
-        catch(Exception ex) { StatusChanged?.Invoke($"Capture startup failed: {ex.Message}"); }
+        catch(Exception ex) { ReportStatusSafely($"Capture startup failed: {ex.Message}"); }
     }
     private void OnPacket(object sender,PacketCapture capture)
     {
