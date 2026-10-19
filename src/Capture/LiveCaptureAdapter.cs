@@ -96,8 +96,7 @@ public sealed class LiveCaptureAdapter : IDisposable
         {
             Interlocked.Increment(ref dropped);
             // Never let a malformed capture escape the native packet callback.
-            try { StatusChanged?.Invoke($"Capture callback error; data may be incomplete: {ex.Message}"); }
-            catch { /* Diagnostic subscribers must not crash capture callbacks. */ }
+            ReportStatusSafely($"Capture callback error; data may be incomplete: {ex.Message}");
         }
     }
     private void ResetConnection()
