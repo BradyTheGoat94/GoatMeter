@@ -303,7 +303,7 @@ public partial class OverlayWindow : Window
     }
 
     static readonly string[] ThemeNames = { "Aion Blue/Red", "Neon Spectrum", "Void Purple", "Emerald Glass", "Solar Flare", "Ice Crystal", "Midnight Gold", "Rose Quartz", "Aurora", "Black / Orange", "Black / Yellow", "Nightmare Before Christmas" };
-    static readonly string[] StyleNames = { "Pulse Cards", "Neon Compact", "Encounter Focus", "Modern Glass", "Classic Dashboard", "Details Inspired", "Kagerou Inspired", "Bars Only", "Raid Compact", "Glass Cards", "Tournament" };
+    static readonly string[] StyleNames = { "GoatMeter Compact", "Pulse Cards", "Neon Compact", "Encounter Focus", "Modern Glass", "Classic Dashboard", "Details Inspired", "Kagerou Inspired", "Bars Only", "Raid Compact", "Glass Cards", "Tournament" };
 
     void ApplyOverlayStyle(string name)
     {
@@ -341,6 +341,26 @@ public partial class OverlayWindow : Window
 
         switch(name)
         {
+            case "GoatMeter Compact":
+                // Dedicated slim layout; existing compact presets stay available.
+                MinWidth=440; MinHeight=240; Width=510; Height=360;
+                Rows.ItemTemplate=(DataTemplate)Resources["GoatCompactRows"];
+                CategoryTabs.Visibility=Visibility.Collapsed;
+                CategoryPicker.Visibility=Visibility.Visible;
+                CategoryPicker.SelectedIndex=Math.Max(0,Tabs.SelectedIndex);
+                MainGrid.RowDefinitions[0].Height=new GridLength(34);
+                MainGrid.RowDefinitions[1].Height=new GridLength(32);
+                MainGrid.RowDefinitions[3].Height=new GridLength(0);
+                FooterBar.Visibility=Visibility.Collapsed;
+                DetailPanel.Visibility=Visibility.Collapsed;
+                ContentGrid.ColumnDefinitions[0].Width=new GridLength(1,GridUnitType.Star);
+                ContentGrid.ColumnDefinitions[1].Width=new GridLength(0);
+                ContentGrid.ColumnDefinitions[2].Width=new GridLength(0);
+                Root.CornerRadius=new CornerRadius(7);
+                Root.BorderThickness=new Thickness(1);
+                Rows.BorderThickness=new Thickness(0);
+                HeaderBar.CornerRadius=new CornerRadius(6,6,0,0);
+                break;
             case "Pulse Cards":
                 MinWidth=620;MinHeight=340;Width=740;Height=660;
                 Rows.ItemTemplate=(DataTemplate)Resources["PulseRows"];
