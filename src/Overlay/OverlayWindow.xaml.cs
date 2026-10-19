@@ -521,6 +521,11 @@ public partial class OverlayWindow : Window
         };
         var bg=Brush(p.Item1); var accent=Brush(p.Item2); var secondary=Brush(p.Item3);
         var chrome=Brush(p.Item4); var primaryText=Brush(p.Item5); var hot=Brush(p.Item6); var control=Brush(p.Item7);
+        if(currentStyle=="GoatMeter Compact") {
+            // A restrained translucent shell while preserving the selected theme accents.
+            bg=BrushWithOpacity(p.Item1,.80);
+            chrome=BrushWithOpacity(p.Item4,.84);
+        }
         if(currentStyle=="Kagerou Inspired") {bg=BrushWithOpacity(p.Item1,.62);chrome=BrushWithOpacity(p.Item4,.78);}
         if(currentStyle=="Modern Glass" && name=="Aion Blue/Red") {
             bg=Brush("#E6101725"); chrome=Brush("#B4162032"); accent=Brush("#33465F");
@@ -544,7 +549,7 @@ public partial class OverlayWindow : Window
         Root.Background=bg; Root.BorderBrush=accent;
         HeaderBar.Background=nightmare&&currentStyle=="Encounter Focus"?(Brush)Resources["NightmarePinstripes"]:chrome; HeaderBar.BorderBrush=secondary;
         FooterBar.Background=chrome; FooterBar.BorderBrush=secondary;
-        Rows.Background=BrushWithOpacity(p.Item4,currentStyle=="Kagerou Inspired"?.15:.62); Rows.BorderBrush=secondary;
+        Rows.Background=BrushWithOpacity(p.Item4,currentStyle=="GoatMeter Compact"?.08:currentStyle=="Kagerou Inspired"?.15:.62); Rows.BorderBrush=secondary;
         DetailPanel.Background=BrushWithOpacity(p.Item4, .72); DetailPanel.BorderBrush=secondary;
         EncounterHp.Foreground=accent;
         TitleAion.Foreground=primaryText; TitleDps.Foreground=hot;
