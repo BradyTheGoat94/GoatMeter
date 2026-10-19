@@ -68,7 +68,15 @@ public sealed class LiveCaptureAdapter : IDisposable
             foreach(var d in CaptureDeviceList.Instance)
             {
                 try { d.OnPacketArrival+=OnPacket; d.Open(DeviceModes.Promiscuous,1000); d.Filter="tcp port 13328"; d.StartCapture(); devices.Add(d); }
-                catch(Exception ex) { d.OnPacketArrival-=OnPacket; try {d.Close();} catch {} StatusChanged?.Invoke($"Adapter unavailable: {ex.Message}"); }
+                catch(Exception ex)
+                {
+                    // A failed subscription removal must not abort discovery of
+                    // the remaining capture devices.
+                    try { d.OnPacketArrival-=OnPacket; } catch { }
+                    try { d.StopCapture(); } catch { }
+                    try { d.Close(); } catch { }
+                    ReportStatusSafely($"Adapter unavailable: {ex.Message}");
+                }
             }
             StatusChanged?.Invoke(devices.Count==0?"No capture adapter available. Install Npcap.":$"Waiting for validated AION traffic ({devices.Count} adapters).");
         }
