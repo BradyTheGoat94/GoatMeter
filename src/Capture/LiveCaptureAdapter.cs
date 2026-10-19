@@ -147,7 +147,9 @@ public sealed class LiveCaptureAdapter : IDisposable
             if(tcp.Finished || tcp.Reset)return;
         }
         if(tcp.PayloadData is not {Length:>0})return;
-        PacketCaptured?.Invoke();
+        // Packet-count UI listeners are diagnostics, not part of decoding.
+        try { PacketCaptured?.Invoke(); }
+        catch(Exception ex) { ReportStatusSafely($"Packet notification failed: {ex.Message}"); }
         IAion2Decoder active=primary?selectedDecoder??decoder:decoder;
         if(!primary && decoder is CurrentClientDecoder baseDecoder)
         {
