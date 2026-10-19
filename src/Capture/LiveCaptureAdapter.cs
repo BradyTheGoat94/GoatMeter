@@ -175,7 +175,17 @@ public sealed class LiveCaptureAdapter : IDisposable
     {
         if(disposed)return;
         disposed=true;
-        foreach(var d in devices) { d.OnPacketArrival-=OnPacket; try { d.StopCapture(); } catch {} try { d.Close(); } catch {} }
+        foreach(var d in devices)
+        {
+            // Native capture teardown can fail on an already-disconnected adapter.
+            // Still attempt to stop and close every remaining adapter.
+            try { d.OnPacketArrival-=OnPacket; }
+            catch(Exception ex) { ReportStatusSafely($"Capture unsubscribe failed: {ex.Message}"); }
+            try { d.StopCapture(); }
+            catch(Exception ex) { ReportStatusSafely($"Capture stop failed: {ex.Message}"); }
+            try { d.Close(); }
+            catch(Exception ex) { ReportStatusSafely($"Capture close failed: {ex.Message}"); }
+        }
         devices.Clear(); queue.CompleteAdding();
         // UI never blocks waiting for work that may post UI updates.
         _=worker.ContinueWith(_=>queue.Dispose());
