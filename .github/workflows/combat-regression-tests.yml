@@ -2,7 +2,7 @@ name: Combat Regression Tests
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, audit-stability-fixes-20261019 ]
   pull_request:
     branches: [ main ]
   workflow_dispatch:
