@@ -38,8 +38,7 @@ public sealed class LiveCaptureAdapter : IDisposable
         // Diagnostic subscribers must not interrupt the packet-processing worker.
         reassembler.DuplicateDiscarded += ()=>
         {
-            try { DuplicateSuppressed?.Invoke(); }
-            catch(Exception ex) { ReportStatusSafely($"Duplicate notification failed: {ex.Message}"); }
+            NotifySafely(DuplicateSuppressed, "Duplicate");
         };
         reassembler.StreamReset += key =>
         {
@@ -66,6 +65,16 @@ public sealed class LiveCaptureAdapter : IDisposable
     {
         try { StatusChanged?.Invoke(message); }
         catch { /* Reporting failures must not terminate capture. */ }
+    }
+    // UI diagnostics must not interrupt packet processing or suppress other listeners.
+    private void NotifySafely(Action? handlers, string label)
+    {
+        if(handlers == null) return;
+        foreach(Action handler in handlers.GetInvocationList())
+        {
+            try { handler(); }
+            catch(Exception ex) { ReportStatusSafely($"{label} notification failed: {ex.Message}"); }
+        }
     }
     public void Start()
     {
@@ -155,8 +164,7 @@ public sealed class LiveCaptureAdapter : IDisposable
         }
         if(tcp.PayloadData is not {Length:>0})return;
         // Packet-count UI listeners are diagnostics, not part of decoding.
-        try { PacketCaptured?.Invoke(); }
-        catch(Exception ex) { ReportStatusSafely($"Packet notification failed: {ex.Message}"); }
+        NotifySafely(PacketCaptured, "Packet");
         IAion2Decoder active=primary?selectedDecoder??decoder:decoder;
         if(!primary && decoder is CurrentClientDecoder baseDecoder)
         {
