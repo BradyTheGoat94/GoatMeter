@@ -60,12 +60,23 @@ public sealed class LiveCaptureAdapter : IDisposable
     private void OnPacket(object sender,PacketCapture capture)
     {
         if(disposed) return;
-        var raw=capture.GetPacket();
-        var bytes=raw.Data.ToArray(); var link=raw.LinkLayerType;
-        var device=(sender as ICaptureDevice)?.Name??"unknown";
-        var utc=DateTime.UtcNow;
-        try { if(!queue.TryAdd(()=>Process(device,Packet.ParsePacket(link,bytes),utc))) Interlocked.Increment(ref dropped); }
-        catch(InvalidOperationException) { }
+        try
+        {
+            var raw=capture.GetPacket();
+            var bytes=raw.Data.ToArray(); var link=raw.LinkLayerType;
+            var device=(sender as ICaptureDevice)?.Name??"unknown";
+            var utc=DateTime.UtcNow;
+            if(!queue.TryAdd(()=>Process(device,Packet.ParsePacket(link,bytes),utc)))
+                Interlocked.Increment(ref dropped);
+        }
+        catch(InvalidOperationException) { /* Capture queue is shutting down. */ }
+        catch(Exception ex)
+        {
+            Interlocked.Increment(ref dropped);
+            // Never let a malformed capture escape the native packet callback.
+            try { StatusChanged?.Invoke($"Capture callback error; data may be incomplete: {ex.Message}"); }
+            catch { /* Diagnostic subscribers must not crash capture callbacks. */ }
+        }
     }
     private void ResetConnection()
     {
