@@ -35,7 +35,12 @@ public sealed class LiveCaptureAdapter : IDisposable
     public LiveCaptureAdapter(IAion2Decoder decoder)
     {
         this.decoder=decoder;
-        reassembler.DuplicateDiscarded += ()=>DuplicateSuppressed?.Invoke();
+        // Diagnostic subscribers must not interrupt the packet-processing worker.
+        reassembler.DuplicateDiscarded += ()=>
+        {
+            try { DuplicateSuppressed?.Invoke(); }
+            catch(Exception ex) { ReportStatusSafely($"Duplicate notification failed: {ex.Message}"); }
+        };
         reassembler.StreamReset += key =>
         {
             if(selectedDecoder is CurrentClientDecoder selected) selected.ResetStream(key);
