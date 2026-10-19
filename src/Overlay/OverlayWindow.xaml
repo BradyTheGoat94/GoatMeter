@@ -44,6 +44,8 @@
    <Border Background="#CE0C1420" CornerRadius="3" Margin="1,1" ClipToBounds="True">
     <Grid Height="30">
      <ProgressBar Value="{Binding Relative}" Maximum="100" Foreground="{Binding Brush}" Background="#26313E50" Opacity="0.50" IsHitTestVisible="False"/>
+     <!-- A fine class-colored edge keeps short bars identifiable against the dark track. -->
+     <Border Width="2" HorizontalAlignment="Left" Background="{Binding Brush}" Opacity="0.90" IsHitTestVisible="False"/>
      <Grid Margin="8,0,10,0">
       <Grid.ColumnDefinitions><ColumnDefinition Width="20"/><ColumnDefinition Width="22"/><ColumnDefinition Width="*"/><ColumnDefinition Width="92"/><ColumnDefinition Width="46"/></Grid.ColumnDefinitions>
       <TextBlock Grid.Column="0" Text="{Binding Rank}" VerticalAlignment="Center" FontSize="11" Foreground="#D1D9E6"/>
