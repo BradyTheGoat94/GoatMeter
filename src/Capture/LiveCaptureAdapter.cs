@@ -42,7 +42,24 @@ public sealed class LiveCaptureAdapter : IDisposable
             foreach(var candidate in candidates.Values) candidate.Decoder.ResetStream(key);
             StatusChanged?.Invoke("TCP gap/flow reset; incomplete data discarded.");
         };
-        worker=Task.Run(()=> { foreach(var action in queue.GetConsumingEnumerable()) try { action(); } catch(Exception ex) { StatusChanged?.Invoke($"Capture/decoder error: {ex.Message}"); } });
+        worker=Task.Run(()=>
+        {
+            foreach(var action in queue.GetConsumingEnumerable())
+            {
+                try { action(); }
+                catch(Exception ex)
+                {
+                    // UI/diagnostic subscribers can throw too. A failed status
+                    // callback must not terminate the only packet-processing worker.
+                    ReportStatusSafely($"Capture/decoder error: {ex.Message}");
+                }
+            }
+        });
+    }
+    private void ReportStatusSafely(string message)
+    {
+        try { StatusChanged?.Invoke(message); }
+        catch { /* Reporting failures must not terminate capture. */ }
     }
     public void Start()
     {
