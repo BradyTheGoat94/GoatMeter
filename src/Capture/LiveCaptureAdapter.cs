@@ -202,8 +202,10 @@ public sealed class LiveCaptureAdapter : IDisposable
             catch(Exception ex) { ReportStatusSafely($"Capture close failed: {ex.Message}"); }
         }
         devices.Clear(); queue.CompleteAdding();
+        // Do not dispose the queue while a late native callback may still be
+        // returning from TryAdd. Completion lets the worker drain safely;
+        // the queue is released with the adapter after callbacks have stopped.
         // UI never blocks waiting for work that may post UI updates.
-        _=worker.ContinueWith(_=>queue.Dispose());
         }
     }
 }
