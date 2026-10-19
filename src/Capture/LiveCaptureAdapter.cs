@@ -63,8 +63,14 @@ public sealed class LiveCaptureAdapter : IDisposable
     }
     private void ReportStatusSafely(string message)
     {
-        try { StatusChanged?.Invoke(message); }
-        catch { /* Reporting failures must not terminate capture. */ }
+        // A broken status listener must not silence the remaining diagnostics.
+        var handlers = StatusChanged;
+        if(handlers == null) return;
+        foreach(Action<string> handler in handlers.GetInvocationList())
+        {
+            try { handler(message); }
+            catch { /* Reporting failures must not terminate capture. */ }
+        }
     }
     // UI diagnostics must not interrupt packet processing or suppress other listeners.
     private void NotifySafely(Action? handlers, string label)
