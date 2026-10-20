@@ -32,8 +32,8 @@ public partial class MainWindow : Window
         try {profile=ProtocolProfile.Load(path);} catch {profile=ProtocolProfile.SafeGlobalScaffold();}
         var decoder=new CurrentClientDecoder(profile); profileId=decoder.ProfileId;
         var validationDir=System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),"Aion2DPSPro","Validation");
-        System.IO.Directory.CreateDirectory(validationDir);
         validationPath=System.IO.Path.Combine(validationDir,$"combat-{DateTime.Now:yyyyMMdd-HHmmss}.log");
+        bool validationDirectoryReady=false;
         int verboseValidationCount=0;
         var validationGate=new object();
         void RecordValidation(string line)
@@ -47,6 +47,7 @@ public partial class MainWindow : Window
                 if(verbose && verboseValidationCount>=50)return;
                 try
                 {
+                    if(!validationDirectoryReady) {System.IO.Directory.CreateDirectory(validationDir);validationDirectoryReady=true;}
                     System.IO.File.AppendAllText(validationPath,line+Environment.NewLine);
                     if(verbose)verboseValidationCount++;
                 }
@@ -62,6 +63,10 @@ public partial class MainWindow : Window
             {
                 try {await store.SaveAsync(snapshot);} catch(Exception ex) {lock(diagnosticsGate) historyError=$"History save failed: {ex.Message}";}
             }).Unwrap();
+        };
+        engine.EncounterNotificationFailed += ex =>
+        {
+            lock(diagnosticsGate) historyError=$"Encounter notification failed: {ex.Message}";
         };
         capture=new LiveCaptureAdapter(decoder);
         capture.ValidationRecord+=RecordValidation;
@@ -112,9 +117,12 @@ public partial class MainWindow : Window
         if(allowClose) {base.OnClosing(e);return;}
         e.Cancel=true;base.OnClosing(e);
         if(closing)return;
-        closing=true;timer.Stop();capture.Dispose();
+        closing=true;timer.Stop();
         try
         {
+            // Native stop/close can wait on a callback or disconnected adapter.
+            // Keep the dispatcher available while shutdown and history drain.
+            await Task.Run(capture.Dispose);
             await capture.Completion;
             engine.ResetFight();
             Task pending;lock(diagnosticsGate)pending=saveTail;

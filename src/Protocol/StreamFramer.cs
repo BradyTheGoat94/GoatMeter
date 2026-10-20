@@ -23,7 +23,18 @@ public sealed class StreamFramer
             while (i < buffer.Count && buffer[i] == 0) i++;
             if (i >= buffer.Count) break;
             int start = i, p = i;
-            if (!TryReadVarint(buffer, ref p, out uint val, out int consumed)) break;
+            if (!TryReadVarint(buffer, ref p, out uint val, out int consumed))
+            {
+                if(consumed==5)
+                {
+                    // Five bytes can never become a valid uint by waiting for
+                    // more TCP payload. Discard this malformed header only.
+                    i=p;
+                    Diagnostic?.Invoke(new(utc,"framing","Invalid frame length varint; header discarded",consumed));
+                    continue;
+                }
+                break;
+            }
             long len64 = (long)val + consumed - 4;
             if (len64 <= 0 || len64 > MaxMessageLen) { i = start + 1; continue; }
             int len = (int)len64;
@@ -65,7 +76,14 @@ public sealed class StreamFramer
     private static bool TryReadVarint(List<byte> b, ref int p, out uint value, out int consumed)
     {
         value=0; consumed=0; int shift=0;
-        while (p<b.Count && consumed<5) { byte x=b[p++]; consumed++; value|=(uint)(x&0x7F)<<shift; if((x&0x80)==0)return true; shift+=7; }
+        while (p<b.Count && consumed<5)
+        {
+            byte x=b[p++]; consumed++;
+            if(consumed==5 && (x&0xF0)!=0) {value=0;return false;}
+            value|=(uint)(x&0x7F)<<shift;
+            if((x&0x80)==0)return true;
+            shift+=7;
+        }
         value=0; return false;
     }
 }

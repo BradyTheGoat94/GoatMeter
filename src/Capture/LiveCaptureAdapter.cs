@@ -9,6 +9,7 @@ namespace Aion2DPSPro.Capture;
 public sealed class LiveCaptureAdapter : IDisposable
 {
     private readonly IAion2Decoder decoder;
+    private readonly Func<IEnumerable<ICaptureDevice>> captureDevices;
     private readonly List<ICaptureDevice> devices=new();
     private readonly CaptureIdentityBridge identityBridge=new();
     private string? lockedScope;
@@ -19,6 +20,8 @@ public sealed class LiveCaptureAdapter : IDisposable
     private string? lockedDevice,lockedConversation;
     private DateTime lastPayload,lastEvent;
     private long dropped;
+    private readonly object lifecycleGate=new();
+    private bool starting;
     private volatile bool disposed;
     public Task Completion => worker;
     public event Action<string>? ValidationRecord;
@@ -31,47 +34,154 @@ public sealed class LiveCaptureAdapter : IDisposable
     public string Health => Interlocked.Read(ref dropped)>0 ? $"Capture overloaded: {Interlocked.Read(ref dropped)} packets dropped; accuracy incomplete" :
         lockedConversation==null ? "Waiting for a validated game conversation" : DateTime.UtcNow-lastPayload>TimeSpan.FromSeconds(15) ? "Capture idle / disconnected" :
         DateTime.UtcNow-lastEvent>TimeSpan.FromSeconds(30) ? "Packets arriving; no decoded events (idle game or decoder mismatch)" : "Capture and decoding active; verified for tested gameplay";
-    public LiveCaptureAdapter(IAion2Decoder decoder)
+    public LiveCaptureAdapter(IAion2Decoder decoder) : this(decoder,()=>CaptureDeviceList.Instance) { }
+    public LiveCaptureAdapter(IAion2Decoder decoder, Func<IEnumerable<ICaptureDevice>> captureDevices)
     {
-        this.decoder=decoder;
-        reassembler.DuplicateDiscarded += ()=>DuplicateSuppressed?.Invoke();
+        this.decoder=decoder??throw new ArgumentNullException(nameof(decoder));
+        this.captureDevices=captureDevices??throw new ArgumentNullException(nameof(captureDevices));
+        // Diagnostic subscribers must not interrupt the packet-processing worker.
+        reassembler.DuplicateDiscarded += ()=>
+        {
+            NotifySafely(DuplicateSuppressed, "Duplicate");
+        };
         reassembler.StreamReset += key =>
         {
             if(selectedDecoder is CurrentClientDecoder selected) selected.ResetStream(key);
             if(decoder is CurrentClientDecoder c) c.ResetStream(key);
             foreach(var candidate in candidates.Values) candidate.Decoder.ResetStream(key);
-            StatusChanged?.Invoke("TCP gap/flow reset; incomplete data discarded.");
+            ReportStatusSafely("TCP gap/flow reset; incomplete data discarded.");
         };
-        worker=Task.Run(()=> { foreach(var action in queue.GetConsumingEnumerable()) try { action(); } catch(Exception ex) { StatusChanged?.Invoke($"Capture/decoder error: {ex.Message}"); } });
+        worker=Task.Run(()=>
+        {
+            foreach(var action in queue.GetConsumingEnumerable())
+            {
+                try { action(); }
+                catch(Exception ex)
+                {
+                    // UI/diagnostic subscribers can throw too. A failed status
+                    // callback must not terminate the only packet-processing worker.
+                    ReportStatusSafely($"Capture/decoder error: {ex.Message}");
+                }
+            }
+        });
+    }
+    private void ReportStatusSafely(string message)
+    {
+        // A broken status listener must not silence the remaining diagnostics.
+        var handlers = StatusChanged;
+        if(handlers == null) return;
+        foreach(Action<string> handler in handlers.GetInvocationList())
+        {
+            try { handler(message); }
+            catch { /* Reporting failures must not terminate capture. */ }
+        }
+    }
+    // UI diagnostics must not interrupt packet processing or suppress other listeners.
+    private void NotifySafely(Action? handlers, string label)
+    {
+        if(handlers == null) return;
+        foreach(Action handler in handlers.GetInvocationList())
+        {
+            try { handler(); }
+            catch(Exception ex) { ReportStatusSafely($"{label} notification failed: {ex.Message}"); }
+        }
+    }
+    // Keep synchronous subscription order and the original event instance. Never
+    // retry a listener: it may have applied the event before throwing.
+    private void NotifySafely<T>(Action<T>? handlers, T value, string label)
+    {
+        if(handlers == null) return;
+        foreach(Action<T> handler in handlers.GetInvocationList())
+        {
+            try { handler(value); }
+            catch(Exception ex) { ReportStatusSafely($"{label} notification failed: {ex.Message}"); }
+        }
     }
     public void Start()
     {
+        if(disposed)return;
+        lock(lifecycleGate)
+        {
+        if(disposed || starting || devices.Count>0)return;
+        starting=true;
         try
         {
-            foreach(var d in CaptureDeviceList.Instance)
+            foreach(var d in captureDevices())
             {
-                try { d.OnPacketArrival+=OnPacket; d.Open(DeviceModes.Promiscuous,1000); d.Filter="tcp port 13328"; d.StartCapture(); devices.Add(d); }
-                catch(Exception ex) { d.OnPacketArrival-=OnPacket; try {d.Close();} catch {} StatusChanged?.Invoke($"Adapter unavailable: {ex.Message}"); }
+                // A status listener can dispose reentrantly after an earlier
+                // adapter fails. Do not open any subsequent devices in that case.
+                if(disposed)break;
+                try
+                {
+                    d.OnPacketArrival+=OnPacket; d.Open(DeviceModes.Promiscuous,1000); d.Filter="tcp port 13328"; d.StartCapture();
+                    if(disposed)
+                    {
+                        // Disposal during startup could not see this device yet.
+                        try { d.OnPacketArrival-=OnPacket; } catch { }
+                        try { d.StopCapture(); } catch { }
+                        try { d.Close(); } catch { }
+                        break;
+                    }
+                    devices.Add(d);
+                }
+                catch(Exception ex)
+                {
+                    // A failed subscription removal must not abort discovery of
+                    // the remaining capture devices.
+                    try { d.OnPacketArrival-=OnPacket; } catch { }
+                    try { d.StopCapture(); } catch { }
+                    try { d.Close(); } catch { }
+                    ReportStatusSafely($"Adapter unavailable: {ex.Message}");
+                }
             }
-            StatusChanged?.Invoke(devices.Count==0?"No capture adapter available. Install Npcap.":$"Waiting for validated AION traffic ({devices.Count} adapters).");
+            if(!disposed)ReportStatusSafely(devices.Count==0?"No capture adapter available. Install Npcap.":$"Waiting for validated AION traffic ({devices.Count} adapters).");
         }
-        catch(Exception ex) { StatusChanged?.Invoke($"Capture startup failed: {ex.Message}"); }
+        catch(Exception ex) { ReportStatusSafely($"Capture startup failed: {ex.Message}"); }
+        finally {starting=false;}
+        }
     }
     private void OnPacket(object sender,PacketCapture capture)
     {
         if(disposed) return;
-        var raw=capture.GetPacket();
-        var bytes=raw.Data.ToArray(); var link=raw.LinkLayerType;
-        var device=(sender as ICaptureDevice)?.Name??"unknown";
-        var utc=DateTime.UtcNow;
-        try { if(!queue.TryAdd(()=>Process(device,Packet.ParsePacket(link,bytes),utc))) Interlocked.Increment(ref dropped); }
-        catch(InvalidOperationException) { }
+        try
+        {
+            var raw=capture.GetPacket();
+            // GetPacket already copies SharpPcap's native span into an owned
+            // array. Keep that array for the worker without a second copy.
+            var bytes=raw.Data; var link=raw.LinkLayerType;
+            var device=(sender as ICaptureDevice)?.Name??"unknown";
+            var utc=DateTime.UtcNow;
+            if(!queue.TryAdd(()=>Process(device,Packet.ParsePacket(link,bytes),utc)))
+                Interlocked.Increment(ref dropped);
+        }
+        catch(InvalidOperationException)
+        {
+            // Queue shutdown is expected only during disposal. Otherwise this
+            // indicates capture loss and must be surfaced to the user.
+            if(!disposed) Interlocked.Increment(ref dropped);
+        }
+        catch(Exception ex)
+        {
+            Interlocked.Increment(ref dropped);
+            // Never let a malformed capture escape the native packet callback.
+            ReportStatusSafely($"Capture callback error; data may be incomplete: {ex.Message}");
+        }
     }
     private void ResetConnection()
     {
         lockedDevice=null; lockedConversation=null; lockedScope=null; selectedDecoder=null; reassembler.Reset(); candidates.Clear(); identityBridge.Clear();
         if(decoder is CurrentClientDecoder c) c.ResetConnection();
-        ConnectionReset?.Invoke(); StatusChanged?.Invoke("Connection reset; searching for validated game traffic.");
+        // A UI subscriber failure must not abort connection recovery.
+        var resetHandlers = ConnectionReset;
+        if(resetHandlers != null)
+        {
+            foreach(Action handler in resetHandlers.GetInvocationList())
+            {
+                try { handler(); }
+                catch(Exception ex) { ReportStatusSafely($"Connection reset notification failed: {ex.Message}"); }
+            }
+        }
+        ReportStatusSafely("Connection reset; searching for validated game traffic.");
     }
     private void Process(string device,Packet packet,DateTime utc)
     {
@@ -94,7 +204,8 @@ public sealed class LiveCaptureAdapter : IDisposable
             if(tcp.Finished || tcp.Reset)return;
         }
         if(tcp.PayloadData is not {Length:>0})return;
-        PacketCaptured?.Invoke();
+        // Packet-count UI listeners are diagnostics, not part of decoding.
+        NotifySafely(PacketCaptured, "Packet");
         IAion2Decoder active=primary?selectedDecoder??decoder:decoder;
         if(!primary && decoder is CurrentClientDecoder baseDecoder)
         {
@@ -113,20 +224,20 @@ public sealed class LiveCaptureAdapter : IDisposable
         foreach(var d in active is CurrentClientDecoder c?c.DecodeStream(direction,chunk,utc):active.Decode(chunk,utc))
             decoded.Add(new(utc,d.Kind,d.SourceId,d.Source,d.TargetId,d.Target,d.Skill,d.Amount,d.DamageType,d.CurrentHp,d.MaxHp,d.Effect,d.Stacks,d.SourceClass,d.DamageFlags,SourceIdentityConfirmed:d.SourceIdentityConfirmed,SourceServerId:d.SourceServerId,SourceCharacterId:d.SourceCharacterId,SourceGearScore:d.SourceGearScore,SourceCombatPower:d.SourceCombatPower,StatsObservedUtc:d.StatsObservedUtc));
         foreach(var e in decoded.Where(x=>x.Kind is CombatKind.PlayerName or CombatKind.TargetHp or CombatKind.CharacterStats || primary&&x.Kind==CombatKind.Despawn))identityBridge.Observe(scope,e);
-        foreach(var e in decoded.Where(x=>x.Kind==CombatKind.PlayerName))ValidationRecord?.Invoke($"{utc:O}|tag=captureIdentity|entity={e.SourceId}|name={e.Source}|scope={scope}|conversation={conversation}|primary={primary}");
+        foreach(var e in decoded.Where(x=>x.Kind==CombatKind.PlayerName))NotifySafely(ValidationRecord, $"{utc:O}|tag=captureIdentity|entity={e.SourceId}|name={e.Source}|scope={scope}|conversation={conversation}|primary={primary}", "Validation");
         if(lockedConversation!=null&&decoded.Any(x=>x.Kind==CombatKind.CharacterStats))
-            foreach(var identity in identityBridge.Identities(scope,utc))EventReceived?.Invoke(identity);
+            foreach(var identity in identityBridge.Identities(scope,utc))NotifySafely(EventReceived, identity, "Combat event");
         if(lockedConversation==null)
         {
             if(!decoded.Any(x=>(x.Kind is CombatKind.Damage or CombatKind.Heal)&&x.Amount>0))return;
             lockedDevice=device;lockedConversation=conversation;lockedScope=scope;selectedDecoder=active;primary=true;
             // Publish identities captured before combat lock, including identity-only sibling connections.
-            foreach(var identity in identityBridge.Identities(scope,utc))EventReceived?.Invoke(identity);
-            FlowLocked?.Invoke($"{device} | {conversation}");
+            foreach(var identity in identityBridge.Identities(scope,utc))NotifySafely(EventReceived, identity, "Combat event");
+            NotifySafely(FlowLocked, $"{device} | {conversation}", "Flow lock");
         }
         if(!primary)
         {
-            foreach(var identity in decoded.Where(x=>x.Kind==CombatKind.PlayerName))EventReceived?.Invoke(identityBridge.Resolve(scope,identity));
+            foreach(var identity in decoded.Where(x=>x.Kind==CombatKind.PlayerName))NotifySafely(EventReceived, identityBridge.Resolve(scope,identity), "Combat event");
             return;
         }
         lastPayload=utc;if(decoded.Count>0)lastEvent=utc;
@@ -134,18 +245,45 @@ public sealed class LiveCaptureAdapter : IDisposable
         {
             var resolved=identityBridge.Resolve(scope,e);
             if(e.Kind is CombatKind.Damage or CombatKind.Heal)
-                ValidationRecord?.Invoke($"{utc:O}|tag=resolvedCombat|entity={resolved.SourceId}|name={resolved.Source}|class={resolved.SourceClass}|confirmed={resolved.SourceIdentityConfirmed}|target={resolved.TargetId}|scope={scope}|conversation={conversation}");
-            EventReceived?.Invoke(resolved);
+                NotifySafely(ValidationRecord, $"{utc:O}|tag=resolvedCombat|entity={resolved.SourceId}|name={resolved.Source}|class={resolved.SourceClass}|confirmed={resolved.SourceIdentityConfirmed}|target={resolved.TargetId}|scope={scope}|conversation={conversation}", "Validation");
+            NotifySafely(EventReceived, resolved, "Combat event");
         }
     }
     private IAion2Decoder? selectedDecoder;
     public void Dispose()
     {
         if(disposed)return;
-        disposed=true;
-        foreach(var d in devices) { d.OnPacketArrival-=OnPacket; try { d.StopCapture(); } catch {} try { d.Close(); } catch {} }
-        devices.Clear(); queue.CompleteAdding();
+        ICaptureDevice[] stoppingDevices;
+        lock(lifecycleGate)
+        {
+            if(disposed)return;
+            disposed=true;
+            stoppingDevices=devices.ToArray();
+            devices.Clear();
+        }
+        // StopCapture can wait for native callbacks. Do not hold the lifecycle
+        // gate while waiting: a callback may already be entering Start/Dispose.
+        try
+        {
+            foreach(var d in stoppingDevices)
+            {
+                // Native capture teardown can fail on an already-disconnected adapter.
+                // Still attempt to stop and close every remaining adapter.
+                try { d.OnPacketArrival-=OnPacket; }
+                catch(Exception ex) { ReportStatusSafely($"Capture unsubscribe failed: {ex.Message}"); }
+                try { d.StopCapture(); }
+                catch(Exception ex) { ReportStatusSafely($"Capture stop failed: {ex.Message}"); }
+                try { d.Close(); }
+                catch(Exception ex) { ReportStatusSafely($"Capture close failed: {ex.Message}"); }
+            }
+        }
+        finally {queue.CompleteAdding();}
+        // Callbacks already past their disposed check may still queue their
+        // captured bytes while StopCapture waits for them. Close admission only
+        // after native teardown, preserving the original shutdown boundary.
+        // Do not dispose the queue while a late native callback may still be
+        // returning from TryAdd. Completion lets the worker drain safely;
+        // the queue is released with the adapter after callbacks have stopped.
         // UI never blocks waiting for work that may post UI updates.
-        _=worker.ContinueWith(_=>queue.Dispose());
     }
 }

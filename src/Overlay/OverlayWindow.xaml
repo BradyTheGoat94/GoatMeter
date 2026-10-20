@@ -38,6 +38,25 @@
   </Grid></ControlTemplate></Setter.Value></Setter></Style>
   <Style TargetType="ProgressBar"><Setter Property="Template"><Setter.Value><ControlTemplate TargetType="ProgressBar"><Border x:Name="PART_Track" Background="{TemplateBinding Background}"><Border x:Name="PART_Indicator" HorizontalAlignment="Left" Background="{TemplateBinding Foreground}"/></Border></ControlTemplate></Setter.Value></Setter></Style>
   <Style TargetType="ListViewItem"><Setter Property="HorizontalContentAlignment" Value="Stretch"/><Setter Property="Padding" Value="0"/><Setter Property="Margin" Value="0,0,0,3"/><Setter Property="Template"><Setter.Value><ControlTemplate TargetType="ListViewItem"><Border x:Name="Item" BorderBrush="Transparent" BorderThickness="1" Background="Transparent" CornerRadius="3"><StackPanel><ContentPresenter/><TextBlock Text="{Binding CharacterStats}" Margin="8,0,8,3" FontSize="10" Foreground="#91A7C7" ToolTip="Experimental roster metadata • unknown stays blank • expires after 10 minutes"/></StackPanel></Border><ControlTemplate.Triggers><Trigger Property="IsSelected" Value="True"><Setter TargetName="Item" Property="BorderBrush" Value="#D9E8FF"/></Trigger><Trigger Property="IsMouseOver" Value="True"><Setter TargetName="Item" Property="Background" Value="{DynamicResource OverlayRowHoverBrush}"/></Trigger></ControlTemplate.Triggers></ControlTemplate></Setter.Value></Setter></Style>
+  <!-- Slim, class-colored damage bars for the GoatMeter Compact preset.
+       Existing Neon Compact and Raid Compact templates remain unchanged. -->
+  <DataTemplate x:Key="GoatCompactRows">
+   <Border Background="#CE0C1420" CornerRadius="3" Margin="1,1" ClipToBounds="True">
+    <Grid Height="30">
+     <ProgressBar Value="{Binding Relative}" Maximum="100" Foreground="{Binding Brush}" Background="#26313E50" Opacity="0.50" IsHitTestVisible="False"/>
+     <!-- A fine class-colored edge keeps short bars identifiable against the dark track. -->
+     <Border Width="2" HorizontalAlignment="Left" Background="{Binding Brush}" Opacity="0.90" IsHitTestVisible="False"/>
+     <Grid Margin="8,0,10,0">
+      <Grid.ColumnDefinitions><ColumnDefinition Width="20"/><ColumnDefinition Width="22"/><ColumnDefinition Width="*"/><ColumnDefinition Width="92"/><ColumnDefinition Width="46"/></Grid.ColumnDefinitions>
+      <TextBlock Grid.Column="0" Text="{Binding Rank}" VerticalAlignment="Center" FontSize="11" Foreground="#D1D9E6"/>
+      <Image Grid.Column="1" Source="{Binding ClassName, Converter={StaticResource ClassIconConverter}}" Width="18" Height="18" VerticalAlignment="Center"/>
+      <TextBlock Grid.Column="2" Text="{Binding Name}" Margin="4,0,4,0" VerticalAlignment="Center" FontSize="12" FontWeight="SemiBold" Foreground="#FFFFFF" TextTrimming="CharacterEllipsis" ToolTip="{Binding Name}"/>
+      <TextBlock Grid.Column="3" Text="{Binding Dps}" VerticalAlignment="Center" HorizontalAlignment="Right" FontSize="13" FontWeight="Bold" Foreground="#FFFFFF"/>
+      <TextBlock Grid.Column="4" Text="{Binding Share}" VerticalAlignment="Center" HorizontalAlignment="Right" FontSize="10" Foreground="#E2E8F0"/>
+     </Grid>
+    </Grid>
+   </Border>
+  </DataTemplate>
   <DataTemplate x:Key="PulseRows">
    <Border Background="{DynamicResource OverlayPulseRowBrush}" CornerRadius="12" Padding="12,8" Margin="4,4"><Grid Height="58"><Grid.ColumnDefinitions><ColumnDefinition Width="38"/><ColumnDefinition/><ColumnDefinition Width="110"/><ColumnDefinition Width="65"/></Grid.ColumnDefinitions>
     <Border CornerRadius="18" BorderBrush="{Binding Brush}" BorderThickness="1" Width="34" Height="34" VerticalAlignment="Center"><Image Source="{Binding ClassName, Converter={StaticResource ClassIconConverter}}" Width="24" Height="24"/></Border>

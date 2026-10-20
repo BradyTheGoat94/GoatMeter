@@ -29,7 +29,13 @@ public partial class OverlayWindow : Window
     bool showCharacterStats=true;
     EventTimersWindow? eventTimers;
     bool showDetails = true;
-    public OverlayWindow() { InitializeComponent(); CategoryPicker.ItemsSource=new[]{"Damage","Healing","Damage Taken","Deaths","Buffs","Debuffs","Interrupts","Dispels"}; CategoryPicker.SelectedIndex=0; FightHistory.ItemsSource=new[]{new HistoryChoice("Saved fights ▾",null)}; FightHistory.SelectedIndex=0; ApplyTheme(currentTheme); ApplyOverlayStyle(currentStyle); LoadPreferences(); }
+    private readonly string preferencesPath;
+    public OverlayWindow() : this(null) { }
+    public OverlayWindow(string? preferencesPath)
+    {
+        this.preferencesPath=preferencesPath??System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),"Aion2DPSPro","overlay-settings.json");
+        InitializeComponent(); CategoryPicker.ItemsSource=new[]{"Damage","Healing","Damage Taken","Deaths","Buffs","Debuffs","Interrupts","Dispels"}; CategoryPicker.SelectedIndex=0; FightHistory.ItemsSource=new[]{new HistoryChoice("Saved fights ▾",null)}; FightHistory.SelectedIndex=0; ApplyTheme(currentTheme); ApplyOverlayStyle(currentStyle); LoadPreferences();
+    }
     static readonly Dictionary<string,string> Colors = new(StringComparer.OrdinalIgnoreCase) {
         ["Gladiator"]="#E65353", ["Templar"]="#E8903D", ["Assassin"]="#C45CFF", ["Ranger"]="#F2C94C",
         ["Sorcerer"]="#4DA3FF", ["Spiritmaster"]="#48C9D8", ["Cleric"]="#6DDB72", ["Chanter"]="#D6DCE8", ["Brawler"]="#FF7A45", ["Unknown"]="#AAB6CC" };
@@ -86,6 +92,10 @@ public partial class OverlayWindow : Window
 
     async void RefreshFightHistory(object sender,EventArgs e)
     {
+        await RefreshFightHistoryAsync();
+    }
+    async Task RefreshFightHistoryAsync()
+    {
         if(loadingHistory || HistoryProvider==null || HistoryLoader==null)return;
         loadingHistory=true;
         try
@@ -107,6 +117,7 @@ public partial class OverlayWindow : Window
             FightHistory.ItemsSource=choices;
             FightHistory.SelectedIndex=historicalPath==null?0:Math.Max(0,choices.FindIndex(x=>x.Path==historicalPath));
         }
+        catch(Exception ex) {StatusText.Text=$"Unable to read fight history: {ex.Message}";}
         finally {loadingHistory=false;}
     }
 
@@ -303,7 +314,7 @@ public partial class OverlayWindow : Window
     }
 
     static readonly string[] ThemeNames = { "Aion Blue/Red", "Neon Spectrum", "Void Purple", "Emerald Glass", "Solar Flare", "Ice Crystal", "Midnight Gold", "Rose Quartz", "Aurora", "Black / Orange", "Black / Yellow", "Nightmare Before Christmas" };
-    static readonly string[] StyleNames = { "Pulse Cards", "Neon Compact", "Encounter Focus", "Modern Glass", "Classic Dashboard", "Details Inspired", "Kagerou Inspired", "Bars Only", "Raid Compact", "Glass Cards", "Tournament" };
+    static readonly string[] StyleNames = { "GoatMeter Compact", "Pulse Cards", "Neon Compact", "Encounter Focus", "Modern Glass", "Classic Dashboard", "Details Inspired", "Kagerou Inspired", "Bars Only", "Raid Compact", "Glass Cards", "Tournament" };
 
     void ApplyOverlayStyle(string name)
     {
@@ -341,6 +352,26 @@ public partial class OverlayWindow : Window
 
         switch(name)
         {
+            case "GoatMeter Compact":
+                // Dedicated slim layout; existing compact presets stay available.
+                MinWidth=440; MinHeight=240; Width=510; Height=360;
+                Rows.ItemTemplate=(DataTemplate)Resources["GoatCompactRows"];
+                CategoryTabs.Visibility=Visibility.Collapsed;
+                CategoryPicker.Visibility=Visibility.Visible;
+                CategoryPicker.SelectedIndex=Math.Max(0,Tabs.SelectedIndex);
+                MainGrid.RowDefinitions[0].Height=new GridLength(34);
+                MainGrid.RowDefinitions[1].Height=new GridLength(32);
+                MainGrid.RowDefinitions[3].Height=new GridLength(0);
+                FooterBar.Visibility=Visibility.Collapsed;
+                DetailPanel.Visibility=Visibility.Collapsed;
+                ContentGrid.ColumnDefinitions[0].Width=new GridLength(1,GridUnitType.Star);
+                ContentGrid.ColumnDefinitions[1].Width=new GridLength(0);
+                ContentGrid.ColumnDefinitions[2].Width=new GridLength(0);
+                Root.CornerRadius=new CornerRadius(7);
+                Root.BorderThickness=new Thickness(1);
+                Rows.BorderThickness=new Thickness(0);
+                HeaderBar.CornerRadius=new CornerRadius(6,6,0,0);
+                break;
             case "Pulse Cards":
                 MinWidth=620;MinHeight=340;Width=740;Height=660;
                 Rows.ItemTemplate=(DataTemplate)Resources["PulseRows"];
@@ -501,6 +532,11 @@ public partial class OverlayWindow : Window
         };
         var bg=Brush(p.Item1); var accent=Brush(p.Item2); var secondary=Brush(p.Item3);
         var chrome=Brush(p.Item4); var primaryText=Brush(p.Item5); var hot=Brush(p.Item6); var control=Brush(p.Item7);
+        if(currentStyle=="GoatMeter Compact") {
+            // A restrained translucent shell while preserving the selected theme accents.
+            bg=BrushWithOpacity(p.Item1,.80);
+            chrome=BrushWithOpacity(p.Item4,.84);
+        }
         if(currentStyle=="Kagerou Inspired") {bg=BrushWithOpacity(p.Item1,.62);chrome=BrushWithOpacity(p.Item4,.78);}
         if(currentStyle=="Modern Glass" && name=="Aion Blue/Red") {
             bg=Brush("#E6101725"); chrome=Brush("#B4162032"); accent=Brush("#33465F");
@@ -524,7 +560,7 @@ public partial class OverlayWindow : Window
         Root.Background=bg; Root.BorderBrush=accent;
         HeaderBar.Background=nightmare&&currentStyle=="Encounter Focus"?(Brush)Resources["NightmarePinstripes"]:chrome; HeaderBar.BorderBrush=secondary;
         FooterBar.Background=chrome; FooterBar.BorderBrush=secondary;
-        Rows.Background=BrushWithOpacity(p.Item4,currentStyle=="Kagerou Inspired"?.15:.62); Rows.BorderBrush=secondary;
+        Rows.Background=BrushWithOpacity(p.Item4,currentStyle=="GoatMeter Compact"?.08:currentStyle=="Kagerou Inspired"?.15:.62); Rows.BorderBrush=secondary;
         DetailPanel.Background=BrushWithOpacity(p.Item4, .72); DetailPanel.BorderBrush=secondary;
         EncounterHp.Foreground=accent;
         TitleAion.Foreground=primaryText; TitleDps.Foreground=hot;
@@ -564,7 +600,7 @@ public partial class OverlayWindow : Window
         var report=new CombatReportWindow(provider,r.Stats.ActorId,(MeterCategory)Math.Clamp(Tabs.SelectedIndex,0,7),hideNames,showCharacterStats) {Owner=this};
         report.Show();
     }
-    static string PreferencesPath=>System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),"Aion2DPSPro","overlay-settings.json");
+    string PreferencesPath=>preferencesPath;
     public sealed record OverlayPreferences(string Style,string Theme,double Opacity,bool Details,bool Topmost,double Width,double Height,double Left,double Top,bool PositionLocked=false,bool HideNames=false,bool ShowCharacterStats=true,double UiScale=1);
     void LoadPreferences()
     {

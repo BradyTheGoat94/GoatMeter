@@ -18,6 +18,7 @@ public sealed class CombatEngine
     public TimeSpan InactivityTimeout { get; set; } = TimeSpan.FromSeconds(8);
     public TimeSpan BossInactivityTimeout { get; set; } = TimeSpan.FromSeconds(8);
     public event Action<MeterSnapshot>? EncounterCompleted;
+    public event Action<Exception>? EncounterNotificationFailed;
     public CombatEngine(Func<DateTime>? clock = null) => this.clock = clock ?? (() => DateTime.UtcNow);
     public IReadOnlyList<MeterSnapshot> History { get { lock(gate) return history.Select(x => Build(x, MeterCategory.Damage, false)).ToArray(); } }
 
@@ -64,7 +65,29 @@ public sealed class CombatEngine
                 }
             }
         }
-        if (completed != null) EncounterCompleted?.Invoke(completed);
+        if (completed != null) NotifyEncounterCompleted(completed);
+    }
+
+    private void NotifyEncounterCompleted(MeterSnapshot snapshot)
+    {
+        var handlers=EncounterCompleted;
+        if(handlers==null)return;
+        foreach(Action<MeterSnapshot> handler in handlers.GetInvocationList())
+        {
+            try {handler(snapshot);}
+            catch(Exception ex)
+            {
+                // Completion has already been committed. Never replay it, and
+                // still give later persistence/UI listeners the same snapshot.
+                var failures=EncounterNotificationFailed;
+                if(failures==null)continue;
+                foreach(Action<Exception> failure in failures.GetInvocationList())
+                {
+                    try {failure(ex);}
+                    catch { /* Failure reporting must not interrupt combat or UI rendering. */ }
+                }
+            }
+        }
     }
 
     private void Remember(long id, string name, string cls,bool confirmed=false,int server=0,long character=0,int? gear=null,long? power=null,DateTime? statsSeen=null)
@@ -223,7 +246,7 @@ public sealed class CombatEngine
     {
         MeterSnapshot? completed;
         lock(gate) { completed=Finish("Manual reset"); current=new(); }
-        if(completed!=null) EncounterCompleted?.Invoke(completed);
+        if(completed!=null) NotifyEncounterCompleted(completed);
     }
     public MeterSnapshot Snapshot() => Snapshot(MeterSegment.Current,MeterCategory.Damage);
     public MeterSnapshot Snapshot(MeterSegment segment, MeterCategory category, bool includeCategories=false)
@@ -236,7 +259,7 @@ public sealed class CombatEngine
             var selected=segment==MeterSegment.Overall?overall:segment==MeterSegment.Previous?history.LastOrDefault()??new Encounter():current;
             result=Build(selected,category,segment==MeterSegment.Overall,includeCategories);
         }
-        if(completed!=null) EncounterCompleted?.Invoke(completed);
+        if(completed!=null) NotifyEncounterCompleted(completed);
         return result;
     }
     public MeterSnapshot? SnapshotEncounter(Guid encounterId)

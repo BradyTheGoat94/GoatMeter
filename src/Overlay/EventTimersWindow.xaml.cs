@@ -10,10 +10,13 @@ public partial class EventTimersWindow : Window
 {
     readonly DispatcherTimer timer=new() {Interval=TimeSpan.FromSeconds(1)};
     public Func<DateTimeOffset> Clock {get;set;}=()=>DateTimeOffset.UtcNow;
-    static string CustomPath=>Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),"Aion2DPSPro","event-schedule.json");
-    static string SettingsPath=>Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),"Aion2DPSPro","event-timer-profile.txt");
-    public EventTimersWindow()
+    readonly string settingsDirectory;
+    string CustomPath=>Path.Combine(settingsDirectory,"event-schedule.json");
+    string SettingsPath=>Path.Combine(settingsDirectory,"event-timer-profile.txt");
+    public EventTimersWindow() : this(null) { }
+    public EventTimersWindow(string? settingsDirectory)
     {
+        this.settingsDirectory=settingsDirectory??Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),"Aion2DPSPro");
         InitializeComponent();timer.Tick+=(_,_)=>Refresh();
         try
         {

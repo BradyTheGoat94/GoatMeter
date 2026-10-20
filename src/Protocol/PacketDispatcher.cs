@@ -172,7 +172,8 @@ public sealed class PacketDispatcher
             _ => null
         };
         if (evt is not null) { Diagnostic?.Invoke(new(utc,"parse",$"Parsed {kind}",frame.Length)); var candidates = kind == "damage" ? DescribeVarintCandidates(frame, FindPostSkillPosition(frame, p+2)) : "";
-      ValidationRecord?.Invoke($"{utc:O}|tag={kind}|src={evt.SourceId}|tgt={evt.TargetId}|skill={evt.Skill}|amount={evt.Amount}|type={evt.DamageType}|candidates={candidates}|raw={Convert.ToHexString(frame)}"); yield return evt; }
+      var rawSkillId = kind == "damage" ? ReadDiagnosticSkillId(frame, p+2) : null;
+      ValidationRecord?.Invoke($"{utc:O}|tag={kind}|src={evt.SourceId}|tgt={evt.TargetId}|skill={evt.Skill}|skillId={rawSkillId?.ToString() ?? "unknown"}|amount={evt.Amount}|type={evt.DamageType}|candidates={candidates}|raw={Convert.ToHexString(frame)}"); yield return evt; }
         else Diagnostic?.Invoke(new(utc,"dispatch",$"Matched {kind}; no validated event emitted",frame.Length));
     }
 
@@ -686,6 +687,15 @@ public sealed class PacketDispatcher
             }
         }
         return false;
+    }
+
+    private static int? ReadDiagnosticSkillId(ReadOnlySpan<byte> d, int p)
+    {
+        if (!ReadV(d, ref p, out _)) return null;
+        if (!ReadV(d, ref p, out _)) return null;
+        if (!ReadV(d, ref p, out _)) return null;
+        if (!ReadV(d, ref p, out _)) return null;
+        return TryReadSkillField(d, ref p, out var skill) ? skill : null;
     }
 
     private static int FindPostSkillPosition(ReadOnlySpan<byte> d, int p)

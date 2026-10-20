@@ -9,6 +9,108 @@ namespace Aion2DPSPro.Tests;
 
 public sealed class PacketDispatcherRegressionTests
 {
+    [Theory]
+    [InlineData("reset")]
+    [InlineData("snapshot")]
+    [InlineData("combat-end")]
+    [InlineData("zone")]
+    [InlineData("boss")]
+    [InlineData("apply-expiry")]
+    public void CompletionListenerFailuresPreserveHistoryAndLaterEncounters(string trigger)
+    {
+        var t=DateTime.UnixEpoch;
+        var now=t;
+        var engine=new CombatEngine(()=>now);
+        var received=new List<MeterSnapshot>();
+        var errors=new List<Exception>();
+        MeterSnapshot first=null;
+        engine.EncounterCompleted += s => { first=s; throw new InvalidOperationException("completion"); };
+        engine.EncounterCompleted += received.Add;
+        engine.EncounterNotificationFailed += _ => throw new InvalidOperationException("error reporter");
+        engine.EncounterNotificationFailed += errors.Add;
+        engine.Apply(new(t,CombatKind.PlayerName,7,"Hero"));
+        engine.Apply(new(t,CombatKind.Damage,7,"Hero",99,"Boss","Strike",100,IsBoss:true));
+        engine.Apply(new(t.AddSeconds(1),CombatKind.Damage,7,"Hero",99,"Boss","Strike",200,IsBoss:true));
+        now=t.AddSeconds(20);
+        switch(trigger)
+        {
+            case "reset": engine.ResetFight(); break;
+            case "snapshot": engine.Snapshot(); break;
+            case "combat-end": engine.Apply(new(t.AddSeconds(2),CombatKind.CombatEnd)); break;
+            case "zone": engine.Apply(new(t.AddSeconds(2),CombatKind.Zone)); break;
+            case "boss": engine.Apply(new(t.AddSeconds(2),CombatKind.TargetHp,TargetId:99,Target:"Boss",CurrentHp:0,MaxHp:1000,IsBoss:true)); break;
+            case "apply-expiry": engine.Apply(new(now,CombatKind.Cast,7,"Hero")); break;
+        }
+        var completed=Assert.Single(received);
+        Assert.Same(first,completed);
+        Assert.Equal(300,completed.FightDamage);
+        Assert.Equal(300,completed.FightDps);
+        Assert.Single(errors);
+        Assert.Equal(completed.EncounterId,Assert.Single(engine.History).EncounterId);
+        engine.Apply(new(now.AddSeconds(1),CombatKind.PlayerName,7,"Hero"));
+        engine.Apply(new(now.AddSeconds(1),CombatKind.Damage,7,"Hero",99,"Boss","Strike",400));
+        Assert.Equal(400,engine.Snapshot().FightDamage);
+        Assert.Equal(700,engine.Snapshot(MeterSegment.Overall,MeterCategory.Damage).FightDamage);
+        Assert.Single(received);
+    }
+
+    [Theory]
+    [InlineData(false, false)]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    [InlineData(true, true)]
+    public void DecoderListenerFailuresPreserveSplitAndBatchedEvents(bool sibling, bool reset)
+    {
+        var profile = DamageProfile();
+        var root = new CurrentClientDecoder(profile);
+        var validation = new List<string>();
+        var diagnostics = new List<DecoderDiagnostic>();
+        root.Diagnostic += _ => throw new InvalidOperationException("diagnostic listener");
+        root.Diagnostic += diagnostics.Add;
+        root.ValidationRecord += _ => throw new InvalidOperationException("validation listener");
+        root.ValidationRecord += validation.Add;
+        var decoder = sibling ? root.CreateSibling() : root;
+        if (sibling)
+        {
+            // The forwarding subscriber and subsequent child listeners must both run.
+            decoder.Diagnostic += _ => throw new InvalidOperationException("child diagnostic");
+            decoder.ValidationRecord += _ => throw new InvalidOperationException("child validation");
+        }
+        if (reset) decoder.ResetConnection();
+        var utc = DateTime.UnixEpoch;
+        var frame = Convert.FromHexString("210438E3A00204008D3540B7B70009020B95C34701000000D658E7020100");
+        Assert.Empty(decoder.DecodeStream("in", frame[..8], utc));
+        var actual = decoder.DecodeStream("in", frame[8..].Concat(frame).ToArray(), utc).ToArray();
+        var baseline = new CurrentClientDecoder(profile);
+        var expectedRecords = new List<string>();
+        var expectedDiagnostics = new List<DecoderDiagnostic>();
+        baseline.ValidationRecord += expectedRecords.Add;
+        baseline.Diagnostic += expectedDiagnostics.Add;
+        var expected = baseline.Decode(frame.Concat(frame).ToArray(), utc).ToArray();
+        Assert.Equal(2, actual.Length);
+        Assert.All(actual, e => Assert.Equal(359, e.Amount));
+        Assert.Equal(expected, actual);
+        Assert.NotEmpty(validation);
+        Assert.Equal(expectedRecords, validation);
+        Assert.Equal(expectedDiagnostics, diagnostics.Where(d => d.Stage != "subscriber"));
+        Assert.Contains(diagnostics, d => d.Stage == "subscriber");
+        decoder.ResetStream("in");
+        Assert.Equal(expected[0], Assert.Single(decoder.DecodeStream("in", frame, utc)));
+    }
+
+    [Fact]
+    public void FramingDiagnosticListenerFailureDoesNotPreventBufferRecovery()
+    {
+        var decoder = new CurrentClientDecoder(DamageProfile());
+        var diagnostics = new List<DecoderDiagnostic>();
+        decoder.Diagnostic += _ => throw new InvalidOperationException("listener");
+        decoder.Diagnostic += diagnostics.Add;
+        Assert.Empty(decoder.Decode(new byte[4_000_001], DateTime.UnixEpoch));
+        Assert.Contains(diagnostics, d => d.Stage == "framing");
+        var frame = Convert.FromHexString("210438E3A00204008D3540B7B70009020B95C34701000000D658E7020100");
+        Assert.Equal(359, Assert.Single(decoder.Decode(frame, DateTime.UnixEpoch)).Amount);
+    }
+
     private static ProtocolProfile DamageProfile() => new(
         "REGRESSION", "Global", "capture-2026-10-03", 13328,
         new Dictionary<string, PacketTag>
