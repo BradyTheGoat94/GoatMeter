@@ -92,6 +92,10 @@ public partial class OverlayWindow : Window
 
     async void RefreshFightHistory(object sender,EventArgs e)
     {
+        await RefreshFightHistoryAsync();
+    }
+    async Task RefreshFightHistoryAsync()
+    {
         if(loadingHistory || HistoryProvider==null || HistoryLoader==null)return;
         loadingHistory=true;
         try
@@ -113,6 +117,7 @@ public partial class OverlayWindow : Window
             FightHistory.ItemsSource=choices;
             FightHistory.SelectedIndex=historicalPath==null?0:Math.Max(0,choices.FindIndex(x=>x.Path==historicalPath));
         }
+        catch(Exception ex) {StatusText.Text=$"Unable to read fight history: {ex.Message}";}
         finally {loadingHistory=false;}
     }
 

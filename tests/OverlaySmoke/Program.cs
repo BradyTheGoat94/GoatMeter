@@ -220,6 +220,20 @@ internal static class Program
   var eventPng=new System.Windows.Media.Imaging.PngBitmapEncoder();eventPng.Frames.Add(System.Windows.Media.Imaging.BitmapFrame.Create(eventBitmap));
   using(var output=System.IO.File.Create("overlay-Event-Countdowns.png"))eventPng.Save(output);
   eventWindow.Close();Console.WriteLine("PASS: imported event countdown window");
+  // A directory/provider error used to escape async-void UI callbacks. The
+  // optional history menu must recover without affecting captured totals.
+  var historyMethod=typeof(OverlayWindow).GetMethod("RefreshFightHistoryAsync",BindingFlags.NonPublic|BindingFlags.Instance)!;
+  var capturedTotal=window.Engine!.Snapshot().FightDamage;
+  window.HistoryProvider=()=>throw new System.IO.IOException("history unavailable");
+  window.HistoryLoader=_=>Task.FromResult<MeterSnapshot?>(freezeEngine.Snapshot());
+  ((Task)historyMethod.Invoke(window,null)!).GetAwaiter().GetResult();
+  if(!((TextBlock)window.FindName("StatusText")).Text.StartsWith("Unable to read fight history:"))throw new Exception("History failure was not reported");
+  window.HistoryProvider=()=>new[]{"corrupt.json","valid.json"};
+  window.HistoryLoader=path=>path=="corrupt.json"?Task.FromException<MeterSnapshot?>(new System.Text.Json.JsonException("corrupt")):Task.FromResult<MeterSnapshot?>(freezeEngine.Snapshot());
+  ((Task)historyMethod.Invoke(window,null)!).GetAwaiter().GetResult();
+  if(((ComboBox)window.FindName("FightHistory")).Items.Count!=2)throw new Exception("History menu failed to recover or skip a corrupt entry");
+  if(window.Engine.Snapshot().FightDamage!=capturedTotal)throw new Exception("History failure changed live capture totals");
+  Console.WriteLine("PASS: history provider failure, corrupt entry and recovery preserve live totals");
   window.Close();
   var restored=new OverlayWindow(System.IO.Path.Combine(settingsDirectory,"overlay-settings.json"));
   var restoredScale=(double)typeof(OverlayWindow).GetField("uiScale",BindingFlags.NonPublic|BindingFlags.Instance)!.GetValue(restored)!;
