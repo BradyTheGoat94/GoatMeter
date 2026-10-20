@@ -9,6 +9,7 @@ namespace Aion2DPSPro.Capture;
 public sealed class LiveCaptureAdapter : IDisposable
 {
     private readonly IAion2Decoder decoder;
+    private readonly Func<IEnumerable<ICaptureDevice>> captureDevices;
     private readonly List<ICaptureDevice> devices=new();
     private readonly CaptureIdentityBridge identityBridge=new();
     private string? lockedScope;
@@ -32,9 +33,11 @@ public sealed class LiveCaptureAdapter : IDisposable
     public string Health => Interlocked.Read(ref dropped)>0 ? $"Capture overloaded: {Interlocked.Read(ref dropped)} packets dropped; accuracy incomplete" :
         lockedConversation==null ? "Waiting for a validated game conversation" : DateTime.UtcNow-lastPayload>TimeSpan.FromSeconds(15) ? "Capture idle / disconnected" :
         DateTime.UtcNow-lastEvent>TimeSpan.FromSeconds(30) ? "Packets arriving; no decoded events (idle game or decoder mismatch)" : "Capture and decoding active; verified for tested gameplay";
-    public LiveCaptureAdapter(IAion2Decoder decoder)
+    public LiveCaptureAdapter(IAion2Decoder decoder) : this(decoder,()=>CaptureDeviceList.Instance) { }
+    public LiveCaptureAdapter(IAion2Decoder decoder, Func<IEnumerable<ICaptureDevice>> captureDevices)
     {
-        this.decoder=decoder;
+        this.decoder=decoder??throw new ArgumentNullException(nameof(decoder));
+        this.captureDevices=captureDevices??throw new ArgumentNullException(nameof(captureDevices));
         // Diagnostic subscribers must not interrupt the packet-processing worker.
         reassembler.DuplicateDiscarded += ()=>
         {
@@ -100,9 +103,24 @@ public sealed class LiveCaptureAdapter : IDisposable
         if(disposed || devices.Count>0)return;
         try
         {
-            foreach(var d in CaptureDeviceList.Instance)
+            foreach(var d in captureDevices())
             {
-                try { d.OnPacketArrival+=OnPacket; d.Open(DeviceModes.Promiscuous,1000); d.Filter="tcp port 13328"; d.StartCapture(); devices.Add(d); }
+                // A status listener can dispose reentrantly after an earlier
+                // adapter fails. Do not open any subsequent devices in that case.
+                if(disposed)break;
+                try
+                {
+                    d.OnPacketArrival+=OnPacket; d.Open(DeviceModes.Promiscuous,1000); d.Filter="tcp port 13328"; d.StartCapture();
+                    if(disposed)
+                    {
+                        // Disposal during startup could not see this device yet.
+                        try { d.OnPacketArrival-=OnPacket; } catch { }
+                        try { d.StopCapture(); } catch { }
+                        try { d.Close(); } catch { }
+                        break;
+                    }
+                    devices.Add(d);
+                }
                 catch(Exception ex)
                 {
                     // A failed subscription removal must not abort discovery of
@@ -113,7 +131,7 @@ public sealed class LiveCaptureAdapter : IDisposable
                     ReportStatusSafely($"Adapter unavailable: {ex.Message}");
                 }
             }
-            ReportStatusSafely(devices.Count==0?"No capture adapter available. Install Npcap.":$"Waiting for validated AION traffic ({devices.Count} adapters).");
+            if(!disposed)ReportStatusSafely(devices.Count==0?"No capture adapter available. Install Npcap.":$"Waiting for validated AION traffic ({devices.Count} adapters).");
         }
         catch(Exception ex) { ReportStatusSafely($"Capture startup failed: {ex.Message}"); }
         }

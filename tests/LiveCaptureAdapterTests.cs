@@ -154,6 +154,97 @@ public sealed class LiveCaptureAdapterTests
         }
     }
 
+    public class StartupDevice : DispatchProxy
+    {
+        public List<string> Calls=new();
+        public string? FailOn;
+        public Action? OnStart;
+        protected override object? Invoke(MethodInfo? targetMethod, object?[]? args)
+        {
+            var name=targetMethod!.Name;
+            Calls.Add(name);
+            if(name==FailOn)throw new InvalidOperationException("startup failed");
+            if(name=="StartCapture")OnStart?.Invoke();
+            return null;
+        }
+    }
+
+    [Theory]
+    [InlineData("add_OnPacketArrival")]
+    [InlineData("Open")]
+    [InlineData("set_Filter")]
+    [InlineData("StartCapture")]
+    public async Task FailedStartupCleansDeviceAndStillStartsLaterAdapter(string stage)
+    {
+        var first=DispatchProxy.Create<ICaptureDevice,StartupDevice>();
+        var later=DispatchProxy.Create<ICaptureDevice,StartupDevice>();
+        var firstProxy=(StartupDevice)(object)first;
+        firstProxy.FailOn=stage;
+        var laterProxy=(StartupDevice)(object)later;
+        var enumerations=0;
+        using var adapter=new LiveCaptureAdapter(new Decoder(),()=> {enumerations++;return new[]{first,later};});
+        adapter.StatusChanged += _=>throw new Exception("status");
+        adapter.Start();
+        adapter.Start();
+        adapter.Dispose();
+        await adapter.Completion.WaitAsync(TimeSpan.FromSeconds(10));
+        Assert.Equal(1,enumerations);
+        Assert.Equal(1,firstProxy.Calls.Count(c=>c=="StopCapture"));
+        Assert.Equal(1,firstProxy.Calls.Count(c=>c=="Close"));
+        Assert.Equal(1,laterProxy.Calls.Count(c=>c=="StartCapture"));
+        Assert.Equal(1,laterProxy.Calls.Count(c=>c=="StopCapture"));
+        Assert.Equal(1,laterProxy.Calls.Count(c=>c=="Close"));
+    }
+
+    [Fact]
+    public async Task ConcurrentStartAndDisposeNeverReopenOrLeakDevices()
+    {
+        for(var i=0;i<100;i++)
+        {
+            var device=DispatchProxy.Create<ICaptureDevice,StartupDevice>();
+            var proxy=(StartupDevice)(object)device;
+            using var adapter=new LiveCaptureAdapter(new Decoder(),()=>new[]{device});
+            await Task.WhenAll(Task.Run(adapter.Start),Task.Run(adapter.Dispose),Task.Run(adapter.Start),Task.Run(adapter.Dispose));
+            await adapter.Completion.WaitAsync(TimeSpan.FromSeconds(10));
+            var starts=proxy.Calls.Count(c=>c=="StartCapture");
+            Assert.InRange(starts,0,1);
+            Assert.Equal(starts,proxy.Calls.Count(c=>c=="Close"));
+            adapter.Start();
+            Assert.Equal(starts,proxy.Calls.Count(c=>c=="StartCapture"));
+        }
+    }
+
+    [Fact]
+    public async Task DisposeFromStartupFailureStopsFurtherDeviceDiscovery()
+    {
+        var first=DispatchProxy.Create<ICaptureDevice,StartupDevice>();
+        var later=DispatchProxy.Create<ICaptureDevice,StartupDevice>();
+        var firstProxy=(StartupDevice)(object)first;
+        firstProxy.FailOn="Open";
+        using var adapter=new LiveCaptureAdapter(new Decoder(),()=>new[]{first,later});
+        adapter.StatusChanged += message=> {if(message.StartsWith("Adapter unavailable:"))adapter.Dispose();};
+        adapter.Start();
+        await adapter.Completion.WaitAsync(TimeSpan.FromSeconds(10));
+        Assert.Contains("Close",firstProxy.Calls);
+        Assert.Empty(((StartupDevice)(object)later).Calls);
+    }
+
+    [Fact]
+    public async Task DisposeDuringDeviceStartClosesDeviceThatHasNotYetBeenRegistered()
+    {
+        var device=DispatchProxy.Create<ICaptureDevice,StartupDevice>();
+        using var adapter=new LiveCaptureAdapter(new Decoder(),()=>new[]{device});
+        var proxy=(StartupDevice)(object)device;
+        proxy.OnStart=adapter.Dispose;
+        adapter.Start();
+        await adapter.Completion.WaitAsync(TimeSpan.FromSeconds(10));
+        Assert.Contains("StopCapture",proxy.Calls);
+        Assert.Contains("Close",proxy.Calls);
+        var devices=(List<ICaptureDevice>)typeof(LiveCaptureAdapter)
+            .GetField("devices",BindingFlags.Instance|BindingFlags.NonPublic)!.GetValue(adapter)!;
+        Assert.Empty(devices);
+    }
+
     [Fact]
     public async Task PacketDuplicateAndResetFailuresDoNotStopRecoveryOrLaterPackets()
     {
