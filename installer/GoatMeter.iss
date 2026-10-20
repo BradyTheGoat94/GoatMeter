@@ -1,11 +1,20 @@
 #define AppVersion GetEnv('GOATMETER_VERSION')
+#if GetEnv('GOATMETER_CHANNEL') == 'beta'
+  #define AppChannel "Beta"
+  #define AppInstallFolder "GoatMeter Beta"
+  #define AppIdentity "{{BBD765AF-61C4-476C-8D2D-772D90665C5F}"
+#else
+  #define AppChannel ""
+  #define AppInstallFolder "GoatMeter"
+  #define AppIdentity "{{A9EC39C0-6BCB-466B-92CE-E004CF7688BC}"
+#endif
 [Setup]
-AppId={{A9EC39C0-6BCB-466B-92CE-E004CF7688BC}
-AppName=GoatMeter
+AppId={#AppIdentity}
+AppName=GoatMeter {#AppChannel}
 AppVersion={#AppVersion}
 AppPublisher=GoatMeter
 DefaultDirName={localappdata}\Programs\GoatMeter
-DefaultGroupName=GoatMeter
+DefaultGroupName=GoatMeter {#AppChannel}
 PrivilegesRequired=lowest
 ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
