@@ -117,9 +117,12 @@ public partial class MainWindow : Window
         if(allowClose) {base.OnClosing(e);return;}
         e.Cancel=true;base.OnClosing(e);
         if(closing)return;
-        closing=true;timer.Stop();capture.Dispose();
+        closing=true;timer.Stop();
         try
         {
+            // Native stop/close can wait on a callback or disconnected adapter.
+            // Keep the dispatcher available while shutdown and history drain.
+            await Task.Run(capture.Dispose);
             await capture.Completion;
             engine.ResetFight();
             Task pending;lock(diagnosticsGate)pending=saveTail;
