@@ -98,6 +98,7 @@ public sealed class LiveCaptureAdapter : IDisposable
     }
     public void Start()
     {
+        if(disposed)return;
         lock(lifecycleGate)
         {
         if(disposed || devices.Count>0)return;
@@ -246,11 +247,19 @@ public sealed class LiveCaptureAdapter : IDisposable
     private IAion2Decoder? selectedDecoder;
     public void Dispose()
     {
+        if(disposed)return;
+        ICaptureDevice[] stoppingDevices;
         lock(lifecycleGate)
         {
-        if(disposed)return;
-        disposed=true;
-        foreach(var d in devices)
+            if(disposed)return;
+            disposed=true;
+            stoppingDevices=devices.ToArray();
+            devices.Clear();
+            queue.CompleteAdding();
+        }
+        // StopCapture can wait for native callbacks. Do not hold the lifecycle
+        // gate while waiting: a callback may already be entering Start/Dispose.
+        foreach(var d in stoppingDevices)
         {
             // Native capture teardown can fail on an already-disconnected adapter.
             // Still attempt to stop and close every remaining adapter.
@@ -261,11 +270,9 @@ public sealed class LiveCaptureAdapter : IDisposable
             try { d.Close(); }
             catch(Exception ex) { ReportStatusSafely($"Capture close failed: {ex.Message}"); }
         }
-        devices.Clear(); queue.CompleteAdding();
         // Do not dispose the queue while a late native callback may still be
         // returning from TryAdd. Completion lets the worker drain safely;
         // the queue is released with the adapter after callbacks have stopped.
         // UI never blocks waiting for work that may post UI updates.
-        }
     }
 }

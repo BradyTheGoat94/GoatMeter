@@ -159,14 +159,41 @@ public sealed class LiveCaptureAdapterTests
         public List<string> Calls=new();
         public string? FailOn;
         public Action? OnStart;
+        public Action? OnStop;
         protected override object? Invoke(MethodInfo? targetMethod, object?[]? args)
         {
             var name=targetMethod!.Name;
             Calls.Add(name);
             if(name==FailOn)throw new InvalidOperationException("startup failed");
             if(name=="StartCapture")OnStart?.Invoke();
+            if(name=="StopCapture")OnStop?.Invoke();
             return null;
         }
+    }
+
+    [Fact]
+    public async Task NativeStopCanWaitForAnInFlightLifecycleCallbackWithoutDeadlocking()
+    {
+        var device=DispatchProxy.Create<ICaptureDevice,StartupDevice>();
+        var proxy=(StartupDevice)(object)device;
+        using var adapter=new LiveCaptureAdapter(new Decoder(),()=>new[]{device});
+        var callbackReturned=false;
+        var gateHeldDuringStop=false;
+        var gate=typeof(LiveCaptureAdapter).GetField("lifecycleGate",BindingFlags.Instance|BindingFlags.NonPublic)!.GetValue(adapter)!;
+        Task? callback=null;
+        proxy.OnStop=()=>
+        {
+            gateHeldDuringStop=Monitor.IsEntered(gate);
+            callback=Task.Run(()=> {adapter.Start();adapter.Dispose();});
+            callbackReturned=callback.Wait(TimeSpan.FromSeconds(2));
+        };
+        adapter.Start();
+        adapter.Dispose();
+        if(callback!=null)await callback.WaitAsync(TimeSpan.FromSeconds(10));
+        await adapter.Completion.WaitAsync(TimeSpan.FromSeconds(10));
+        Assert.True(callbackReturned,"Native stop waited on a callback blocked by the lifecycle lock");
+        Assert.False(gateHeldDuringStop);
+        Assert.Equal(1,proxy.Calls.Count(c=>c=="Close"));
     }
 
     [Theory]
