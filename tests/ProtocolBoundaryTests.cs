@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.IO;
 using Aion2DPSPro.Protocol;
 using Xunit;
 
@@ -8,6 +9,40 @@ namespace Aion2DPSPro.Tests;
 
 public sealed class ProtocolBoundaryTests
 {
+    [Theory]
+    [InlineData("{}")]
+    [InlineData("{\"Id\":\"broken\",\"Tags\":null}")]
+    [InlineData("{\"Id\":\"broken\",\"Tags\":{\"damage\":null}}")]
+    public void InvalidProfileTagMapsFailAtLoadInsteadOfEveryPacket(string json)
+    {
+        var path=Path.Combine(Path.GetTempPath(),"GoatMeter-profile-"+Guid.NewGuid().ToString("N")+".json");
+        try
+        {
+            File.WriteAllText(path,json);
+            Assert.Throws<InvalidDataException>(()=>ProtocolProfile.Load(path));
+        }
+        finally {File.Delete(path);}
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void ValidProfileTagMapsKeepTheirExistingDecodeBehavior(bool empty)
+    {
+        var path=Path.Combine(Path.GetTempPath(),"GoatMeter-profile-"+Guid.NewGuid().ToString("N")+".json");
+        try
+        {
+            var tags=empty?"{}":"{\"damage\":{\"a\":4,\"b\":56}}";
+            File.WriteAllText(path,"{\"id\":\"fixture\",\"region\":\"Global\",\"clientBuild\":\"fixture\",\"gamePort\":13328,\"tags\":"+tags+"}");
+            var profile=ProtocolProfile.Load(path);
+            Assert.Equal("fixture",profile.Id);
+            var events=new CurrentClientDecoder(profile).Decode(CapturedFrame,DateTime.UnixEpoch).ToArray();
+            if(empty)Assert.Empty(events);
+            else Assert.Equal(359,Assert.Single(events).Amount);
+        }
+        finally {File.Delete(path);}
+    }
+
     [Theory]
     [InlineData("324142430300","414243414243414243")]
     [InlineData("15410100","41414141414141414141")]

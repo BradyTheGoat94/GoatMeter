@@ -16,9 +16,17 @@ public sealed record ProtocolProfile(
         "GLOBAL-CURRENT-NEEDS-CAPTURE-VALIDATION", "Global", "current", 13328,
         new Dictionary<string,PacketTag>(), false);
 
-    public static ProtocolProfile Load(string path) =>
-        JsonSerializer.Deserialize<ProtocolProfile>(File.ReadAllText(path), new JsonSerializerOptions{PropertyNameCaseInsensitive=true})
-        ?? throw new InvalidDataException("Invalid protocol profile");
+    public static ProtocolProfile Load(string path)
+    {
+        var profile=JsonSerializer.Deserialize<ProtocolProfile>(File.ReadAllText(path), new JsonSerializerOptions{PropertyNameCaseInsensitive=true})
+            ?? throw new InvalidDataException("Invalid protocol profile");
+        // Syntactically valid JSON can still omit a required map or contain
+        // null entries. Let startup use its existing fallback rather than
+        // accepting a profile that throws on every captured packet.
+        if(profile.Tags==null || profile.Tags.Values.Any(tag=>tag==null))
+            throw new InvalidDataException("Protocol profile needs a tag map with non-null packet tags.");
+        return profile;
+    }
 }
 public sealed record DecoderDiagnostic(DateTime Utc, string Stage, string Message, int Bytes = 0);
 
