@@ -396,6 +396,33 @@ public sealed class LiveCaptureAdapterTests
     }
 
     [Fact]
+    public async Task OverloadWarningDoesNotHideFurtherPacketLossAcrossBursts()
+    {
+        var device=DispatchProxy.Create<ICaptureDevice,StartupDevice>();
+        var proxy=(StartupDevice)(object)device;
+        using var adapter=new LiveCaptureAdapter(new Decoder(),()=>new[]{device});
+        using var entered=new ManualResetEventSlim();
+        using var release=new ManualResetEventSlim();
+        var events=new List<CombatEvent>();
+        adapter.EventReceived += events.Add;
+        Queue(adapter).Add(()=> {entered.Set();if(!release.Wait(TimeSpan.FromSeconds(10)))throw new TimeoutException();});
+        adapter.Start();
+        try
+        {
+            Assert.True(entered.Wait(TimeSpan.FromSeconds(10)));
+            for(var i=0;i<4096;i++)Queue(adapter).Add(()=>{});
+            proxy.Emit(device,RawPacket(1));
+            proxy.Emit(device,RawPacket(2));
+            Assert.Contains("2 packets dropped",adapter.Health);
+        }
+        finally {release.Set();}
+        adapter.Dispose();
+        await adapter.Completion.WaitAsync(TimeSpan.FromSeconds(20));
+        Assert.Empty(events);
+        Assert.Contains("2 packets dropped",adapter.Health);
+    }
+
+    [Fact]
     public async Task MalformedNativeCallbackAndBrokenStatusListenerDoNotEscapeOrStopLaterPackets()
     {
         var device=DispatchProxy.Create<ICaptureDevice,StartupDevice>();
