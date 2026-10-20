@@ -199,9 +199,12 @@ internal static class Program
   if(rows.ItemsSource==frozenRows)throw new Exception("Resume did not refresh capture");
   ((Button)window.FindName("FreezeView")).RaiseEvent(new RoutedEventArgs(Button.ClickEvent));segment.SelectedIndex=2;
   if(((Button)window.FindName("FreezeView")).Content.ToString()!="Ⅱ")throw new Exception("Changing segments left a misleading frozen view");
+  // Preferences may already have a non-default scale. Resize relative to it,
+  // then restore it so repeat runs check the same behavior.
+  var originalScale=(double)typeof(OverlayWindow).GetField("uiScale",BindingFlags.NonPublic|BindingFlags.Instance)!.GetValue(window)!;
   var originalWidth=window.Width;typeof(OverlayWindow).GetMethod("SetUiScale",BindingFlags.NonPublic|BindingFlags.Instance)!.Invoke(window,new object[]{.8});
-  if(Math.Abs(window.Width-originalWidth*.8)>.01)throw new Exception("UI scale did not resize coherently");
-  typeof(OverlayWindow).GetMethod("SetUiScale",BindingFlags.NonPublic|BindingFlags.Instance)!.Invoke(window,new object[]{1.0});
+  if(Math.Abs(window.Width-originalWidth*.8/originalScale)>.01)throw new Exception("UI scale did not resize coherently");
+  typeof(OverlayWindow).GetMethod("SetUiScale",BindingFlags.NonPublic|BindingFlags.Instance)!.Invoke(window,new object[]{originalScale});
   Console.WriteLine("PASS: freeze preserves capture, navigation resumes display and UI scale");
   var eventWindow=new EventTimersWindow {Owner=window,Clock=()=>new DateTimeOffset(2026,10,14,2,59,0,TimeSpan.Zero)};
   eventWindow.Show();eventWindow.Refresh();eventWindow.UpdateLayout();
