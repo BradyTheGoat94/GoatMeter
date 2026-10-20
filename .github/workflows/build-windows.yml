@@ -55,7 +55,7 @@ jobs:
       - name: Build guided Windows installer
         shell: pwsh
         run: |
-          $env:GOATMETER_VERSION = "1.0.${{ github.run_number }}"
+          $env:GOATMETER_VERSION = if ("${{ github.ref }}" -eq "refs/heads/main") { "1.0.${{ github.run_number }}" } else { "1.0.${{ github.run_number }}-beta" }
           & "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe" installer/GoatMeter.iss
           if ($LASTEXITCODE -ne 0) { throw "Installer compilation failed" }
           if (!(Test-Path dist/GoatMeter-Setup.exe)) { throw "Installer missing" }
