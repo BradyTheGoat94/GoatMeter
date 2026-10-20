@@ -1,0 +1,182 @@
+#nullable enable
+using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net;
+using System.Reflection;
+using System.Threading;
+using System.Threading.Tasks;
+using Aion2DPSPro.Capture;
+using Aion2DPSPro.Protocol;
+using PacketDotNet;
+using SharpPcap;
+using Xunit;
+
+namespace Aion2DPSPro.Tests;
+
+public sealed class LiveCaptureAdapterTests
+{
+    // Exercise the real processing worker without requiring Npcap or live traffic.
+    private static BlockingCollection<Action> Queue(LiveCaptureAdapter adapter) =>
+        (BlockingCollection<Action>)typeof(LiveCaptureAdapter)
+            .GetField("queue", BindingFlags.Instance | BindingFlags.NonPublic)!.GetValue(adapter)!;
+
+    private static void Packet(LiveCaptureAdapter adapter, uint sequence, DateTime utc, ushort port = 40000)
+    {
+        var tcp = new TcpPacket(13328, port) { SequenceNumber = sequence, PayloadData = new byte[] { 1 } };
+        var ip = new IPv4Packet(IPAddress.Parse("10.0.0.1"), IPAddress.Parse("10.0.0.2")) { PayloadPacket = tcp };
+        typeof(LiveCaptureAdapter).GetMethod("Process", BindingFlags.Instance | BindingFlags.NonPublic)!
+            .Invoke(adapter, new object[] { "test", ip, utc });
+    }
+
+    private sealed class Decoder : IAion2Decoder
+    {
+        public string ProfileId => "test";
+        public IEnumerable<Aion2Decoded> Decode(byte[] payload, DateTime utc)
+        {
+            yield return Event(CombatKind.PlayerName, 0);
+            yield return Event(CombatKind.Damage, 123);
+            yield return Event(CombatKind.Heal, 45);
+            yield return Event(CombatKind.Damage, 789);
+        }
+        private static Aion2Decoded Event(CombatKind kind, long amount) =>
+            new(kind, 7, "Hero", 99, "Boss", "Strike", amount, DamageType.Crit, 0, 0, "", 0);
+    }
+
+    [Fact]
+    public async Task ThrowingListenersPreserveBatchOrderInstancesAndCombatTotals()
+    {
+        using var adapter = new LiveCaptureAdapter(new Decoder());
+        var actual = new List<CombatEvent>();
+        var first = new List<CombatEvent>();
+        var statuses = new List<string>();
+        var now = DateTime.UnixEpoch;
+        var engine = new CombatEngine(() => now.AddSeconds(2));
+        adapter.StatusChanged += _ => throw new Exception("status");
+        adapter.StatusChanged += statuses.Add;
+        adapter.ValidationRecord += _ => throw new Exception("validation");
+        var validations = 0;
+        adapter.ValidationRecord += _ => validations++;
+        adapter.FlowLocked += _ => throw new Exception("flow");
+        var locks = 0;
+        adapter.FlowLocked += _ => locks++;
+        adapter.EventReceived += e => { first.Add(e); throw new Exception("combat"); };
+        adapter.EventReceived += e => { engine.Apply(e); actual.Add(e); };
+        // An exception after application must never cause an event retry.
+        adapter.EventReceived += _ => throw new Exception("after application");
+        Queue(adapter).Add(() => Packet(adapter, 1, now));
+        Queue(adapter).Add(() => Packet(adapter, 2, now.AddSeconds(1)));
+        adapter.Dispose();
+        await adapter.Completion.WaitAsync(TimeSpan.FromSeconds(10));
+
+        Assert.Equal(1, locks);
+        Assert.Equal(8, validations); // identity plus three combat records per packet
+        Assert.Equal(9, actual.Count); // pre-lock identity replay plus two complete batches
+        Assert.Equal(first, actual);
+        for (var i = 0; i < first.Count; i++) Assert.Same(first[i], actual[i]);
+        Assert.Equal(new long[] { 123, 45, 789, 123, 45, 789 },
+            actual.Where(e => e.Kind is CombatKind.Damage or CombatKind.Heal).Select(e => e.Amount));
+        var baseline = new CombatEngine(() => now.AddSeconds(2));
+        foreach (var e in actual) baseline.Apply(e);
+        Assert.Equal(1824, engine.Snapshot().FightDamage);
+        Assert.Equal(baseline.Snapshot().FightDps, engine.Snapshot().FightDps);
+        Assert.Contains(statuses, s => s.StartsWith("Combat event notification failed:"));
+        Assert.Contains(statuses, s => s.StartsWith("Validation notification failed:"));
+        Assert.Contains(statuses, s => s.StartsWith("Flow lock notification failed:"));
+        Assert.DoesNotContain(statuses, s => s.StartsWith("Capture/decoder error:"));
+    }
+
+    [Fact]
+    public async Task DisposeFromWorkerDrainsAcceptedWorkAndIsIdempotent()
+    {
+        using var adapter = new LiveCaptureAdapter(new Decoder());
+        using var entered = new ManualResetEventSlim();
+        using var release = new ManualResetEventSlim();
+        var processed = 0;
+        Queue(adapter).Add(() =>
+        {
+            entered.Set();
+            if (!release.Wait(TimeSpan.FromSeconds(10))) throw new TimeoutException();
+            adapter.Dispose();
+            Interlocked.Increment(ref processed);
+        });
+        try
+        {
+            Assert.True(entered.Wait(TimeSpan.FromSeconds(10)));
+            Queue(adapter).Add(() => Interlocked.Increment(ref processed));
+            Assert.False(adapter.Completion.IsCompleted);
+        }
+        finally { release.Set(); }
+        await adapter.Completion.WaitAsync(TimeSpan.FromSeconds(10));
+        adapter.Dispose();
+        adapter.Start(); // disposed adapters must not reopen native devices
+        Assert.Equal(2, processed);
+        Assert.True(Queue(adapter).IsAddingCompleted);
+        Assert.Throws<InvalidOperationException>(() => Queue(adapter).TryAdd(() => { }));
+    }
+
+    [Fact]
+    public async Task FailedDeviceTeardownStillClosesEveryDeviceAndDrainsWorker()
+    {
+        using var adapter = new LiveCaptureAdapter(new Decoder());
+        var calls = new List<string>();
+        var devices = (List<ICaptureDevice>)typeof(LiveCaptureAdapter)
+            .GetField("devices", BindingFlags.Instance | BindingFlags.NonPublic)!.GetValue(adapter)!;
+        for (var i = 0; i < 2; i++)
+        {
+            var device = DispatchProxy.Create<ICaptureDevice, FailingDevice>();
+            ((FailingDevice)(object)device).Calls = calls;
+            devices.Add(device);
+        }
+        adapter.StatusChanged += _ => throw new Exception("status");
+        var statuses = new List<string>();
+        adapter.StatusChanged += statuses.Add;
+        var drained = false;
+        Queue(adapter).Add(() => drained = true);
+        adapter.Dispose();
+        await adapter.Completion.WaitAsync(TimeSpan.FromSeconds(10));
+        adapter.Dispose();
+        Assert.Equal(new[] { "remove_OnPacketArrival", "StopCapture", "Close",
+            "remove_OnPacketArrival", "StopCapture", "Close" }, calls);
+        Assert.Equal(6, statuses.Count);
+        Assert.True(drained);
+        Assert.Empty(devices);
+    }
+
+    public class FailingDevice : DispatchProxy
+    {
+        public List<string> Calls = new();
+        protected override object? Invoke(MethodInfo? targetMethod, object?[]? args)
+        {
+            Calls.Add(targetMethod!.Name);
+            throw new InvalidOperationException("disconnected adapter");
+        }
+    }
+
+    [Fact]
+    public async Task PacketDuplicateAndResetFailuresDoNotStopRecoveryOrLaterPackets()
+    {
+        using var adapter = new LiveCaptureAdapter(new Decoder());
+        var packets = 0;
+        var duplicates = 0;
+        var resets = 0;
+        var hits = 0;
+        adapter.PacketCaptured += () => throw new Exception("packet");
+        adapter.PacketCaptured += () => packets++;
+        adapter.DuplicateSuppressed += () => throw new Exception("duplicate");
+        adapter.DuplicateSuppressed += () => duplicates++;
+        adapter.ConnectionReset += () => throw new Exception("reset");
+        adapter.ConnectionReset += () => resets++;
+        adapter.EventReceived += e => { if (e.Kind == CombatKind.Damage) hits++; };
+        Queue(adapter).Add(() => Packet(adapter, 1, DateTime.UnixEpoch));
+        Queue(adapter).Add(() => Packet(adapter, 1, DateTime.UnixEpoch.AddSeconds(1)));
+        Queue(adapter).Add(() => Packet(adapter, 2, DateTime.UnixEpoch.AddSeconds(32)));
+        adapter.Dispose();
+        await adapter.Completion.WaitAsync(TimeSpan.FromSeconds(10));
+        Assert.Equal(3, packets);
+        Assert.Equal(1, duplicates);
+        Assert.Equal(1, resets);
+        Assert.Equal(4, hits);
+    }
+}

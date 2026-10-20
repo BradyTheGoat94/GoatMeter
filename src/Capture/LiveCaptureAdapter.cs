@@ -82,6 +82,17 @@ public sealed class LiveCaptureAdapter : IDisposable
             catch(Exception ex) { ReportStatusSafely($"{label} notification failed: {ex.Message}"); }
         }
     }
+    // Keep synchronous subscription order and the original event instance. Never
+    // retry a listener: it may have applied the event before throwing.
+    private void NotifySafely<T>(Action<T>? handlers, T value, string label)
+    {
+        if(handlers == null) return;
+        foreach(Action<T> handler in handlers.GetInvocationList())
+        {
+            try { handler(value); }
+            catch(Exception ex) { ReportStatusSafely($"{label} notification failed: {ex.Message}"); }
+        }
+    }
     public void Start()
     {
         lock(lifecycleGate)
@@ -189,20 +200,20 @@ public sealed class LiveCaptureAdapter : IDisposable
         foreach(var d in active is CurrentClientDecoder c?c.DecodeStream(direction,chunk,utc):active.Decode(chunk,utc))
             decoded.Add(new(utc,d.Kind,d.SourceId,d.Source,d.TargetId,d.Target,d.Skill,d.Amount,d.DamageType,d.CurrentHp,d.MaxHp,d.Effect,d.Stacks,d.SourceClass,d.DamageFlags,SourceIdentityConfirmed:d.SourceIdentityConfirmed,SourceServerId:d.SourceServerId,SourceCharacterId:d.SourceCharacterId,SourceGearScore:d.SourceGearScore,SourceCombatPower:d.SourceCombatPower,StatsObservedUtc:d.StatsObservedUtc));
         foreach(var e in decoded.Where(x=>x.Kind is CombatKind.PlayerName or CombatKind.TargetHp or CombatKind.CharacterStats || primary&&x.Kind==CombatKind.Despawn))identityBridge.Observe(scope,e);
-        foreach(var e in decoded.Where(x=>x.Kind==CombatKind.PlayerName))ValidationRecord?.Invoke($"{utc:O}|tag=captureIdentity|entity={e.SourceId}|name={e.Source}|scope={scope}|conversation={conversation}|primary={primary}");
+        foreach(var e in decoded.Where(x=>x.Kind==CombatKind.PlayerName))NotifySafely(ValidationRecord, $"{utc:O}|tag=captureIdentity|entity={e.SourceId}|name={e.Source}|scope={scope}|conversation={conversation}|primary={primary}", "Validation");
         if(lockedConversation!=null&&decoded.Any(x=>x.Kind==CombatKind.CharacterStats))
-            foreach(var identity in identityBridge.Identities(scope,utc))EventReceived?.Invoke(identity);
+            foreach(var identity in identityBridge.Identities(scope,utc))NotifySafely(EventReceived, identity, "Combat event");
         if(lockedConversation==null)
         {
             if(!decoded.Any(x=>(x.Kind is CombatKind.Damage or CombatKind.Heal)&&x.Amount>0))return;
             lockedDevice=device;lockedConversation=conversation;lockedScope=scope;selectedDecoder=active;primary=true;
             // Publish identities captured before combat lock, including identity-only sibling connections.
-            foreach(var identity in identityBridge.Identities(scope,utc))EventReceived?.Invoke(identity);
-            FlowLocked?.Invoke($"{device} | {conversation}");
+            foreach(var identity in identityBridge.Identities(scope,utc))NotifySafely(EventReceived, identity, "Combat event");
+            NotifySafely(FlowLocked, $"{device} | {conversation}", "Flow lock");
         }
         if(!primary)
         {
-            foreach(var identity in decoded.Where(x=>x.Kind==CombatKind.PlayerName))EventReceived?.Invoke(identityBridge.Resolve(scope,identity));
+            foreach(var identity in decoded.Where(x=>x.Kind==CombatKind.PlayerName))NotifySafely(EventReceived, identityBridge.Resolve(scope,identity), "Combat event");
             return;
         }
         lastPayload=utc;if(decoded.Count>0)lastEvent=utc;
@@ -210,8 +221,8 @@ public sealed class LiveCaptureAdapter : IDisposable
         {
             var resolved=identityBridge.Resolve(scope,e);
             if(e.Kind is CombatKind.Damage or CombatKind.Heal)
-                ValidationRecord?.Invoke($"{utc:O}|tag=resolvedCombat|entity={resolved.SourceId}|name={resolved.Source}|class={resolved.SourceClass}|confirmed={resolved.SourceIdentityConfirmed}|target={resolved.TargetId}|scope={scope}|conversation={conversation}");
-            EventReceived?.Invoke(resolved);
+                NotifySafely(ValidationRecord, $"{utc:O}|tag=resolvedCombat|entity={resolved.SourceId}|name={resolved.Source}|class={resolved.SourceClass}|confirmed={resolved.SourceIdentityConfirmed}|target={resolved.TargetId}|scope={scope}|conversation={conversation}", "Validation");
+            NotifySafely(EventReceived, resolved, "Combat event");
         }
     }
     private IAion2Decoder? selectedDecoder;

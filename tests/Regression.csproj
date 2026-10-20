@@ -3,6 +3,7 @@
  <ItemGroup>
   <Compile Remove="OverlaySmoke/**/*.cs"/>
   <Compile Remove="PacketDispatcherRegressionTests.cs"/>
+  <Compile Remove="LiveCaptureAdapterTests.cs"/>
   <Compile Include="../src/Capture/CaptureIdentityBridge.cs" Link="CaptureIdentityBridge.cs"/>
   <Compile Include="../src/Schedules/EventSchedule.cs" Link="EventSchedule.cs"/>
   <Compile Include="../src/Sharing/FightSummary.cs" Link="FightSummary.cs"/>
