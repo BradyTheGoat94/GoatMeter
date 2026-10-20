@@ -6,7 +6,7 @@ on:
     branches: [main]
     paths: ["src/**", "tests/**", "installer/**", ".github/workflows/build-windows.yml"]
   push:
-    branches: [main, accuracy-reliability, identity-reports, overlay-designs]
+    branches: [main, accuracy-reliability, identity-reports, overlay-designs, audit-stability-fixes-20261019]
     paths: ["src/**", "tests/**", "installer/**", ".github/workflows/build-windows.yml"]
 
 jobs:
@@ -23,6 +23,8 @@ jobs:
           dotnet-version: "8.0.x"
       - name: Combat and protocol regression checks
         run: dotnet run --project tests/Regression.csproj -c Release
+      - name: Capture and combat xUnit regression checks
+        run: dotnet test tests/Aion2DPSPro.Tests.csproj -c Release
       - name: Restore
         run: dotnet restore src/Aion2DPSPro.csproj
       - name: WPF overlay smoke checks
