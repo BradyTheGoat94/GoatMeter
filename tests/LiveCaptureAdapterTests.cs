@@ -248,12 +248,68 @@ public sealed class LiveCaptureAdapterTests
         }
     }
 
-    private static byte[] RawPacket(uint sequence)
+    private static byte[] RawPacket(uint sequence,byte[]? payload=null)
     {
-        var tcp=new TcpPacket(13328,40000) {SequenceNumber=sequence,PayloadData=new byte[]{1}};
+        var tcp=new TcpPacket(13328,40000) {SequenceNumber=sequence,PayloadData=payload??new byte[]{1}};
         var ip=new IPv4Packet(IPAddress.Parse("10.0.0.1"),IPAddress.Parse("10.0.0.2")) {PayloadPacket=tcp};
         ip.UpdateCalculatedValues();
         return ip.Bytes;
+    }
+
+    [Fact]
+    public async Task CapturedFramesReachEngineExactlyOnceThroughNativeCallbackDespiteBrokenListeners()
+    {
+        // Reviewed captured frame: actor 6797, target 36963, 359 damage.
+        var frame=Convert.FromHexString("210438E3A00204008D3540B7B70009020B95C34701000000D658E7020100");
+        var profile=new ProtocolProfile("integration","Global","fixture",13328,
+            new Dictionary<string,PacketTag>{{"damage",new(4,56)}});
+        var decoder=new CurrentClientDecoder(profile);
+        decoder.Diagnostic += _=>throw new Exception("decoder diagnostic");
+        decoder.ValidationRecord += _=>throw new Exception("decoder validation");
+        var device=DispatchProxy.Create<ICaptureDevice,StartupDevice>();
+        var proxy=(StartupDevice)(object)device;
+        using var adapter=new LiveCaptureAdapter(decoder,()=>new[]{device});
+        using var entered=new ManualResetEventSlim();
+        using var release=new ManualResetEventSlim();
+        var engine=new CombatEngine();
+        engine.Apply(new(DateTime.UtcNow,CombatKind.PlayerName,6797,"Hero",SourceClass:"Templar"));
+        var statuses=new List<string>();
+        var packets=0;
+        var duplicates=0;
+        adapter.StatusChanged += _=>throw new Exception("status");
+        adapter.StatusChanged += statuses.Add;
+        adapter.PacketCaptured += ()=>throw new Exception("packet diagnostic");
+        adapter.PacketCaptured += ()=>packets++;
+        adapter.DuplicateSuppressed += ()=>throw new Exception("duplicate diagnostic");
+        adapter.DuplicateSuppressed += ()=>duplicates++;
+        adapter.FlowLocked += _=>throw new Exception("flow diagnostic");
+        adapter.ValidationRecord += _=>throw new Exception("capture validation");
+        adapter.EventReceived += _=>throw new Exception("combat listener");
+        adapter.EventReceived += engine.Apply;
+        Queue(adapter).Add(()=> {entered.Set();if(!release.Wait(TimeSpan.FromSeconds(10)))throw new TimeoutException();});
+        adapter.Start();
+        try
+        {
+            Assert.True(entered.Wait(TimeSpan.FromSeconds(10)));
+            var batch=frame.Concat(frame).ToArray();
+            var reused=RawPacket(1,batch);
+            proxy.Emit(device,reused);
+            Array.Fill(reused,(byte)0);
+            proxy.Emit(device,RawPacket(1,batch)); // TCP duplicate must not count again.
+            proxy.Emit(device,RawPacket(1+(uint)batch.Length,frame));
+        }
+        finally {release.Set();}
+        adapter.Dispose();
+        await adapter.Completion.WaitAsync(TimeSpan.FromSeconds(30));
+        var snapshot=engine.Snapshot();
+        Assert.Equal(1077,snapshot.FightDamage);
+        var hero=Assert.Single(snapshot.Players);
+        Assert.Equal("Hero",hero.Name);
+        Assert.Equal(1077,hero.Damage);
+        Assert.Equal(3,hero.Hits);
+        Assert.Equal(3,packets);
+        Assert.Equal(1,duplicates);
+        Assert.DoesNotContain(statuses,s=>s.StartsWith("Capture/decoder error:"));
     }
 
     [Fact]
