@@ -45,6 +45,73 @@ public sealed class LiveCaptureAdapterTests
     }
 
     [Fact]
+    public async Task SiblingIdentityNotificationsDoNotCountSiblingCombatTwice()
+    {
+        var now=DateTime.UnixEpoch;
+        using var adapter=new LiveCaptureAdapter(new Decoder());
+        var engine=new CombatEngine(()=>now.AddSeconds(2));
+        var events=new List<CombatEvent>();
+        adapter.EventReceived += _=>throw new Exception("listener");
+        adapter.EventReceived += e=> {engine.Apply(e);events.Add(e);};
+        Queue(adapter).Add(()=>Packet(adapter,1,now));
+        Queue(adapter).Add(()=>Packet(adapter,1,now.AddMilliseconds(500),40001));
+        Queue(adapter).Add(()=>Packet(adapter,2,now.AddSeconds(1)));
+        adapter.Dispose();
+        await adapter.Completion.WaitAsync(TimeSpan.FromSeconds(10));
+        Assert.Equal(1824,engine.Snapshot().FightDamage);
+        Assert.Equal(4,events.Count(e=>e.Kind==CombatKind.Damage));
+        Assert.Equal(4,events.Count(e=>e.Kind==CombatKind.PlayerName));
+        Assert.Equal(10,events.Count);
+    }
+
+    [Fact]
+    public async Task FailedQueueActionDoesNotPreventFollowingPacketOrDrain()
+    {
+        using var adapter=new LiveCaptureAdapter(new Decoder());
+        var events=new List<CombatEvent>();
+        var statuses=new List<string>();
+        adapter.EventReceived += events.Add;
+        adapter.StatusChanged += _=>throw new Exception("status");
+        adapter.StatusChanged += statuses.Add;
+        Queue(adapter).Add(()=>throw new InvalidOperationException("bad packet"));
+        Queue(adapter).Add(()=>Packet(adapter,1,DateTime.UnixEpoch));
+        adapter.Dispose();
+        await adapter.Completion.WaitAsync(TimeSpan.FromSeconds(10));
+        Assert.Equal(912,events.Where(e=>e.Kind==CombatKind.Damage).Sum(e=>e.Amount));
+        Assert.Single(statuses,s=>s=="Capture/decoder error: bad packet");
+        Assert.True(adapter.Completion.IsCompletedSuccessfully);
+    }
+
+    [Fact]
+    public async Task QueuedPacketBurstWithBrokenListenerDrainsExactlyOnceAndKeepsRecentHistoryBounded()
+    {
+        const int packets=2500;
+        var now=DateTime.UnixEpoch;
+        using var adapter=new LiveCaptureAdapter(new Decoder());
+        var engine=new CombatEngine(()=>now.AddSeconds(4));
+        var delivered=0;
+        var failures=0;
+        adapter.EventReceived += _=>throw new Exception("listener");
+        adapter.EventReceived += e=> {engine.Apply(e);delivered++;};
+        adapter.StatusChanged += s=> {if(s.StartsWith("Combat event notification failed:"))failures++;};
+        for(var i=0;i<packets;i++)
+        {
+            var sequence=(uint)(i+1);
+            var utc=now.AddMilliseconds(i);
+            Queue(adapter).Add(()=>Packet(adapter,sequence,utc));
+        }
+        adapter.Dispose();
+        await adapter.Completion.WaitAsync(TimeSpan.FromSeconds(30));
+        var snapshot=engine.Snapshot();
+        Assert.Equal(packets*912L,snapshot.FightDamage);
+        Assert.Equal(packets*45L,engine.Snapshot(MeterSegment.Current,MeterCategory.Healing).Players.Single().Damage);
+        Assert.Equal(packets*4+1,delivered); // one initial identity replay
+        Assert.Equal(delivered,failures);
+        Assert.Equal(2000,snapshot.RecentEvents.Count);
+        Assert.True(adapter.Completion.IsCompletedSuccessfully);
+    }
+
+    [Fact]
     public async Task ThrowingListenersPreserveBatchOrderInstancesAndCombatTotals()
     {
         using var adapter = new LiveCaptureAdapter(new Decoder());
