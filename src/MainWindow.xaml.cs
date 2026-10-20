@@ -63,6 +63,10 @@ public partial class MainWindow : Window
                 try {await store.SaveAsync(snapshot);} catch(Exception ex) {lock(diagnosticsGate) historyError=$"History save failed: {ex.Message}";}
             }).Unwrap();
         };
+        engine.EncounterNotificationFailed += ex =>
+        {
+            lock(diagnosticsGate) historyError=$"Encounter notification failed: {ex.Message}";
+        };
         capture=new LiveCaptureAdapter(decoder);
         capture.ValidationRecord+=RecordValidation;
         capture.PacketCaptured += ()=>Interlocked.Increment(ref packets);
