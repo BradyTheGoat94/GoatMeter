@@ -32,8 +32,8 @@ public partial class MainWindow : Window
         try {profile=ProtocolProfile.Load(path);} catch {profile=ProtocolProfile.SafeGlobalScaffold();}
         var decoder=new CurrentClientDecoder(profile); profileId=decoder.ProfileId;
         var validationDir=System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),"Aion2DPSPro","Validation");
-        System.IO.Directory.CreateDirectory(validationDir);
         validationPath=System.IO.Path.Combine(validationDir,$"combat-{DateTime.Now:yyyyMMdd-HHmmss}.log");
+        bool validationDirectoryReady=false;
         int verboseValidationCount=0;
         var validationGate=new object();
         void RecordValidation(string line)
@@ -47,6 +47,7 @@ public partial class MainWindow : Window
                 if(verbose && verboseValidationCount>=50)return;
                 try
                 {
+                    if(!validationDirectoryReady) {System.IO.Directory.CreateDirectory(validationDir);validationDirectoryReady=true;}
                     System.IO.File.AppendAllText(validationPath,line+Environment.NewLine);
                     if(verbose)verboseValidationCount++;
                 }
