@@ -45,9 +45,32 @@ public sealed class FightStore
             // Permit replacement by another store while retaining a complete
             // file for this reader; this store's own writes wait for ioGate.
             await using var stream=new FileStream(path,FileMode.Open,FileAccess.Read,FileShare.Read|FileShare.Delete,4096,true);
-            return await JsonSerializer.DeserializeAsync<MeterSnapshot>(stream);
+            var snapshot=await JsonSerializer.DeserializeAsync<MeterSnapshot>(stream);
+            if(snapshot!=null)ValidateSnapshot(snapshot);
+            return snapshot;
         }
         finally {ioGate.Release();}
+    }
+    private static bool HasItems<T>(IReadOnlyList<T>? items) where T:class =>
+        items!=null && items.All(item=>item!=null);
+    private static bool ValidPlayers(IReadOnlyList<PlayerStats>? players) =>
+        HasItems(players) && players!.All(player=>player.ClassName!=null);
+    private static bool ValidSkills(IReadOnlyList<SkillStats>? skills) =>
+        HasItems(skills) && skills!.All(skill=>skill.FlagHits!=null);
+    private static void ValidateSnapshot(MeterSnapshot snapshot)
+    {
+        // JSON nulls bypass C# non-null annotations. Reject broken structures
+        // before a saved selection reaches recurring UI/report callbacks.
+        if(!ValidPlayers(snapshot.Players) || !ValidSkills(snapshot.Skills) ||
+           !HasItems(snapshot.Buffs) || !HasItems(snapshot.RecentEvents) || !HasItems(snapshot.Targets) ||
+           snapshot.Categories==null || snapshot.Categories.Values.Any(category=>
+               category==null || !ValidPlayers(category.Players) || !ValidSkills(category.Skills)))
+            throw new InvalidDataException("Saved fight history contains missing collections or invalid rows.");
+        if(snapshot.FightSeconds<0)
+            throw new InvalidDataException("Saved fight history has a negative duration.");
+        try {_=TimeSpan.FromSeconds(snapshot.FightSeconds);}
+        catch(Exception ex) when(ex is ArgumentException or OverflowException)
+        {throw new InvalidDataException("Saved fight history has an invalid duration.",ex);}
     }
     public IEnumerable<string> List() => Directory.Exists(folder)
         ? Directory.EnumerateFiles(folder,"*.json").OrderByDescending(x=>x)
