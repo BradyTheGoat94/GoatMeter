@@ -146,7 +146,9 @@ public sealed class LiveCaptureAdapter : IDisposable
         try
         {
             var raw=capture.GetPacket();
-            var bytes=raw.Data.ToArray(); var link=raw.LinkLayerType;
+            // GetPacket already copies SharpPcap's native span into an owned
+            // array. Keep that array for the worker without a second copy.
+            var bytes=raw.Data; var link=raw.LinkLayerType;
             var device=(sender as ICaptureDevice)?.Name??"unknown";
             var utc=DateTime.UtcNow;
             if(!queue.TryAdd(()=>Process(device,Packet.ParsePacket(link,bytes),utc)))

@@ -224,6 +224,7 @@ public sealed class LiveCaptureAdapterTests
     public class StartupDevice : DispatchProxy
     {
         public List<string> Calls=new();
+        public PacketArrivalEventHandler? Arrival;
         public string? FailOn;
         public Action? OnStart;
         public Action? OnStop;
@@ -232,10 +233,100 @@ public sealed class LiveCaptureAdapterTests
             var name=targetMethod!.Name;
             Calls.Add(name);
             if(name==FailOn)throw new InvalidOperationException("startup failed");
+            if(name=="add_OnPacketArrival")Arrival+=(PacketArrivalEventHandler)args![0]!;
+            if(name=="remove_OnPacketArrival")Arrival-=(PacketArrivalEventHandler)args![0]!;
             if(name=="StartCapture")OnStart?.Invoke();
             if(name=="StopCapture")OnStop?.Invoke();
+            if(name=="get_LinkType")return LinkLayers.Raw;
+            if(name=="get_Name")return "test";
             return null;
         }
+        public void Emit(ICaptureDevice device,byte[] bytes,bool validHeader=true)
+        {
+            ICaptureHeader? header=validHeader?new SharpPcap.LibPcap.PcapHeader(0,0,(uint)bytes.Length,(uint)bytes.Length):null;
+            Arrival?.Invoke(device,new PacketCapture(device,header!,bytes));
+        }
+    }
+
+    private static byte[] RawPacket(uint sequence)
+    {
+        var tcp=new TcpPacket(13328,40000) {SequenceNumber=sequence,PayloadData=new byte[]{1}};
+        var ip=new IPv4Packet(IPAddress.Parse("10.0.0.1"),IPAddress.Parse("10.0.0.2")) {PayloadPacket=tcp};
+        ip.UpdateCalculatedValues();
+        return ip.Bytes;
+    }
+
+    [Fact]
+    public async Task NativeCallbackOwnsQueuedBytesBeforeCaptureBufferIsReused()
+    {
+        var device=DispatchProxy.Create<ICaptureDevice,StartupDevice>();
+        var proxy=(StartupDevice)(object)device;
+        using var adapter=new LiveCaptureAdapter(new Decoder(),()=>new[]{device});
+        using var entered=new ManualResetEventSlim();
+        using var release=new ManualResetEventSlim();
+        var events=new List<CombatEvent>();
+        adapter.EventReceived += events.Add;
+        Queue(adapter).Add(()=> {entered.Set();if(!release.Wait(TimeSpan.FromSeconds(10)))throw new TimeoutException();});
+        adapter.Start();
+        try
+        {
+            Assert.True(entered.Wait(TimeSpan.FromSeconds(10)));
+            var bytes=RawPacket(1);
+            proxy.Emit(device,bytes);
+            Assert.Single(Queue(adapter));
+            Array.Fill(bytes,(byte)0); // Native packet memory may be reused immediately.
+        }
+        finally {release.Set();}
+        adapter.Dispose();
+        await adapter.Completion.WaitAsync(TimeSpan.FromSeconds(10));
+        Assert.Equal(912,events.Where(e=>e.Kind==CombatKind.Damage).Sum(e=>e.Amount));
+    }
+
+    [Fact]
+    public async Task FullWorkerQueueDropsAndReportsNativePacketWithoutBlockingCapture()
+    {
+        var device=DispatchProxy.Create<ICaptureDevice,StartupDevice>();
+        var proxy=(StartupDevice)(object)device;
+        using var adapter=new LiveCaptureAdapter(new Decoder(),()=>new[]{device});
+        using var entered=new ManualResetEventSlim();
+        using var release=new ManualResetEventSlim();
+        var events=new List<CombatEvent>();
+        adapter.EventReceived += events.Add;
+        Queue(adapter).Add(()=> {entered.Set();if(!release.Wait(TimeSpan.FromSeconds(10)))throw new TimeoutException();});
+        adapter.Start();
+        try
+        {
+            Assert.True(entered.Wait(TimeSpan.FromSeconds(10)));
+            for(var i=0;i<4096;i++)Queue(adapter).Add(()=>{});
+            proxy.Emit(device,RawPacket(1));
+            Assert.Contains("1 packets dropped",adapter.Health);
+            Assert.Equal(4096,Queue(adapter).Count);
+        }
+        finally {release.Set();}
+        adapter.Dispose();
+        await adapter.Completion.WaitAsync(TimeSpan.FromSeconds(10));
+        Assert.Empty(events);
+    }
+
+    [Fact]
+    public async Task MalformedNativeCallbackAndBrokenStatusListenerDoNotEscapeOrStopLaterPackets()
+    {
+        var device=DispatchProxy.Create<ICaptureDevice,StartupDevice>();
+        var proxy=(StartupDevice)(object)device;
+        using var adapter=new LiveCaptureAdapter(new Decoder(),()=>new[]{device});
+        var statuses=new List<string>();
+        var events=new List<CombatEvent>();
+        adapter.StatusChanged += _=>throw new Exception("status");
+        adapter.StatusChanged += statuses.Add;
+        adapter.EventReceived += events.Add;
+        adapter.Start();
+        proxy.Emit(device,RawPacket(1),false);
+        proxy.Emit(device,RawPacket(1));
+        adapter.Dispose();
+        await adapter.Completion.WaitAsync(TimeSpan.FromSeconds(10));
+        Assert.Contains(statuses,s=>s.StartsWith("Capture callback error; data may be incomplete:"));
+        Assert.Contains("1 packets dropped",adapter.Health);
+        Assert.Equal(912,events.Where(e=>e.Kind==CombatKind.Damage).Sum(e=>e.Amount));
     }
 
     [Theory]
