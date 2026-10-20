@@ -29,7 +29,13 @@ public partial class OverlayWindow : Window
     bool showCharacterStats=true;
     EventTimersWindow? eventTimers;
     bool showDetails = true;
-    public OverlayWindow() { InitializeComponent(); CategoryPicker.ItemsSource=new[]{"Damage","Healing","Damage Taken","Deaths","Buffs","Debuffs","Interrupts","Dispels"}; CategoryPicker.SelectedIndex=0; FightHistory.ItemsSource=new[]{new HistoryChoice("Saved fights ▾",null)}; FightHistory.SelectedIndex=0; ApplyTheme(currentTheme); ApplyOverlayStyle(currentStyle); LoadPreferences(); }
+    private readonly string preferencesPath;
+    public OverlayWindow() : this(null) { }
+    public OverlayWindow(string? preferencesPath)
+    {
+        this.preferencesPath=preferencesPath??System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),"Aion2DPSPro","overlay-settings.json");
+        InitializeComponent(); CategoryPicker.ItemsSource=new[]{"Damage","Healing","Damage Taken","Deaths","Buffs","Debuffs","Interrupts","Dispels"}; CategoryPicker.SelectedIndex=0; FightHistory.ItemsSource=new[]{new HistoryChoice("Saved fights ▾",null)}; FightHistory.SelectedIndex=0; ApplyTheme(currentTheme); ApplyOverlayStyle(currentStyle); LoadPreferences();
+    }
     static readonly Dictionary<string,string> Colors = new(StringComparer.OrdinalIgnoreCase) {
         ["Gladiator"]="#E65353", ["Templar"]="#E8903D", ["Assassin"]="#C45CFF", ["Ranger"]="#F2C94C",
         ["Sorcerer"]="#4DA3FF", ["Spiritmaster"]="#48C9D8", ["Cleric"]="#6DDB72", ["Chanter"]="#D6DCE8", ["Brawler"]="#FF7A45", ["Unknown"]="#AAB6CC" };
@@ -589,7 +595,7 @@ public partial class OverlayWindow : Window
         var report=new CombatReportWindow(provider,r.Stats.ActorId,(MeterCategory)Math.Clamp(Tabs.SelectedIndex,0,7),hideNames,showCharacterStats) {Owner=this};
         report.Show();
     }
-    static string PreferencesPath=>System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),"Aion2DPSPro","overlay-settings.json");
+    string PreferencesPath=>preferencesPath;
     public sealed record OverlayPreferences(string Style,string Theme,double Opacity,bool Details,bool Topmost,double Width,double Height,double Left,double Top,bool PositionLocked=false,bool HideNames=false,bool ShowCharacterStats=true,double UiScale=1);
     void LoadPreferences()
     {

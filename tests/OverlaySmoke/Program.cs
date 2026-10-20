@@ -11,7 +11,11 @@ internal static class Program
  static void Main()
  {
   var app=new Application {ShutdownMode=ShutdownMode.OnExplicitShutdown};
-  var window=new OverlayWindow();
+  var settingsDirectory=System.IO.Path.Combine(System.IO.Path.GetTempPath(),"GoatMeter-smoke-"+Guid.NewGuid().ToString("N"));
+  System.IO.Directory.CreateDirectory(settingsDirectory);
+  try
+  {
+  var window=new OverlayWindow(System.IO.Path.Combine(settingsDirectory,"overlay-settings.json"));
   void Invoke(string name,string value)=>typeof(OverlayWindow).GetMethod(name,BindingFlags.NonPublic|BindingFlags.Instance)!.Invoke(window,new object[]{value});
   string? previous=null;
   foreach(var theme in new[]{"Aion Blue/Red","Neon Spectrum","Void Purple","Emerald Glass","Solar Flare","Ice Crystal","Midnight Gold","Rose Quartz","Aurora","Black / Orange","Black / Yellow","Nightmare Before Christmas"})
@@ -201,12 +205,13 @@ internal static class Program
   if(((Button)window.FindName("FreezeView")).Content.ToString()!="Ⅱ")throw new Exception("Changing segments left a misleading frozen view");
   // Preferences may already have a non-default scale. Resize relative to it,
   // then restore it so repeat runs check the same behavior.
+  typeof(OverlayWindow).GetMethod("SetUiScale",BindingFlags.NonPublic|BindingFlags.Instance)!.Invoke(window,new object[]{.9});
   var originalScale=(double)typeof(OverlayWindow).GetField("uiScale",BindingFlags.NonPublic|BindingFlags.Instance)!.GetValue(window)!;
   var originalWidth=window.Width;typeof(OverlayWindow).GetMethod("SetUiScale",BindingFlags.NonPublic|BindingFlags.Instance)!.Invoke(window,new object[]{.8});
   if(Math.Abs(window.Width-originalWidth*.8/originalScale)>.01)throw new Exception("UI scale did not resize coherently");
   typeof(OverlayWindow).GetMethod("SetUiScale",BindingFlags.NonPublic|BindingFlags.Instance)!.Invoke(window,new object[]{originalScale});
   Console.WriteLine("PASS: freeze preserves capture, navigation resumes display and UI scale");
-  var eventWindow=new EventTimersWindow {Owner=window,Clock=()=>new DateTimeOffset(2026,10,14,2,59,0,TimeSpan.Zero)};
+  var eventWindow=new EventTimersWindow(settingsDirectory) {Owner=window,Clock=()=>new DateTimeOffset(2026,10,14,2,59,0,TimeSpan.Zero)};
   eventWindow.Show();eventWindow.Refresh();eventWindow.UpdateLayout();
   var eventItems=(ItemsControl)eventWindow.FindName("EventRows");
   if(eventItems.Items.Count!=2)throw new Exception("Imported rift/festival timers missing");
@@ -215,6 +220,13 @@ internal static class Program
   var eventPng=new System.Windows.Media.Imaging.PngBitmapEncoder();eventPng.Frames.Add(System.Windows.Media.Imaging.BitmapFrame.Create(eventBitmap));
   using(var output=System.IO.File.Create("overlay-Event-Countdowns.png"))eventPng.Save(output);
   eventWindow.Close();Console.WriteLine("PASS: imported event countdown window");
-  window.Close();Console.WriteLine("PASS: WPF themes, styles, segment/category switching");app.Shutdown();
+  window.Close();
+  var restored=new OverlayWindow(System.IO.Path.Combine(settingsDirectory,"overlay-settings.json"));
+  var restoredScale=(double)typeof(OverlayWindow).GetField("uiScale",BindingFlags.NonPublic|BindingFlags.Instance)!.GetValue(restored)!;
+  if(Math.Abs(restoredScale-originalScale)>.001)throw new Exception("Isolated overlay preferences did not round trip");
+  restored.Close();Console.WriteLine("PASS: isolated overlay preferences round trip");
+  Console.WriteLine("PASS: WPF themes, styles, segment/category switching");app.Shutdown();
+  }
+  finally {System.IO.Directory.Delete(settingsDirectory,true);}
  }
 }
