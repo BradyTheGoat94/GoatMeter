@@ -238,6 +238,30 @@ public sealed class LiveCaptureAdapterTests
         }
     }
 
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task StartupStatusCannotReenterDiscoveryButLaterRetriesStillWork(bool enumerationFails)
+    {
+        var enumerations=0;
+        using var adapter=new LiveCaptureAdapter(new Decoder(),()=>
+        {
+            enumerations++;
+            if(enumerationFails)throw new InvalidOperationException("discovery unavailable");
+            return Array.Empty<ICaptureDevice>();
+        });
+        var notifications=0;
+        adapter.StatusChanged += _=> {if(notifications++==0)adapter.Start();};
+        adapter.Start();
+        Assert.Equal(1,enumerations);
+        Assert.Equal(1,notifications);
+        adapter.Start();
+        Assert.Equal(2,enumerations);
+        Assert.Equal(2,notifications);
+        adapter.Dispose();
+        await adapter.Completion.WaitAsync(TimeSpan.FromSeconds(10));
+    }
+
     [Fact]
     public async Task NativeStopCanWaitForAnInFlightLifecycleCallbackWithoutDeadlocking()
     {

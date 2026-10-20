@@ -21,6 +21,7 @@ public sealed class LiveCaptureAdapter : IDisposable
     private DateTime lastPayload,lastEvent;
     private long dropped;
     private readonly object lifecycleGate=new();
+    private bool starting;
     private volatile bool disposed;
     public Task Completion => worker;
     public event Action<string>? ValidationRecord;
@@ -101,7 +102,8 @@ public sealed class LiveCaptureAdapter : IDisposable
         if(disposed)return;
         lock(lifecycleGate)
         {
-        if(disposed || devices.Count>0)return;
+        if(disposed || starting || devices.Count>0)return;
+        starting=true;
         try
         {
             foreach(var d in captureDevices())
@@ -135,6 +137,7 @@ public sealed class LiveCaptureAdapter : IDisposable
             if(!disposed)ReportStatusSafely(devices.Count==0?"No capture adapter available. Install Npcap.":$"Waiting for validated AION traffic ({devices.Count} adapters).");
         }
         catch(Exception ex) { ReportStatusSafely($"Capture startup failed: {ex.Message}"); }
+        finally {starting=false;}
         }
     }
     private void OnPacket(object sender,PacketCapture capture)
