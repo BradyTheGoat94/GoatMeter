@@ -263,6 +263,29 @@ public sealed class LiveCaptureAdapterTests
     }
 
     [Fact]
+    public async Task ShutdownDrainsNativeCallbacksThatPassedTheDisposedCheckBeforeStop()
+    {
+        var device=DispatchProxy.Create<ICaptureDevice,StartupDevice>();
+        var proxy=(StartupDevice)(object)device;
+        using var adapter=new LiveCaptureAdapter(new Decoder(),()=>new[]{device});
+        var admitted=false;
+        var processed=0;
+        proxy.OnStop=()=>
+        {
+            // Simulate a native callback that entered before Dispose marked
+            // the adapter disposed, but only now reaches its queue admission.
+            try {admitted=Queue(adapter).TryAdd(()=>processed++);}
+            catch(InvalidOperationException) { }
+        };
+        adapter.Start();
+        adapter.Dispose();
+        await adapter.Completion.WaitAsync(TimeSpan.FromSeconds(10));
+        Assert.True(admitted);
+        Assert.Equal(1,processed);
+        Assert.True(Queue(adapter).IsAddingCompleted);
+    }
+
+    [Fact]
     public async Task NativeStopCanWaitForAnInFlightLifecycleCallbackWithoutDeadlocking()
     {
         var device=DispatchProxy.Create<ICaptureDevice,StartupDevice>();

@@ -258,21 +258,27 @@ public sealed class LiveCaptureAdapter : IDisposable
             disposed=true;
             stoppingDevices=devices.ToArray();
             devices.Clear();
-            queue.CompleteAdding();
         }
         // StopCapture can wait for native callbacks. Do not hold the lifecycle
         // gate while waiting: a callback may already be entering Start/Dispose.
-        foreach(var d in stoppingDevices)
+        try
         {
-            // Native capture teardown can fail on an already-disconnected adapter.
-            // Still attempt to stop and close every remaining adapter.
-            try { d.OnPacketArrival-=OnPacket; }
-            catch(Exception ex) { ReportStatusSafely($"Capture unsubscribe failed: {ex.Message}"); }
-            try { d.StopCapture(); }
-            catch(Exception ex) { ReportStatusSafely($"Capture stop failed: {ex.Message}"); }
-            try { d.Close(); }
-            catch(Exception ex) { ReportStatusSafely($"Capture close failed: {ex.Message}"); }
+            foreach(var d in stoppingDevices)
+            {
+                // Native capture teardown can fail on an already-disconnected adapter.
+                // Still attempt to stop and close every remaining adapter.
+                try { d.OnPacketArrival-=OnPacket; }
+                catch(Exception ex) { ReportStatusSafely($"Capture unsubscribe failed: {ex.Message}"); }
+                try { d.StopCapture(); }
+                catch(Exception ex) { ReportStatusSafely($"Capture stop failed: {ex.Message}"); }
+                try { d.Close(); }
+                catch(Exception ex) { ReportStatusSafely($"Capture close failed: {ex.Message}"); }
+            }
         }
+        finally {queue.CompleteAdding();}
+        // Callbacks already past their disposed check may still queue their
+        // captured bytes while StopCapture waits for them. Close admission only
+        // after native teardown, preserving the original shutdown boundary.
         // Do not dispose the queue while a late native callback may still be
         // returning from TryAdd. Completion lets the worker drain safely;
         // the queue is released with the adapter after callbacks have stopped.
