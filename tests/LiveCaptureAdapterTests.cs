@@ -365,6 +365,37 @@ public sealed class LiveCaptureAdapterTests
     }
 
     [Fact]
+    public async Task CaptureRecoversAfterQueueOverloadButRetainsAccuracyWarning()
+    {
+        var device=DispatchProxy.Create<ICaptureDevice,StartupDevice>();
+        var proxy=(StartupDevice)(object)device;
+        using var adapter=new LiveCaptureAdapter(new Decoder(),()=>new[]{device});
+        using var entered=new ManualResetEventSlim();
+        using var release=new ManualResetEventSlim();
+        using var drained=new ManualResetEventSlim();
+        var events=new List<CombatEvent>();
+        adapter.EventReceived += events.Add;
+        Queue(adapter).Add(()=> {entered.Set();if(!release.Wait(TimeSpan.FromSeconds(10)))throw new TimeoutException();});
+        adapter.Start();
+        try
+        {
+            Assert.True(entered.Wait(TimeSpan.FromSeconds(10)));
+            for(var i=0;i<4096;i++)Queue(adapter).Add(()=>{});
+            proxy.Emit(device,RawPacket(1));
+            Assert.Contains("1 packets dropped",adapter.Health);
+        }
+        finally {release.Set();}
+        // A barrier guarantees that all queued no-op actions have drained.
+        Queue(adapter).Add(()=>drained.Set());
+        Assert.True(drained.Wait(TimeSpan.FromSeconds(20)));
+        proxy.Emit(device,RawPacket(2));
+        adapter.Dispose();
+        await adapter.Completion.WaitAsync(TimeSpan.FromSeconds(20));
+        Assert.Equal(912,events.Where(e=>e.Kind==CombatKind.Damage).Sum(e=>e.Amount));
+        Assert.Contains("1 packets dropped",adapter.Health);
+    }
+
+    [Fact]
     public async Task MalformedNativeCallbackAndBrokenStatusListenerDoNotEscapeOrStopLaterPackets()
     {
         var device=DispatchProxy.Create<ICaptureDevice,StartupDevice>();
