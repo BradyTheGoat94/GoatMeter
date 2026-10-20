@@ -9,6 +9,63 @@ namespace Aion2DPSPro.Tests;
 
 public sealed class PacketDispatcherRegressionTests
 {
+    [Theory]
+    [InlineData(false, false)]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    [InlineData(true, true)]
+    public void DecoderListenerFailuresPreserveSplitAndBatchedEvents(bool sibling, bool reset)
+    {
+        var profile = DamageProfile();
+        var root = new CurrentClientDecoder(profile);
+        var validation = new List<string>();
+        var diagnostics = new List<DecoderDiagnostic>();
+        root.Diagnostic += _ => throw new InvalidOperationException("diagnostic listener");
+        root.Diagnostic += diagnostics.Add;
+        root.ValidationRecord += _ => throw new InvalidOperationException("validation listener");
+        root.ValidationRecord += validation.Add;
+        var decoder = sibling ? root.CreateSibling() : root;
+        if (sibling)
+        {
+            // The forwarding subscriber and subsequent child listeners must both run.
+            decoder.Diagnostic += _ => throw new InvalidOperationException("child diagnostic");
+            decoder.ValidationRecord += _ => throw new InvalidOperationException("child validation");
+        }
+        if (reset) decoder.ResetConnection();
+        var utc = DateTime.UnixEpoch;
+        var frame = Convert.FromHexString("210438E3A00204008D3540B7B70009020B95C34701000000D658E7020100");
+        Assert.Empty(decoder.DecodeStream("in", frame[..8], utc));
+        var actual = decoder.DecodeStream("in", frame[8..].Concat(frame).ToArray(), utc).ToArray();
+        var baseline = new CurrentClientDecoder(profile);
+        var expectedRecords = new List<string>();
+        var expectedDiagnostics = new List<DecoderDiagnostic>();
+        baseline.ValidationRecord += expectedRecords.Add;
+        baseline.Diagnostic += expectedDiagnostics.Add;
+        var expected = baseline.Decode(frame.Concat(frame).ToArray(), utc).ToArray();
+        Assert.Equal(2, actual.Length);
+        Assert.All(actual, e => Assert.Equal(359, e.Amount));
+        Assert.Equal(expected, actual);
+        Assert.NotEmpty(validation);
+        Assert.Equal(expectedRecords, validation);
+        Assert.Equal(expectedDiagnostics, diagnostics.Where(d => d.Stage != "subscriber"));
+        Assert.Contains(diagnostics, d => d.Stage == "subscriber");
+        decoder.ResetStream("in");
+        Assert.Equal(expected[0], Assert.Single(decoder.DecodeStream("in", frame, utc)));
+    }
+
+    [Fact]
+    public void FramingDiagnosticListenerFailureDoesNotPreventBufferRecovery()
+    {
+        var decoder = new CurrentClientDecoder(DamageProfile());
+        var diagnostics = new List<DecoderDiagnostic>();
+        decoder.Diagnostic += _ => throw new InvalidOperationException("listener");
+        decoder.Diagnostic += diagnostics.Add;
+        Assert.Empty(decoder.Decode(new byte[4_000_001], DateTime.UnixEpoch));
+        Assert.Contains(diagnostics, d => d.Stage == "framing");
+        var frame = Convert.FromHexString("210438E3A00204008D3540B7B70009020B95C34701000000D658E7020100");
+        Assert.Equal(359, Assert.Single(decoder.Decode(frame, DateTime.UnixEpoch)).Amount);
+    }
+
     private static ProtocolProfile DamageProfile() => new(
         "REGRESSION", "Global", "capture-2026-10-03", 13328,
         new Dictionary<string, PacketTag>
